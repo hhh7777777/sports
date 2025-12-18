@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员登录 - 运动健康管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .admin-login-container {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .admin-login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        .admin-login-header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            padding: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+<div class="admin-login-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="admin-login-card">
+                    <div class="admin-login-header text-center">
+                        <h3><i class="fas fa-user-shield me-2"></i>管理员登录</h3>
+                        <p class="mb-0">请使用管理员账号登录</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="adminLoginForm">
+                            <div class="mb-3">
+                                <label for="adminUsername" class="form-label">管理员账号</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                                    <input type="text" class="form-control" id="adminUsername" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="adminPassword" class="form-label">密码</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" class="form-control" id="adminPassword" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="adminCaptcha" class="form-label">验证码</label>
+                                <div class="row g-2">
+                                    <div class="col-8">
+                                        <input type="text" class="form-control" id="adminCaptcha" required>
+                                    </div>
+                                    <div class="col-4">
+                                        <img src="../api/captcha" id="adminCaptchaImg" class="img-fluid rounded" style="cursor: pointer;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="adminRememberMe">
+                                <label class="form-check-label" for="adminRememberMe">记住我</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 py-2">
+                                <i class="fas fa-sign-in-alt me-2"></i>登录
+                            </button>
+                        </form>
+                        <div class="text-center mt-3">
+                            <a href="/login" class="text-decoration-none">返回用户登录</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/admin-login.js"></script>
+</body>
+</html>
