@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Created-By: IntelliJ IDEA
+Built-By: 25861
+Build-Jdk: Oracle OpenJDK 17.0.12
+Implementation-Title: Sports
+Implementation-Version: 0.0.1-SNAPSHOT
+Implementation-Vendor-Id: com.hongyuting
+Main-Class: ${start-class}
+

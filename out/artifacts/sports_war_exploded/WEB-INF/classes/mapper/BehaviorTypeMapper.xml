@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hongyuting.sports.mapper.BehaviorTypeMapper">
+    <resultMap id="behaviorTypeResultMap" type="BehaviorType">
+        <id property="typeId" column="type_id"/>
+        <result property="typeName" column="type_name"/>
+        <result property="description" column="description"/>
+        <result property="iconUrl" column="icon_url"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <insert id="insertBehaviorType" useGeneratedKeys="true" keyProperty="typeId">
+        INSERT INTO behavior_type (type_name, description, icon_url)
+        VALUES (#{typeName}, #{description}, #{iconUrl})
+    </insert>
+
+    <update id="updateBehaviorType">
+        UPDATE behavior_type SET
+                                 type_name = #{typeName},
+                                 description = #{description},
+                                 icon_url = #{iconUrl}
+        WHERE type_id = #{typeId}
+    </update>
+
+    <update id="disableBehaviorType">
+        UPDATE behavior_type SET status = 0 WHERE type_id = #{typeId}
+    </update>
+
+    <select id="selectBehaviorTypeById" resultMap="behaviorTypeResultMap">
+        SELECT * FROM behavior_type WHERE type_id = #{typeId}
+    </select>
+
+    <select id="selectBehaviorTypeByName" resultMap="behaviorTypeResultMap">
+        SELECT * FROM behavior_type WHERE type_name = #{typeName}
+    </select>
+
+    <select id="selectAllBehaviorTypes" resultMap="behaviorTypeResultMap">
+        SELECT * FROM behavior_type WHERE status = 1
+    </select>
+
+    <select id="selectAllBehaviorTypesIncludeDisabled" resultMap="behaviorTypeResultMap">
+        SELECT * FROM behavior_type
+    </select>
+</mapper>

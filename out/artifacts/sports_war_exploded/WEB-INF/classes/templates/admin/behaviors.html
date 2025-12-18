@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运动记录管理 - 运动健康管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            background: #343a40;
+            min-height: calc(100vh - 56px);
+        }
+        .sidebar .nav-link {
+            color: #adb5bd;
+            padding: 0.75rem 1rem;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: #fff;
+            background: #495057;
+        }
+        .stat-card {
+            transition: transform 0.2s;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        .activity-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+        .running { color: #28a745; }
+        .swimming { color: #17a2b8; }
+        .cycling { color: #ffc107; }
+        .yoga { color: #6f42c1; }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin/dashboard">
+            <i class="fas fa-tachometer-alt me-2"></i>管理员面板
+        </a>
+        <div class="navbar-nav ms-auto">
+            <span class="navbar-text me-3">
+                欢迎，管理员
+            </span>
+            <div class="dropdown">
+                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-user-circle"></i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>个人资料</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="#" id="adminLogoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- 侧边栏 -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/dashboard">
+                            <i class="fas fa-tachometer-alt me-2"></i>仪表板
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/users">
+                            <i class="fas fa-users me-2"></i>用户管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/behaviors">
+                            <i class="fas fa-running me-2"></i>运动记录
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/badges">
+                            <i class="fas fa-trophy me-2"></i>成就徽章
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/logs">
+                            <i class="fas fa-file-alt me-2"></i>日志管理
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">运动记录管理</h1>
+            </div>
+
+            <!-- 筛选表单 -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form id="filterForm">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="userId" class="form-label">用户ID</label>
+                                <input type="text" class="form-control" id="userId" placeholder="搜索用户ID">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="activityType" class="form-label">运动类型</label>
+                                <select class="form-select" id="activityType">
+                                    <option value="">全部</option>
+                                    <option value="running">跑步</option>
+                                    <option value="swimming">游泳</option>
+                                    <option value="cycling">骑行</option>
+                                    <option value="yoga">瑜伽</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="startDate" class="form-label">开始日期</label>
+                                <input type="text" class="form-control" id="startDate" placeholder="选择日期">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="endDate" class="form-label">结束日期</label>
+                                <input type="text" class="form-control" id="endDate" placeholder="选择日期">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search me-1"></i>搜索
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 运动记录列表 -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>用户ID</th>
+                                <th>用户名</th>
+                                <th>运动类型</th>
+                                <th>时长(分钟)</th>
+                                <th>距离(km)</th>
+                                <th>消耗卡路里</th>
+                                <th>时间</th>
+                                <th>操作</th>
+                            </tr>
+                            </thead>
+                            <tbody id="behaviorsTableBody">
+                            <tr>
+                                <td>1</td>
+                                <td>101</td>
+                                <td>张三</td>
+                                <td>跑步</td>
+                                <td>30</td>
+                                <td>5.0</td>
+                                <td>300</td>
+                                <td>2024-01-15 08:30</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger delete-btn" data-id="1">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>102</td>
+                                <td>李四</td>
+                                <td>游泳</td>
+                                <td>45</td>
+                                <td>1.5</td>
+                                <td>400</td>
+                                <td>2024-01-15 18:00</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger delete-btn" data-id="2">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 分页 -->
+                    <nav aria-label="运动记录分页">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">上一页</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">下一页</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/zh.js"></script>
+<script src="/js/admin-behaviors.js"></script>
+</body>
+</html>

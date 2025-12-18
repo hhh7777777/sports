@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="common/base :: layout(~{::section})">
+<head>
+    <title>错误页面</title>
+</head>
+<body>
+<section class="container mt-5">
+    <div class="alert alert-danger">
+        <h1>发生错误</h1>
+        <p th:text="${errorMessage} ?: '未知错误'"></p>
+        <a th:href="@{/}" class="btn btn-primary">返回首页</a>
+    </div>
+</section>
+</body>
+</html>
