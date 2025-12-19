@@ -142,23 +142,12 @@ async function updateProfile() {
 function changeAvatar(event) {
     const file = event.target.files[0];
     if (file) {
-        // 模拟上传头像
-        console.log('上传头像:', file.name);
-        showAlert('头像上传成功', 'success');
-        
-        // 在实际应用中，这里应该上传文件到服务器
-        // const formData = new FormData();
-        // formData.append('avatar', file);
-        // 
-        // await fetch('/api/user/avatar', {
-        //     method: 'POST',
-        //     body: formData
-        // });
-        
-        // 预览图片
         const reader = new FileReader();
         reader.onload = function(e) {
-            document.getElementById('profileImage').src = e.target.result;
+            const profileImage = document.getElementById('profileImage');
+            if (profileImage) {
+                profileImage.src = e.target.result;
+            }
         };
         reader.readAsDataURL(file);
     }

@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class PageController {
 
-    @GetMapping("/home")
+    @GetMapping({"/", "/home"})
     public String home() {
         return "index";
     }
@@ -21,8 +21,53 @@ public class PageController {
         return "user/login";
     }
 
+    @GetMapping("/dashboard")
+    public String dashboard() {
+        return "user/dashboard";
+    }
+
+    @GetMapping("/behavior")
+    public String behavior() {
+        return "user/behavior";
+    }
+
+    @GetMapping("/achievements")
+    public String achievements() {
+        return "user/achievements";
+    }
+
+    @GetMapping("/profile")
+    public String profile() {
+        return "user/profile";
+    }
+
     @GetMapping("/admin/dashboard")
     public String adminDashboard() {
         return "admin/dashboard";
+    }
+
+    @GetMapping("/admin/users")
+    public String adminUsers() {
+        return "admin/users";
+    }
+
+    @GetMapping("/admin/behaviors")
+    public String adminBehaviors() {
+        return "admin/behaviors";
+    }
+
+    @GetMapping("/admin/badges")
+    public String adminBadges() {
+        return "admin/badges";
+    }
+
+    @GetMapping("/admin/logs")
+    public String adminLogs() {
+        return "admin/logs";
+    }
+
+    @GetMapping("/admin/login")
+    public String adminLogin() {
+        return "admin/login";
     }
 }

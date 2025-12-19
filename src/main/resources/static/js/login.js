@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const captcha = document.getElementById('captcha').value;
-            const rememberMe = document.getElementById('rememberMe') ? document.getElementById('rememberMe').checked : false;
+            const rememberMe = document.getElementById('rememberMe').checked;
 
             // 简单前端验证
             if (!username || !password || !captcha) {
@@ -44,16 +44,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (result.code === 200) {
                     // 存储token
                     if (result.data && result.data.token) {
-                        localStorage.setItem('accessToken', result.data.token);
                         if (rememberMe) {
-                            localStorage.setItem('refreshToken', result.data.token);
+                            localStorage.setItem('accessToken', result.data.token);
                         } else {
-                            sessionStorage.setItem('refreshToken', result.data.token);
+                            sessionStorage.setItem('accessToken', result.data.token);
                         }
                     }
 
                     // 跳转到首页
-                    window.location.href = '/index';
+                    window.location.href = '/dashboard';
                 } else {
                     showAlert(result.message || '登录失败', 'danger');
                     refreshCaptcha();
@@ -83,13 +82,9 @@ document.addEventListener('DOMContentLoaded', function() {
         alertDiv.className = `alert alert-${type} mt-3`;
         alertDiv.textContent = message;
 
-        const container = document.querySelector('.container') || document.body;
-        const firstChild = container.firstChild;
-        if (firstChild) {
-            container.insertBefore(alertDiv, firstChild);
-        } else {
-            container.appendChild(alertDiv);
-        }
+        const container = document.querySelector('.login-body');
+        const form = document.getElementById('loginForm');
+        container.insertBefore(alertDiv, form);
 
         setTimeout(() => {
             alertDiv.remove();

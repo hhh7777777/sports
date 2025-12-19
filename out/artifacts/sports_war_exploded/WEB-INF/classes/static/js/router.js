@@ -36,7 +36,7 @@ class Router {
             if (protectedRoutes.includes(path) && !path.startsWith('/admin')) {
                 const isAuthenticated = await authManager.checkAuth();
                 if (!isAuthenticated) {
-                    this.navigate('/login');
+                    window.location.href = '/login';
                     return;
                 }
             }
@@ -44,7 +44,7 @@ class Router {
             if (path.startsWith('/admin') && path !== '/admin/login') {
                 const isAdminAuthenticated = await this.checkAdminAuth();
                 if (!isAdminAuthenticated) {
-                    this.navigate('/admin/login');
+                    window.location.href = '/admin/login';
                     return;
                 }
             }
@@ -55,6 +55,13 @@ class Router {
     }
 
     async navigate(path, data = {}) {
+        // 对于需要后端处理的路径，直接跳转
+        const backendPaths = ['/dashboard', '/behavior', '/achievements', '/profile', '/login', '/register', '/', '/admin'];
+        if (backendPaths.includes(path) || path.startsWith('/admin/')) {
+            window.location.href = path;
+            return;
+        }
+        
         window.history.pushState(data, '', path);
         await this.handleRouteChange();
     }
@@ -113,6 +120,14 @@ class Router {
     // 模板加载方法
     async loadTemplate(templateName) {
         try {
+            // 特殊处理某些模板
+            if (['dashboard', 'behavior', 'achievements', 'profile'].includes(templateName)) {
+                // 对于这些页面，直接跳转到对应的URL
+                window.location.href = `/${templateName}`;
+                return '';
+            }
+            
+            // 尝试从服务器加载模板
             const response = await fetch(`/templates/${templateName}.html`);
             if (!response.ok) throw new Error('Template not found');
             return await response.text();

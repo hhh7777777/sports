@@ -27,11 +27,12 @@ document.addEventListener('DOMContentLoaded', function() {
             username: document.getElementById('username').value,
             email: document.getElementById('email').value,
             password: passwordInput.value,
+            confirmPassword: document.getElementById('confirmPassword').value,
             captcha: document.getElementById('captcha').value
         };
 
         try {
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch('/api/user/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -41,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const result = await response.json();
 
-            if (response.ok) {
+            if (response.ok && result.code === 200) {
                 showAlert('注册成功！正在跳转...', 'success');
                 setTimeout(() => {
                     window.location.href = '/login';
@@ -152,14 +153,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 验证码刷新功能
     function refreshCaptcha() {
-        const captchaImage = document.getElementById('captchaImage');
+        const captchaImage = document.getElementById('captchaImg');
         if (captchaImage) {
             captchaImage.src = '/api/common/captcha?t=' + new Date().getTime();
         }
     }
 
     // 初始化验证码点击事件
-    document.getElementById('captchaImage').addEventListener('click', refreshCaptcha);
+    document.getElementById('captchaImg').addEventListener('click', refreshCaptcha);
 
     // 页面加载时初始化验证码
     window.addEventListener('load', refreshCaptcha);

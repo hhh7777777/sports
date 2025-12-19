@@ -6,21 +6,32 @@ import com.hongyuting.sports.dto.ResponseDTO;
 import com.hongyuting.sports.entity.User;
 import com.hongyuting.sports.entity.UserStats;
 import com.hongyuting.sports.mapper.UserMapper;
+import com.hongyuting.sports.service.TokenService;
 import com.hongyuting.sports.service.UserService;
+import com.hongyuting.sports.util.JwtUtil;
 import com.hongyuting.sports.util.PasswordUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
+    
+    @Autowired
+    private JwtUtil jwtUtil;
+    
+    @Autowired
+    private TokenService tokenService;
 
     @Override
     @Transactional
@@ -31,10 +42,15 @@ public class UserServiceImpl implements UserService {
                 return ResponseDTO.error("用户名已存在");
             }
 
+            // 检查邮箱是否存在
+            if (userMapper.existsByEmail(registerDTO.getEmail())) {
+                return ResponseDTO.error("邮箱已被注册");
+            }
+
             // 创建用户对象
             User user = new User();
             user.setUsername(registerDTO.getUsername());
-            user.setNickname(registerDTO.getNickname());
+            user.setNickname(registerDTO.getUsername()); // 默认使用用户名作为昵称
             user.setEmail(registerDTO.getEmail());
 
             // 生成盐值并加密密码
@@ -43,12 +59,19 @@ public class UserServiceImpl implements UserService {
 
             user.setPassword(encryptedPassword);
             user.setSalt(salt);
-            user.setUserStatus(1);
+            user.setUserStatus(1); // 1表示活跃用户
             user.setRegisterTime(LocalDateTime.now());
             user.setLastLoginTime(LocalDateTime.now());
 
             int result = userMapper.insertUser(user);
-            return result > 0 ? ResponseDTO.success("注册成功") : ResponseDTO.error("注册失败");
+            if (result > 0) {
+                // 注册成功，返回用户信息（不包含敏感信息）
+                user.setPassword(null);
+                user.setSalt(null);
+                return ResponseDTO.success("注册成功", user);
+            } else {
+                return ResponseDTO.error("注册失败");
+            }
         } catch (Exception e) {
             log.error("用户注册异常", e);
             return ResponseDTO.error("注册异常: " + e.getMessage());
@@ -72,7 +95,18 @@ public class UserServiceImpl implements UserService {
             user.setLastLoginTime(LocalDateTime.now());
             userMapper.updateUser(user);
 
-            return ResponseDTO.success("登录成功");
+            // 生成JWT Token
+            String token = jwtUtil.generateToken(user.getUserId(), user.getUsername());
+            
+            // 存储用户信息到Redis
+            tokenService.storeUserInfo(token, user);
+
+            // 准备返回数据
+            Map<String, Object> data = new HashMap<>();
+            data.put("token", token);
+            data.put("user", user);
+
+            return ResponseDTO.success("登录成功", data);
         } catch (Exception e) {
             log.error("用户登录异常", e);
             return ResponseDTO.error("登录异常: " + e.getMessage());
@@ -81,8 +115,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseDTO logout(String token) {
-        // 实际项目中应该使token失效
-        return ResponseDTO.success("退出成功");
+        try {
+            // 使token失效
+            tokenService.deleteToken(token);
+            return ResponseDTO.success("退出成功");
+        } catch (Exception e) {
+            log.error("用户退出异常", e);
+            return ResponseDTO.error("退出异常: " + e.getMessage());
+        }
     }
 
     @Override
@@ -179,38 +219,107 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseDTO validateToken(String token) {
-        // 实际项目中应验证JWT token
-        return ResponseDTO.success("Token有效");
+        try {
+            // 验证JWT token有效性
+            if (!jwtUtil.validateToken(token)) {
+                return ResponseDTO.error("Token无效");
+            }
+            
+            // 验证Redis中是否存在该token
+            if (!tokenService.existsToken(token)) {
+                return ResponseDTO.error("Token已过期");
+            }
+            
+            // 获取用户信息
+            User user = tokenService.getUserInfo(token);
+            if (user == null) {
+                return ResponseDTO.error("Token信息丢失");
+            }
+            
+            return ResponseDTO.success("Token有效", user);
+        } catch (Exception e) {
+            log.error("Token验证异常", e);
+            return ResponseDTO.error("Token验证异常: " + e.getMessage());
+        }
     }
 
     @Override
     public User getUserByToken(String token) {
-        // 实际项目中应解析JWT token获取用户信息
-        return null;
+        try {
+            // 验证JWT token有效性
+            if (!jwtUtil.validateToken(token)) {
+                return null;
+            }
+            
+            // 从Redis获取用户信息
+            return tokenService.getUserInfo(token);
+        } catch (Exception e) {
+            log.error("通过Token获取用户信息异常", e);
+            return null;
+        }
     }
 
     @Override
     public ResponseDTO refreshToken(String token) {
-        // 实际项目中应生成新的JWT token
-        return ResponseDTO.success("Token刷新成功");
+        try {
+            // 验证原token有效性
+            if (!jwtUtil.validateToken(token) || !tokenService.existsToken(token)) {
+                return ResponseDTO.error("原Token无效或已过期");
+            }
+            
+            // 获取用户信息
+            User user = tokenService.getUserInfo(token);
+            if (user == null) {
+                return ResponseDTO.error("用户信息丢失");
+            }
+            
+            // 生成新token
+            String newToken = jwtUtil.generateToken(user.getUserId(), user.getUsername());
+            
+            // 存储新token并删除旧token
+            tokenService.storeUserInfo(newToken, user);
+            tokenService.deleteToken(token);
+            
+            Map<String, Object> data = new HashMap<>();
+            data.put("token", newToken);
+            
+            return ResponseDTO.success("Token刷新成功", data);
+        } catch (Exception e) {
+            log.error("Token刷新异常", e);
+            return ResponseDTO.error("Token刷新异常: " + e.getMessage());
+        }
     }
 
     @Override
     public String generateToken(Integer userId, String username) {
-        // 实际项目中应生成JWT token
-        return "fake_token_" + userId;
+        return jwtUtil.generateToken(userId, username);
     }
 
     @Override
     public boolean invalidateToken(String token) {
-        // 实际项目中应使JWT token失效
-        return true;
+        try {
+            tokenService.deleteToken(token);
+            return true;
+        } catch (Exception e) {
+            log.error("Token失效异常", e);
+            return false;
+        }
     }
 
     @Override
     public long getTokenExpireTime(String token) {
-        // 实际项目中应解析JWT token获取过期时间
-        return 3600; // 默认1小时
+        try {
+            // 验证JWT token有效性
+            if (!jwtUtil.validateToken(token)) {
+                return -1;
+            }
+            
+            // 获取剩余有效时间
+            return jwtUtil.getTokenRemainingTime(token);
+        } catch (Exception e) {
+            log.error("获取Token过期时间异常", e);
+            return -1;
+        }
     }
 
     @Override

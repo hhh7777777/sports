@@ -12,16 +12,18 @@ class AuthManager {
         }
 
         try {
-            const response = await fetch('/api/auth/validate', {
+            const response = await fetch('/api/user/validate-token', {
                 headers: {
                     'Authorization': `Bearer ${this.token}`
                 }
             });
 
             if (response.ok) {
-                const userData = await response.json();
-                this.currentUser = userData;
-                return true;
+                const result = await response.json();
+                if (result.code === 200) {
+                    this.currentUser = result.data;
+                    return true;
+                }
             }
         } catch (error) {
             console.error('Auth validation error:', error);
@@ -33,7 +35,7 @@ class AuthManager {
 
     async login(credentials) {
         try {
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch('/api/user/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -43,7 +45,7 @@ class AuthManager {
 
             const result = await response.json();
 
-            if (response.ok && result.success) {
+            if (response.ok && result.code === 200) {
                 this.token = result.data.token;
                 this.currentUser = result.data.user;
 
@@ -66,7 +68,7 @@ class AuthManager {
 
     async register(userData) {
         try {
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch('/api/user/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -76,7 +78,7 @@ class AuthManager {
 
             const result = await response.json();
 
-            if (response.ok && result.success) {
+            if (response.ok && result.code === 200) {
                 Utils.showAlert('注册成功！', 'success');
                 return { success: true };
             } else {
@@ -91,7 +93,7 @@ class AuthManager {
     async logout() {
         try {
             if (this.token) {
-                await fetch('/api/auth/logout', {
+                await fetch('/api/user/logout', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${this.token}`

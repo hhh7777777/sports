@@ -30,7 +30,11 @@ async function checkAuth() {
             window.location.href = '/login';
         } else {
             const result = await response.json();
-            document.getElementById('userName').textContent = result.data.username;
+            if (result.code === 200 && result.data) {
+                document.getElementById('userName').textContent = result.data.username || result.data.nickname || '用户';
+            } else {
+                window.location.href = '/login';
+            }
         }
     } catch (error) {
         console.error('验证用户身份时出错:', error);
