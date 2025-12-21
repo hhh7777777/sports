@@ -225,7 +225,24 @@ async function loadUserProfile() {
         if (badgeStatsResponse.ok) {
             const badgeStatsResult = await badgeStatsResponse.json();
             if (badgeStatsResult.code === 200 && badgeStatsResult.data) {
-                badgeCount = Array.isArray(badgeStatsResult.data) ? badgeStatsResult.data.length : 0;
+                // 只统计已获得且进度为100%的徽章
+                badgeCount = Array.isArray(badgeStatsResult.data) ? 
+                    badgeStatsResult.data.filter(badge => badge.achieved && badge.progress >= 100).length : 0;
+            }
+        }
+        
+        // 获取连续打卡天数
+        const streakDaysResponse = await fetch('/api/user/streak-days', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        let streakDays = 0;
+        if (streakDaysResponse.ok) {
+            const streakDaysResult = await streakDaysResponse.json();
+            if (streakDaysResult.code === 200 && streakDaysResult.data) {
+                streakDays = streakDaysResult.data.streakDays || 0;
             }
         }
         
@@ -239,9 +256,8 @@ async function loadUserProfile() {
         const badgeCountEl = document.getElementById('badgeCount');
         if (badgeCountEl) badgeCountEl.textContent = badgeCount;
         
-        // TODO: 连续打卡天数需要后端提供API
-        const streakDays = document.getElementById('streakDays');
-        if (streakDays) streakDays.textContent = '0';
+        const streakDaysEl = document.getElementById('streakDays');
+        if (streakDaysEl) streakDaysEl.textContent = streakDays;
         
     } catch (error) {
         console.error('加载用户资料时出错:', error);

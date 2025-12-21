@@ -15,8 +15,10 @@ import com.hongyuting.sports.service.FileUploadService;
 import com.hongyuting.sports.service.UserService;
 import com.hongyuting.sports.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,13 +43,35 @@ public class AdminController {
     private final FileUploadService fileUploadService;
     private final JwtUtil jwtUtil;
     
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminController.class);
+    
+    @Autowired
+    private com.hongyuting.sports.util.CaptchaUtil captchaUtil;
+    
     /**
      * 管理员登录
      */
     @PostMapping("/login")
-    public ResponseDTO login(@RequestBody AdminLoginDTO loginDTO, HttpServletRequest request) {
+    public ResponseDTO login(@RequestBody AdminLoginDTO loginDTO, HttpServletRequest request, HttpSession session) {
+        log.info("收到管理员登录请求，用户名={}", loginDTO.getUsername());
+        
+        // 验证验证码
+        String sessionCaptcha = (String) session.getAttribute("captcha");
+        if (sessionCaptcha == null || !sessionCaptcha.equalsIgnoreCase(loginDTO.getCaptcha())) {
+            log.warn("管理员登录失败：验证码错误，用户名={}", loginDTO.getUsername());
+            return ResponseDTO.error("验证码错误");
+        }
+        
         String clientIP = getClientIP(request);
-        return adminService.login(loginDTO, clientIP);
+        ResponseDTO result = adminService.login(loginDTO, clientIP);
+        
+        // 登录成功后清除验证码
+        if (result.getCode() == 200) {
+            session.removeAttribute("captcha");
+        }
+        
+        log.info("管理员登录请求处理完成，结果={}", result.getMessage());
+        return result;
     }
 
     /**
@@ -92,7 +116,7 @@ public class AdminController {
         }
 
         // 验证Token是否存在于Redis中
-        if (adminService.existsToken(token)) {
+        if (!adminService.existsToken(token)) {
             return ResponseDTO.error("认证令牌无效或已过期");
         }
 
@@ -112,7 +136,10 @@ public class AdminController {
     @PostMapping("/create")
     public ResponseDTO createAdmin(@RequestBody com.hongyuting.sports.entity.Admin admin,
                                    @RequestAttribute Integer adminId) {
-        // 这里可以添加权限验证逻辑
+        // 权限验证逻辑
+        if (!adminService.isSuperAdmin(adminId)) {
+            return ResponseDTO.error("无权限创建管理员");
+        }
         return adminService.createAdmin(admin);
     }
 

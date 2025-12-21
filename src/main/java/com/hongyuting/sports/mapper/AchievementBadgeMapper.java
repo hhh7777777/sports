@@ -40,6 +40,10 @@ public interface AchievementBadgeMapper {
      */
     List<Badge> selectBadgesByLevel(@Param("level") int level);
     /**
+     * 根据类型查询徽章
+     */
+    List<Badge> selectBadgesByType(@Param("badgeType") String badgeType);
+    /**
      * 删除徽章
      */
     int deleteBadge(Integer badgeId);

@@ -72,4 +72,10 @@ public class PageController {
     public String adminLogin() {
         return "admin/login";
     }
+    
+    // 添加圣诞活动页面映射
+    @GetMapping("/christmas-event")
+    public String christmasEvent() {
+        return "newyear";
+    }
 }

@@ -11,15 +11,16 @@
         <result property="level" column="level"/>
         <result property="rewardPoints" column="reward_points"/>
         <result property="status" column="status"/>
+        <result property="badgeType" column="badge_type"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
     <insert id="insertBadge" useGeneratedKeys="true" keyProperty="badgeId">
         INSERT INTO achievement_badge
-        (badge_name, description, icon_url, condition_type, condition_value, level, reward_points, create_time, update_time)
+        (badge_name, description, icon_url, condition_type, condition_value, level, reward_points, badge_type, status, create_time, update_time)
         VALUES
-            (#{badgeName}, #{description}, #{iconUrl}, #{conditionType}, #{conditionValue}, #{level}, #{rewardPoints}, #{createTime}, #{updateTime})
+            (#{badgeName}, #{description}, #{iconUrl}, #{conditionType}, #{conditionValue}, #{level}, #{rewardPoints}, #{badgeType}, #{status}, #{createTime}, #{updateTime})
     </insert>
 
     <update id="updateBadge">
@@ -31,6 +32,7 @@
             condition_value = #{conditionValue},
             level = #{level},
             reward_points = #{rewardPoints},
+            badge_type = #{badgeType},
             update_time = #{updateTime}
         WHERE badge_id = #{badgeId}
     </update>
@@ -59,6 +61,11 @@
     <select id="selectBadgesByLevel" resultMap="achievementBadgeResultMap">
         SELECT * FROM achievement_badge
         WHERE level = #{level} AND status = 1
+    </select>
+    
+    <select id="selectBadgesByType" resultMap="achievementBadgeResultMap">
+        SELECT * FROM achievement_badge
+        WHERE badge_type = #{badgeType} AND status = 1
     </select>
 
     <select id="selectTotalBadgeCount" resultType="int">

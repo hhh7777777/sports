@@ -8,6 +8,7 @@ import com.hongyuting.sports.service.BadgeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,7 @@ public class BadgeController {
             dto.setLevel(badge.getLevel());
             dto.setRewardPoints(badge.getRewardPoints());
             dto.setStatus(badge.getStatus());
+            dto.setBadgeType(badge.getBadgeType());
             return dto;
         }).collect(Collectors.toList());
         return ResponseDTO.success("获取成功", badgeDTOs);
@@ -61,6 +63,8 @@ public class BadgeController {
         badgeDTO.setLevel(badge.getLevel());
         badgeDTO.setRewardPoints(badge.getRewardPoints());
         badgeDTO.setStatus(badge.getStatus());
+        badgeDTO.setBadgeType(badge.getBadgeType()); // 添加徽章类型
+
         return ResponseDTO.success("获取成功", badgeDTO);
     }
 
@@ -87,7 +91,7 @@ public class BadgeController {
      */
     @GetMapping("/recent-achievements")
     public ResponseDTO getRecentAchievements(@RequestAttribute Integer userId,
-                                             @RequestParam(defaultValue = "5") Integer limit) {
+                                                            @RequestParam(defaultValue = "5") Integer limit) {
         List<UserBadge> achievements = badgeService.getRecentlyAchievedBadges(userId, limit);
         return ResponseDTO.success("获取成功", achievements);
     }
@@ -97,7 +101,7 @@ public class BadgeController {
      */
     @GetMapping("/check/{badgeId}")
     public ResponseDTO checkBadgeOwnership(@PathVariable Integer badgeId,
-                                           @RequestAttribute Integer userId) {
+                                                          @RequestAttribute Integer userId) {
         boolean hasBadge = badgeService.checkUserHasBadge(userId, badgeId);
         return ResponseDTO.success("查询成功", hasBadge);
     }
@@ -116,6 +120,7 @@ public class BadgeController {
         badge.setLevel(badgeDTO.getLevel());
         badge.setRewardPoints(badgeDTO.getRewardPoints());
         badge.setStatus(badgeDTO.getStatus());
+        badge.setBadgeType(badgeDTO.getBadgeType());
         return badgeService.addBadge(badge);
     }
 
@@ -134,6 +139,8 @@ public class BadgeController {
         badge.setLevel(badgeDTO.getLevel());
         badge.setRewardPoints(badgeDTO.getRewardPoints());
         badge.setStatus(badgeDTO.getStatus());
+        badge.setBadgeType(badgeDTO.getBadgeType()); // 添加徽章类型
+
         return badgeService.updateBadge(badge);
     }
 
@@ -150,7 +157,7 @@ public class BadgeController {
      */
     @GetMapping("/admin/by-condition")
     public ResponseDTO getBadgesByCondition(@RequestParam(required = false) String conditionType,
-                                            @RequestParam(required = false) Integer level) {
+                                                           @RequestParam(required = false) Integer level) {
         List<Badge> badges;
         if (conditionType != null) {
             badges = badgeService.getBadgesByConditionType(conditionType);
@@ -171,6 +178,8 @@ public class BadgeController {
             dto.setLevel(badge.getLevel());
             dto.setRewardPoints(badge.getRewardPoints());
             dto.setStatus(badge.getStatus());
+            dto.setBadgeType(badge.getBadgeType()); // 添加徽章类型
+
             return dto;
         }).collect(Collectors.toList());
         return ResponseDTO.success("获取成功", badgeDTOs);
@@ -181,7 +190,7 @@ public class BadgeController {
      */
     @PostMapping("/admin/grant")
     public ResponseDTO grantBadgeToUser(@RequestParam Integer userId,
-                                        @RequestParam Integer badgeId) {
+                                                       @RequestParam Integer badgeId) {
         return badgeService.grantBadgeToUser(userId, badgeId);
     }
 
@@ -190,8 +199,8 @@ public class BadgeController {
      */
     @PutMapping("/admin/progress")
     public ResponseDTO updateUserAchievementProgress(@RequestParam Integer userId,
-                                                     @RequestParam Integer badgeId,
-                                                     @RequestParam Integer progress) {
+                                                                    @RequestParam Integer badgeId,
+                                                                    @RequestParam Integer progress) {
         return badgeService.updateUserAchievementProgress(userId, badgeId, progress);
     }
 

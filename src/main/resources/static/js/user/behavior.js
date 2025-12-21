@@ -150,7 +150,7 @@ async function loadActivities() {
         const params = new URLSearchParams();
         if (startDate) params.append('startDate', startDate);
         if (endDate) params.append('endDate', endDate);
-        if (typeId) params.append('typeId', typeId);
+        if (typeId) params.append('typeId', getActivityTypeId(typeId)); // 转换为类型ID
         
         if (params.toString()) {
             url += '?' + params.toString();
@@ -291,6 +291,7 @@ async function addActivity() {
     const activityDescription = document.getElementById('activityDescription').value;
     const activityDistance = document.getElementById('activityDistance').value;
     const activityCalories = document.getElementById('activityCalories').value;
+    const activityImage = document.getElementById('activityImage').files[0]; // 获取图片文件
     
     if (!activityType || !activityDate || !activityDuration) {
         showAlert('请填写必填字段', 'warning');
@@ -327,6 +328,38 @@ async function addActivity() {
             return;
         }
         
+        let imageUrl = null;
+        // 如果选择了图片文件，则先上传图片
+        if (activityImage) {
+            const formData = new FormData();
+            formData.append('file', activityImage);
+            
+            const imageUploadResponse = await fetch('/api/user/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            const resultText = await imageUploadResponse.text();
+            let imageUploadResult;
+            try {
+                imageUploadResult = JSON.parse(resultText);
+            } catch (e) {
+                console.error('图片上传响应不是有效的JSON格式:', resultText);
+                showAlert('图片上传失败: 服务器响应格式错误', 'error');
+                return;
+            }
+            
+            if (imageUploadResult.code === 200) {
+                imageUrl = imageUploadResult.data;
+            } else {
+                showAlert('图片上传失败: ' + (imageUploadResult.message || '未知错误'), 'error');
+                return;
+            }
+        }
+        
         // 调用API添加活动
         const response = await fetch('/api/behavior/record', {
             method: 'POST',
@@ -341,7 +374,8 @@ async function addActivity() {
                 duration: parseInt(activityDuration),
                 content: activityDescription,
                 distance: activityDistance ? parseFloat(activityDistance) : null,
-                calories: activityCalories ? parseInt(activityCalories) : null
+                calories: activityCalories ? parseInt(activityCalories) : null,
+                imageUrl: imageUrl  // 添加图片URL
             })
         });
         
@@ -429,8 +463,15 @@ function getActivityTypeId(activityType) {
     const typeMap = {
         'running': 1,
         'swimming': 2,
-        'cycling': 3
+        'cycling': 3,
+        'yoga': 4
     };
+    
+    // 如果传入的是数字字符串，直接返回
+    if (!isNaN(parseInt(activityType))) {
+        return parseInt(activityType);
+    }
+    
     return typeMap[activityType] || 1;
 }
 

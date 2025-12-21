@@ -10,7 +10,9 @@ class FitnessApp {
 
         try {
             // 初始化认证状态
-            await authManager.checkAuth();
+            if (typeof authManager !== 'undefined' && authManager.checkAuth) {
+                await authManager.checkAuth();
+            }
 
             // 设置全局错误处理
             this.setupErrorHandling();
@@ -19,34 +21,50 @@ class FitnessApp {
             this.initComponents();
 
             this.isInitialized = true;
-            Utils.showAlert('系统初始化完成', 'success', 2000);
+            if (typeof Utils !== 'undefined' && Utils.showAlert) {
+                Utils.showAlert('系统初始化完成', 'success', 2000);
+            }
         } catch (error) {
             console.error('应用初始化失败:', error);
-            Utils.showAlert('系统初始化失败', 'error');
+            if (typeof Utils !== 'undefined' && Utils.showAlert) {
+                Utils.showAlert('系统初始化失败: ' + error.message, 'error');
+            }
         }
     }
 
     setupErrorHandling() {
         window.addEventListener('error', (e) => {
             console.error('全局错误:', e.error);
-            Utils.showAlert('发生未知错误', 'error');
+            if (typeof Utils !== 'undefined' && Utils.showAlert) {
+                Utils.showAlert('发生未知错误: ' + e.error.message, 'error');
+            }
         });
 
         window.addEventListener('unhandledrejection', (e) => {
             console.error('未处理的Promise拒绝:', e.reason);
-            Utils.showAlert('请求失败，请检查网络', 'error');
+            if (typeof Utils !== 'undefined' && Utils.showAlert) {
+                Utils.showAlert('请求失败，请检查网络: ' + e.reason.message, 'error');
+            }
         });
     }
 
     initComponents() {
         // 注册通用组件
-        this.registerComponent('navbar', NavbarComponent);
-        this.registerComponent('sidebar', SidebarComponent);
-        this.registerComponent('modal', ModalComponent);
+        if (typeof NavbarComponent !== 'undefined') {
+            this.registerComponent('navbar', NavbarComponent);
+        }
+        if (typeof SidebarComponent !== 'undefined') {
+            this.registerComponent('sidebar', SidebarComponent);
+        }
+        if (typeof ModalComponent !== 'undefined') {
+            this.registerComponent('modal', ModalComponent);
+        }
     }
 
     registerComponent(name, ComponentClass) {
-        this.components.set(name, ComponentClass);
+        if (name && ComponentClass) {
+            this.components.set(name, ComponentClass);
+        }
     }
 
     getComponent(name) {
@@ -66,7 +84,9 @@ class FitnessApp {
         this.triggerPageEvent('beforeEnter', pageName, data);
 
         // 实际页面切换由路由处理
-        await router.navigate(`/${pageName}`, data);
+        if (typeof router !== 'undefined' && router.navigate) {
+            await router.navigate(`/${pageName}`, data);
+        }
     }
 
     triggerPageEvent(eventName, pageName, data = {}) {
@@ -80,6 +100,7 @@ class FitnessApp {
 // 组件基类
 class BaseComponent {
     constructor(element) {
+        if (!element) return;
         this.element = element;
         this.init();
     }
@@ -89,12 +110,16 @@ class BaseComponent {
     }
 
     on(event, handler) {
-        this.element.addEventListener(event, handler);
+        if (this.element && event && handler) {
+            this.element.addEventListener(event, handler);
+        }
     }
 
     emit(event, detail) {
-        const customEvent = new CustomEvent(event, { detail });
-        this.element.dispatchEvent(customEvent);
+        if (this.element && event) {
+            const customEvent = new CustomEvent(event, { detail });
+            this.element.dispatchEvent(customEvent);
+        }
     }
 }
 
@@ -106,6 +131,8 @@ class NavbarComponent extends BaseComponent {
     }
 
     render() {
+        if (!this.element) return;
+        
         this.element.innerHTML = `
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
                 <div class="container-fluid">
@@ -121,7 +148,7 @@ class NavbarComponent extends BaseComponent {
     }
 
     renderUserSection() {
-        if (authManager.currentUser) {
+        if (typeof authManager !== 'undefined' && authManager.currentUser) {
             return `
                 <span class="navbar-text me-3">
                     欢迎，${authManager.currentUser.username}
@@ -147,16 +174,22 @@ class NavbarComponent extends BaseComponent {
     }
 
     attachEventListeners() {
+        if (!this.element) return;
+        
         this.element.addEventListener('click', (e) => {
             if (e.target.closest('[data-link]')) {
                 e.preventDefault();
                 const href = e.target.closest('[data-link]').getAttribute('href');
-                router.navigate(href);
+                if (typeof router !== 'undefined' && router.navigate) {
+                    router.navigate(href);
+                }
             }
 
             if (e.target.id === 'logoutBtn' || e.target.closest('#logoutBtn')) {
                 e.preventDefault();
-                authManager.logout();
+                if (typeof authManager !== 'undefined' && authManager.logout) {
+                    authManager.logout();
+                }
             }
         });
     }
@@ -164,11 +197,19 @@ class NavbarComponent extends BaseComponent {
 
 // 初始化应用
 document.addEventListener('DOMContentLoaded', async () => {
-    window.fitnessApp = new FitnessApp();
-    await fitnessApp.init();
+    try {
+        window.fitnessApp = new FitnessApp();
+        await fitnessApp.init();
 
-    // 渲染导航栏
-    const navbarElement = document.createElement('div');
-    document.body.insertBefore(navbarElement, document.getElementById('app'));
-    new NavbarComponent(navbarElement);
+        // 渲染导航栏
+        const navbarElement = document.createElement('div');
+        document.body.insertBefore(navbarElement, document.getElementById('app'));
+        new NavbarComponent(navbarElement);
+    } catch (error) {
+        console.error('应用初始化过程出错:', error);
+        // 即使出错也要确保基本功能可用
+        if (typeof Utils !== 'undefined' && Utils.showAlert) {
+            Utils.showAlert('页面初始化遇到问题: ' + error.message, 'warning');
+        }
+    }
 });

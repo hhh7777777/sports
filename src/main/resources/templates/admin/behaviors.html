@@ -36,6 +36,32 @@
         .swimming { color: #17a2b8; }
         .cycling { color: #ffc107; }
         .yoga { color: #6f42c1; }
+        
+        /* 管理员头像下拉菜单样式修复 */
+        .admin-dropdown {
+            position: relative;
+        }
+        
+        .admin-dropdown .dropdown-menu {
+            right: 0;
+            left: auto;
+            min-width: 150px;
+            z-index: 1050;
+        }
+        
+        .admin-dropdown .dropdown-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body>
@@ -49,7 +75,7 @@
             <span class="navbar-text me-3">
                 欢迎，管理员
             </span>
-            <div class="dropdown">
+            <div class="dropdown admin-dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                     <i class="fas fa-user-circle"></i>
                 </a>
@@ -217,6 +243,6 @@
 <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
 <script src="/libs/flatpickr/flatpickr.min.js"></script>
 <script src="/libs/flatpickr/zh.js"></script>
-<script src="/js/admin-behaviors.js"></script>
+<script src="/js/admin/admin-behaviors.js"></script>
 </body>
 </html>

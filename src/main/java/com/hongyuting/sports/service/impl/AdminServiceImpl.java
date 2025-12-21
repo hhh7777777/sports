@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,12 +104,16 @@ public class AdminServiceImpl implements AdminService {
             String token = jwtUtil.generateToken(admin.getId());
             String refreshToken = jwtUtil.generateRefreshToken(admin.getId());
 
-            // 7. 将Token存储到Redis
-            String tokenKey = "admin:token:" + admin.getId();
-            String refreshTokenKey = "admin:refresh_token:" + admin.getId();
+            // 7. 将Token存储到Redis，以Token为key，用户名为value
+            String tokenKey = "admin:token:" + token;
+            String refreshTokenKey = "admin:refresh_token:" + refreshToken;
+            
+            // 同时存储管理员ID到token的映射，便于后续查找和删除
+            String adminTokenKey = "admin:id:token:" + admin.getId();
 
-            redisTemplate.opsForValue().set(tokenKey, token, 24, TimeUnit.HOURS); // Token 24小时
-            redisTemplate.opsForValue().set(refreshTokenKey, refreshToken, 30, TimeUnit.DAYS); // 刷新Token 30天
+            redisTemplate.opsForValue().set(tokenKey, admin.getUsername(), 24, TimeUnit.HOURS); // Token 24小时
+            redisTemplate.opsForValue().set(refreshTokenKey, admin.getUsername(), 30, TimeUnit.DAYS); // 刷新Token 30天
+            redisTemplate.opsForValue().set(adminTokenKey, token, 24, TimeUnit.HOURS); // 管理员ID到token的映射
 
             // 8. 更新最后登录时间
             admin.setLastLoginTime(LocalDateTime.now());
@@ -154,11 +159,12 @@ public class AdminServiceImpl implements AdminService {
             }
 
             // 从Redis中删除Token
-            String tokenKey = "admin:token:" + adminId;
-            String refreshTokenKey = "admin:refresh_token:" + adminId;
-
+            String tokenKey = "admin:token:" + token;
+            String adminTokenKey = "admin:id:token:" + adminId;
+            
+            // 删除token本身和管理员ID到token的映射
             redisTemplate.delete(tokenKey);
-            redisTemplate.delete(refreshTokenKey);
+            redisTemplate.delete(adminTokenKey);
             
             log.info("管理员退出登录成功：管理员ID={}", adminId);
             return ResponseDTO.success("退出成功");
@@ -186,22 +192,27 @@ public class AdminServiceImpl implements AdminService {
             }
 
             // 验证刷新令牌是否在Redis中
-            String refreshTokenKey = "admin:refresh_token:" + adminId;
-            String storedRefreshToken = (String) redisTemplate.opsForValue().get(refreshTokenKey);
+            String refreshTokenKey = "admin:refresh_token:" + refreshToken;
+            String storedUsername = (String) redisTemplate.opsForValue().get(refreshTokenKey);
 
-            if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+            if (storedUsername == null) {
                 return ResponseDTO.error("刷新令牌无效");
             }
 
             // 生成新的Token
             String newToken = jwtUtil.generateToken(adminId);
             String newRefreshToken = jwtUtil.generateRefreshToken(adminId);
-            String tokenKey = "admin:token:" + adminId;
-            String newRefreshTokenKey = "admin:refresh_token:" + adminId;
+            String tokenKey = "admin:token:" + newToken;
+            String newRefreshTokenKey = "admin:refresh_token:" + newRefreshToken;
+            String adminTokenKey = "admin:id:token:" + adminId;
 
-            // 更新Redis中的Token
-            redisTemplate.opsForValue().set(tokenKey, newToken, 24, TimeUnit.HOURS);
-            redisTemplate.opsForValue().set(newRefreshTokenKey, newRefreshToken, 30, TimeUnit.DAYS);
+            // 从Redis中删除旧的token
+            redisTemplate.delete("admin:refresh_token:" + refreshToken);
+            
+            // 更新Redis中的Token，以Token为key，用户名为value
+            redisTemplate.opsForValue().set(tokenKey, storedUsername, 24, TimeUnit.HOURS);
+            redisTemplate.opsForValue().set(newRefreshTokenKey, storedUsername, 30, TimeUnit.DAYS);
+            redisTemplate.opsForValue().set(adminTokenKey, newToken, 24, TimeUnit.HOURS); // 更新管理员ID到token的映射
 
             // 构造返回结果
             Map<String, String> result = new HashMap<>();
@@ -223,17 +234,11 @@ public class AdminServiceImpl implements AdminService {
                 return false;
             }
 
-            // 从Token中解析管理员ID
-            Integer adminId = jwtUtil.getUserIdFromToken(token);
-            if (adminId == null) {
-                return false;
-            }
-
             // 验证Token是否在Redis中
-            String tokenKey = "admin:token:" + adminId;
-            String storedToken = (String) redisTemplate.opsForValue().get(tokenKey);
+            String tokenKey = "admin:token:" + token;
+            String storedUsername = (String) redisTemplate.opsForValue().get(tokenKey);
 
-            return storedToken != null && storedToken.equals(token);
+            return storedUsername != null;
         } catch (Exception e) {
             log.error("验证管理员Token异常：", e);
             return false;
@@ -247,19 +252,20 @@ public class AdminServiceImpl implements AdminService {
                 return;
             }
 
-            // 从Token中解析管理员ID
-            Integer adminId = jwtUtil.getUserIdFromToken(token);
-            if (adminId == null) {
-                return;
-            }
-
             // 验证Token是否在Redis中
-            String tokenKey = "admin:token:" + adminId;
-            String storedToken = (String) redisTemplate.opsForValue().get(tokenKey);
+            String tokenKey = "admin:token:" + token;
+            String storedUsername = (String) redisTemplate.opsForValue().get(tokenKey);
 
-            if (storedToken != null && storedToken.equals(token)) {
+            if (storedUsername != null) {
                 // 延长Token过期时间
                 redisTemplate.expire(tokenKey, 24, TimeUnit.HOURS);
+                
+                // 同时延长管理员ID到token映射的过期时间
+                Integer adminId = jwtUtil.getUserIdFromToken(token);
+                if (adminId != null) {
+                    String adminTokenKey = "admin:id:token:" + adminId;
+                    redisTemplate.expire(adminTokenKey, 24, TimeUnit.HOURS);
+                }
             }
         } catch (Exception e) {
             log.error("刷新管理员Token异常：", e);
@@ -382,10 +388,18 @@ public class AdminServiceImpl implements AdminService {
             int result = adminMapper.updatePasswordAndSalt(adminId, newEncryptedPassword, newSalt);
             if (result > 0) {
                 // 清除Redis中的Token
-                String tokenKey = "admin:token:" + adminId;
-                String refreshTokenKey = "admin:refresh_token:" + adminId;
-                redisTemplate.delete(tokenKey);
-                redisTemplate.delete(refreshTokenKey);
+                // 删除与该管理员相关的token
+                String adminTokenKey = "admin:id:token:" + adminId;
+                String token = (String) redisTemplate.opsForValue().get(adminTokenKey);
+                
+                if (token != null) {
+                    // 删除token本身
+                    String tokenKey = "admin:token:" + token;
+                    redisTemplate.delete(tokenKey);
+                }
+                
+                // 删除管理员ID到token的映射
+                redisTemplate.delete(adminTokenKey);
                 
                 log.info("管理员密码修改成功：管理员ID={}", adminId);
                 return ResponseDTO.success("密码修改成功，请重新登录");
@@ -485,5 +499,35 @@ public class AdminServiceImpl implements AdminService {
     public ResponseDTO deleteAdmin(Integer adminId) {
         // 这个方法在AdminMapper中没有对应的方法，暂时返回错误
         return ResponseDTO.error("暂不支持删除管理员");
+    }
+
+    @Override
+    public List<String> getTokensByAdminId(Integer adminId) {
+        if (adminId == null) {
+            return List.of();
+        }
+        
+        // 从Redis中获取管理员ID到token的映射
+        String adminTokenKey = "admin:id:token:" + adminId;
+        String token = (String) redisTemplate.opsForValue().get(adminTokenKey);
+        
+        if (token != null) {
+            return List.of(token);
+        }
+        
+        return List.of();
+    }
+
+    @Override
+    public boolean isSuperAdmin(Integer adminId) {
+        // 获取管理员信息
+        Admin admin = adminMapper.findById(adminId);
+        if (admin == null) {
+            return false;
+        }
+        
+        // 假设roleLevel为1表示超级管理员，可以根据实际需求调整判断逻辑
+        // 或者可以有其他判断方式，比如通过角色字段
+        return admin.getRoleLevel() != null && admin.getRoleLevel() == 1;
     }
 }

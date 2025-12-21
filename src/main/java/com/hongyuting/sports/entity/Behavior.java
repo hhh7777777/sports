@@ -10,10 +10,11 @@ import java.time.LocalDateTime;
 /**
  * 行为记录实体类
  */
+@Setter
+@Getter
 @Data
 public class Behavior {
-    @Setter
-    @Getter
+    // Getters and Setters
     private Long recordId;
     private Integer userId;
     private Integer typeId;
@@ -25,8 +26,7 @@ public class Behavior {
     private Integer calories; // 消耗卡路里
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
-    
-    // 类型名称（用于前端展示）
+    // 类型名称
     private String typeName;
 
 }

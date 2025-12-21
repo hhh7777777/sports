@@ -3,26 +3,29 @@ package com.hongyuting.sports.controller;
 import com.hongyuting.sports.dto.LoginDTO;
 import com.hongyuting.sports.dto.RegisterDTO;
 import com.hongyuting.sports.dto.ResponseDTO;
+import com.hongyuting.sports.entity.Badge;
 import com.hongyuting.sports.entity.User;
-import com.hongyuting.sports.entity.UserBadge;
+import com.hongyuting.sports.entity.UserAchievement;
 import com.hongyuting.sports.mapper.UserMapper;
 import com.hongyuting.sports.service.BadgeService;
 import com.hongyuting.sports.service.TokenService;
 import com.hongyuting.sports.service.UserService;
 import com.hongyuting.sports.service.FileUploadService;
+import com.hongyuting.sports.service.UserAchievementService;
 import com.hongyuting.sports.util.SaltUtil;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-    /**
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+/**
      * 用户控制器
      */
 @RestController
@@ -35,10 +38,11 @@ public class UserController {
      */
     private final UserService userService;
     private final UserMapper userMapper;
-    private final FileUploadService fileUploadService; // 添加文件上传服务
+    private final FileUploadService fileUploadService;
     private final BadgeService badgeService;
     private final TokenService tokenService;
     private final SaltUtil saltUtil;
+    private final UserAchievementService userAchievementService; // 添加用户成就服务
     
     /**
      * 用户注册
@@ -102,7 +106,7 @@ public class UserController {
     /**
      * 验证Token有效性
      */
-    @PostMapping("/validate-token")
+    @GetMapping("/validate-token")
     public ResponseDTO validateToken(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseDTO.error("缺少有效的认证令牌");
@@ -152,8 +156,8 @@ public class UserController {
      */
     @PutMapping("/password")
     public ResponseDTO updatePassword(@RequestParam String oldPassword,
-                                      @RequestParam String newPassword,
-                                      @RequestAttribute Integer userId) {
+                                                     @RequestParam String newPassword,
+                                                     @RequestAttribute Integer userId) {
         try {
             User user = userService.getUserById(userId);
             if (user == null) {
@@ -197,7 +201,7 @@ public class UserController {
      */
     @PostMapping("/avatar")
     public ResponseDTO uploadAvatar(@RequestParam("avatar") MultipartFile file,
-                                   @RequestAttribute Integer userId) {
+                                                   @RequestAttribute Integer userId) {
         try {
             if (file.isEmpty()) {
                 return ResponseDTO.error("请选择文件");
@@ -225,16 +229,21 @@ public class UserController {
     }
 
     /**
-     * 获取当前用户的徽章
+     * 上传图片（通用）
      */
-    @GetMapping("/badges")
-    public ResponseDTO getUserBadges(@RequestAttribute Integer userId) {
+    @PostMapping("/upload")
+    public ResponseDTO uploadImage(@RequestParam("file") MultipartFile file,
+                                                  @RequestAttribute Integer userId) {
         try {
-            List<UserBadge> userBadges = badgeService.getUserBadges(userId);
-            return ResponseDTO.success("获取成功", userBadges);
+            if (file.isEmpty()) {
+                return ResponseDTO.error("请选择文件");
+            }
+
+            // 上传文件
+            String imageUrl = fileUploadService.uploadImage(file);
+            return ResponseDTO.success("图片上传成功", imageUrl);
         } catch (Exception e) {
-            log.error("获取用户徽章异常，用户ID: {}", userId, e);
-            return ResponseDTO.error("获取用户徽章异常: " + e.getMessage());
+            return ResponseDTO.error("图片上传异常: " + e.getMessage());
         }
     }
 
@@ -243,10 +252,77 @@ public class UserController {
      */
     @GetMapping("/activity-stats")
     public ResponseDTO getUserActivityStats(@RequestAttribute Integer userId,
-                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+                                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         Map<String, Object> stats = userService.getUserActivityStats(userId, startDate, endDate);
         return ResponseDTO.success("获取成功", stats);
+    }
+
+    /**
+     * 获取用户连续打卡天数
+     */
+    @GetMapping("/streak-days")
+    public ResponseDTO getUserStreakDays(@RequestAttribute Integer userId) {
+        try {
+            int streakDays = userService.getUserStreakDays(userId);
+            Map<String, Object> result = new HashMap<>();
+            result.put("streakDays", streakDays);
+            return ResponseDTO.success("获取成功", result);
+        } catch (Exception e) {
+            log.error("获取用户连续打卡天数异常，用户ID: {}", userId, e);
+            return ResponseDTO.error("获取用户连续打卡天数异常: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取用户成就徽章
+     */
+    @GetMapping("/badges")
+    public ResponseDTO getUserBadges(@RequestAttribute Integer userId) {
+        try {
+            // 获取用户已获得的徽章
+            List<UserAchievement> userAchievements = userAchievementService.getAchievementsByUser(userId);
+            
+            // 获取所有徽章
+            List<Badge> allBadges = badgeService.getAllBadges();
+            
+            // 创建一个映射，便于查找用户获得的徽章
+            Map<Integer, UserAchievement> userBadgeMap = userAchievements.stream()
+                    .collect(Collectors.toMap(UserAchievement::getBadgeId, Function.identity()));
+            
+            // 构建徽章列表，标记哪些是用户已获得的
+            List<Map<String, Object>> badgeList = new ArrayList<>();
+            for (Badge badge : allBadges) {
+                Map<String, Object> badgeInfo = new HashMap<>();
+                badgeInfo.put("badgeId", badge.getBadgeId());
+                badgeInfo.put("badgeName", badge.getBadgeName());
+                badgeInfo.put("description", badge.getDescription());
+                badgeInfo.put("iconUrl", badge.getIconUrl());
+                badgeInfo.put("level", badge.getLevel());
+                badgeInfo.put("rewardPoints", badge.getRewardPoints());
+                badgeInfo.put("status", badge.getStatus());
+                badgeInfo.put("badgeType", badge.getBadgeType());
+                
+                // 判断用户是否已获得该徽章
+                UserAchievement userAchievement = userBadgeMap.get(badge.getBadgeId());
+                if (userAchievement != null) {
+                    badgeInfo.put("achieved", true);
+                    badgeInfo.put("progress", userAchievement.getProgress());
+                    badgeInfo.put("achieveTime", userAchievement.getAchieveTime());
+                } else {
+                    badgeInfo.put("achieved", false);
+                    badgeInfo.put("progress", 0);
+                    badgeInfo.put("achieveTime", null);
+                }
+                
+                badgeList.add(badgeInfo);
+            }
+            
+            return ResponseDTO.success("获取成功", badgeList);
+        } catch (Exception e) {
+            log.error("获取用户徽章异常，用户ID: {}", userId, e);
+            return ResponseDTO.error("获取用户徽章异常: " + e.getMessage());
+        }
     }
 
     /* 管理员：获取所有用户列表

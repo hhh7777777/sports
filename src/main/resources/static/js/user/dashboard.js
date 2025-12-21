@@ -19,22 +19,22 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function checkAuth() {
-    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-    if (!token) {
-        window.location.href = '/login';
-        return;
-    }
-    
     try {
+        const isAuthenticated = await CommonUtils.checkUserAuth();
+        if (!isAuthenticated) {
+            window.location.href = '/login';
+            return;
+        }
+
+        // 获取用户信息
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
         const response = await fetch('/api/user/profile', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
         
-        if (!response.ok) {
-            window.location.href = '/login';
-        } else {
+        if (response.ok) {
             const result = await response.json();
             if (result.code === 200 && result.data) {
                 const userNameElement = document.getElementById('userName');
@@ -54,20 +54,19 @@ async function checkAuth() {
                         }
                     });
                 }
-            } else {
-                window.location.href = '/login';
             }
         }
     } catch (error) {
         console.error('验证用户身份时出错:', error);
+        CommonUtils.showAlert('验证用户身份失败: ' + error.message, 'error');
         window.location.href = '/login';
     }
 }
 
 async function logout() {
-    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-    
     try {
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        
         if (token) {
             await fetch('/api/user/logout', {
                 method: 'POST',
@@ -78,10 +77,10 @@ async function logout() {
         }
     } catch (error) {
         console.error('登出时出错:', error);
+        CommonUtils.showAlert('登出失败: ' + error.message, 'error');
     } finally {
         // 清除本地存储的令牌
-        localStorage.removeItem('accessToken');
-        sessionStorage.removeItem('accessToken');
+        CommonUtils.storage.remove('accessToken');
         // 跳转到登录页面
         window.location.href = '/login';
     }
@@ -89,11 +88,13 @@ async function logout() {
 
 async function loadDashboardData() {
     try {
-        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-        if (!token) {
+        const isAuthenticated = await CommonUtils.checkUserAuth();
+        if (!isAuthenticated) {
             window.location.href = '/login';
             return;
         }
+
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
 
         // 获取用户基本信息
         const profileResponse = await fetch('/api/user/profile', {
@@ -105,8 +106,7 @@ async function loadDashboardData() {
         if (!profileResponse.ok) {
             // 如果是认证错误，清除token并重定向到登录页
             if (profileResponse.status === 401) {
-                localStorage.removeItem('accessToken');
-                sessionStorage.removeItem('accessToken');
+                CommonUtils.clearAuth();
                 window.location.href = '/login';
                 return;
             }
@@ -131,6 +131,16 @@ async function loadDashboardData() {
                 element.src = '/images/avatar/avatar.png';
             }
         });
+        
+        // 更新欢迎横幅中的用户头像
+        const bannerAvatarElement = document.querySelector('.welcome-banner img');
+        if (bannerAvatarElement) {
+            if (userData.avatar) {
+                bannerAvatarElement.src = userData.avatar;
+            } else {
+                bannerAvatarElement.src = '/images/avatar/avatar.png';
+            }
+        }
 
         // 获取本周运动数据
         const weekStart = new Date();
@@ -147,8 +157,7 @@ async function loadDashboardData() {
         if (!weekStatsResponse.ok) {
             // 如果是认证错误，清除token并重定向到登录页
             if (weekStatsResponse.status === 401) {
-                localStorage.removeItem('accessToken');
-                sessionStorage.removeItem('accessToken');
+                CommonUtils.clearAuth();
                 window.location.href = '/login';
                 return;
             }
@@ -189,8 +198,7 @@ async function loadDashboardData() {
         if (!monthStatsResponse.ok) {
             // 如果是认证错误，清除token并重定向到登录页
             if (monthStatsResponse.status === 401) {
-                localStorage.removeItem('accessToken');
-                sessionStorage.removeItem('accessToken');
+                CommonUtils.clearAuth();
                 window.location.href = '/login';
                 return;
             }
@@ -227,8 +235,7 @@ async function loadDashboardData() {
         if (!badgesResponse.ok) {
             // 如果是认证错误，清除token并重定向到登录页
             if (badgesResponse.status === 401) {
-                localStorage.removeItem('accessToken');
-                sessionStorage.removeItem('accessToken');
+                CommonUtils.clearAuth();
                 window.location.href = '/login';
                 return;
             }
@@ -238,25 +245,34 @@ async function loadDashboardData() {
         const badgesResult = await badgesResponse.json();
         const badges = badgesResult.data;
         
-        // 更新徽章数量
+        // 更新徽章数量（只计算已获得且进度为100%的徽章）
         const badgeCountElement = document.getElementById('badgeCount');
         if (badgeCountElement) {
-            badgeCountElement.textContent = Array.isArray(badges) ? badges.length : 0;
+            const achievedBadges = Array.isArray(badges) ? badges.filter(badge => badge.achieved && badge.progress >= 100) : [];
+            badgeCountElement.textContent = achievedBadges.length;
         }
         
         // 加载最近活动
         loadRecentActivities();
         
         // 初始化图表
-        initCharts(monthStats.typeDistribution || []);
-
+        // 使用setTimeout确保DOM完全加载后再初始化图表
+        setTimeout(() => {
+            initCharts(monthStats.typeDistribution || []);
+        }, 0);
     } catch (error) {
         console.error('加载仪表板数据时出错:', error);
-        showAlert('加载数据失败，请稍后重试', 'error');
+        CommonUtils.showAlert('加载数据失败，请稍后重试: ' + error.message, 'error');
     }
 }
 
 function initCharts(typeDistribution) {
+    // 确保Chart.js已加载
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js 未加载，跳过图表初始化');
+        return;
+    }
+    
     // 销毁已有的图表实例，防止重复创建
     if (window.weeklyChartInstance) {
         window.weeklyChartInstance.destroy();
@@ -332,14 +348,16 @@ function initCharts(typeDistribution) {
 
 async function loadRecentActivities() {
     try {
-        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-        if (!token) {
+        const isAuthenticated = await CommonUtils.checkUserAuth();
+        if (!isAuthenticated) {
             window.location.href = '/login';
             return;
         }
         
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        
         // 获取用户ID
-        let userId = getUserIdFromToken(token);
+        let userId = CommonUtils.getUserIdFromToken(token);
         if (!userId) {
             // 如果无法从token中解析用户ID，则通过用户信息API获取
             const userInfoResponse = await fetch('/api/user/profile', {
@@ -378,7 +396,7 @@ async function loadRecentActivities() {
         }
         
         // 渲染最近活动
-        const recentActivitiesTable = document.querySelector('.table tbody');
+        const recentActivitiesTable = document.querySelector('#recentActivities tbody');
         if (recentActivitiesTable) {
             recentActivitiesTable.innerHTML = '';
             
@@ -402,42 +420,6 @@ async function loadRecentActivities() {
         
     } catch (error) {
         console.error('加载最近活动时出错:', error);
-        showAlert('加载活动数据失败', 'error');
+        CommonUtils.showAlert('加载活动数据失败: ' + error.message, 'error');
     }
-}
-
-// 辅助函数：从token中提取用户ID
-function getUserIdFromToken(token) {
-    try {
-        const base64Payload = token.split('.')[1];
-        const payload = JSON.parse(atob(base64Payload));
-        return payload.userId || payload.sub || payload.id;
-    } catch (e) {
-        console.error('解析token失败:', e);
-        return null;
-    }
-}
-
-function showAlert(message, type) {
-    // 创建提示元素
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    alertDiv.role = 'alert';
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-    alertDiv.style.top = '20px';
-    alertDiv.style.right = '20px';
-    alertDiv.style.zIndex = '9999';
-    
-    // 添加到页面
-    document.body.appendChild(alertDiv);
-    
-    // 3秒后自动移除
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.parentNode.removeChild(alertDiv);
-        }
-    }, 3000);
 }

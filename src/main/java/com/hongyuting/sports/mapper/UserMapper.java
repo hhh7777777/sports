@@ -12,30 +12,31 @@ import java.util.Map;
  */
 public interface UserMapper {
     int insertUser(User user);
-
-    User selectUserByUsername(String username);
-
-    User selectUserById(Integer userId);
-
     int updateUser(User user);
-
     int updateUserAvatar(User user);
-
-    int updateUserStatus(User user);
-
-    int deleteUser(Integer userId);
-
+    User selectUserById(Integer userId);
+    User selectUserByUsername(String username);
     List<User> selectAllUsers();
-
+    List<User> searchUsers(@Param("username") String username, @Param("email") String email, @Param("status") Integer status);
     int countByUsername(String username);
-
     int countByEmail(String email);
+    int deleteUser(Integer userId);
     
-    Integer selectTotalDurationByUserAndDate(@Param("userId") Integer userId,
+    // 新增方法
+    int selectUserCountByMonth(@Param("year") int year, @Param("month") int month);
+    Integer selectTotalDurationByUserAndDate(@Param("userId") Integer userId, 
+                                          @Param("startDate") LocalDate startDate, 
+                                          @Param("endDate") LocalDate endDate);
+    List<Map<String, Object>> selectBehaviorTypeDistribution(@Param("userId") Integer userId,
+                                                           @Param("startDate") LocalDate startDate,
+                                                           @Param("endDate") LocalDate endDate);
+    
+    // 添加获取指定类型和日期范围内行为记录数的方法
+    Integer countBehaviorRecordsByTypeAndDate(@Param("userId") Integer userId,
+                                             @Param("typeName") String typeName,
                                              @Param("startDate") LocalDate startDate,
                                              @Param("endDate") LocalDate endDate);
                                              
-    List<Map<String, Object>> selectBehaviorTypeDistribution(@Param("userId") Integer userId,
-                                                             @Param("startDate") LocalDate startDate,
-                                                             @Param("endDate") LocalDate endDate);
+    // 获取用户所有运动日期记录
+    List<LocalDate> selectExerciseDatesByUser(@Param("userId") Integer userId);
 }

@@ -9,6 +9,7 @@ import lombok.Setter;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -95,6 +96,16 @@ public interface AdminService {
      * 删除管理员
      */
     ResponseDTO deleteAdmin(Integer adminId);
+
+    /**
+     * 检查是否为超级管理员
+     */
+    boolean isSuperAdmin(Integer adminId);
+
+    /**
+     * 根据管理员ID获取当前的Token
+     */
+    List<String> getTokensByAdminId(Integer adminId);
 
     // 登录结果内部类
     @Getter

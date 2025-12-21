@@ -6,6 +6,7 @@ import com.hongyuting.sports.entity.Behavior;
 import com.hongyuting.sports.entity.BehaviorType;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -54,6 +55,11 @@ public interface BehaviorService {
     Integer getTotalBehaviorDuration(Integer userId, LocalDate startDate, LocalDate endDate);
 
     /**
+     * 根据日期范围获取行为记录
+     */
+    List<Behavior> getBehaviorRecordsByDate(LocalDate startDate, LocalDate endDate);
+
+    /**
      * 获取所有行为类型
      */
     List<BehaviorType> getAllBehaviorTypes();
@@ -79,27 +85,34 @@ public interface BehaviorService {
     ResponseDTO deleteBehaviorType(Integer typeId);
 
     /**
-     * 获取行为类型分布
-     */
-    List<Map<String, Object>> getBehaviorTypeDistribution(Integer userId, LocalDate startDate, LocalDate endDate);
-    
-    /**
      * 获取行为记录总数
      */
-    Integer getTotalBehaviorRecords();
-    
+    int getTotalBehaviorRecords();
+
     /**
-     * 获取用户周统计
+     * 根据类型和日期范围获取行为记录数量
+     */
+    int getBehaviorCountByTypeAndDate(Integer typeId, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * 获取最新的行为记录
+     */
+    List<Behavior> getRecentBehaviors(int limit);
+
+    List<Map<String, Object>> getBehaviorTypeDistribution(Integer userId, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * 获取周统计
      */
     Map<String, Object> getWeeklyStatistics(Integer userId);
-    
+
     /**
-     * 获取用户月统计
+     * 获取月统计
      */
     Map<String, Object> getMonthlyStatistics(Integer userId);
-    
+
     /**
-     * 获取所有行为记录（用于管理员查看）
+     * 获取所有行为记录
      */
     List<Behavior> getAllBehaviors();
 }

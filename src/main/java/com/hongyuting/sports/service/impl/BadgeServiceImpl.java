@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +38,19 @@ public class BadgeServiceImpl implements BadgeService {
             return achievementBadgeMapper.selectBadgesByConditionType(conditionType);
         } catch (Exception e) {
             log.error("根据条件类型获取徽章异常: conditionType={}", conditionType, e);
+            return List.of();
+        }
+    }
+
+    @Override
+    public List<Badge> getBadgesByType(String badgeType) {
+        try {
+            if (!StringUtils.hasText(badgeType)) {
+                return List.of();
+            }
+            return achievementBadgeMapper.selectBadgesByType(badgeType);
+        } catch (Exception e) {
+            log.error("根据类型获取徽章异常: badgeType={}", badgeType, e);
             return List.of();
         }
     }
@@ -219,6 +229,11 @@ public class BadgeServiceImpl implements BadgeService {
                 return ResponseDTO.error("徽章名称不能为空");
             }
             
+            // 如果没有提供图标URL，则使用默认图标
+            if (!StringUtils.hasText(badge.getIconUrl())) {
+                badge.setIconUrl("/images/icons/default-badge.png");
+            }
+            
             if (badge.getLevel() == null || badge.getLevel() < 1) {
                 return ResponseDTO.error("徽章等级必须大于0");
             }
@@ -280,6 +295,11 @@ public class BadgeServiceImpl implements BadgeService {
             Badge existingBadge = achievementBadgeMapper.selectBadgeById(badge.getBadgeId());
             if (existingBadge == null) {
                 return ResponseDTO.error("徽章不存在");
+            }
+
+            // 如果没有提供新的图标URL，则保留原来的图标URL
+            if (!StringUtils.hasText(badge.getIconUrl())) {
+                badge.setIconUrl(existingBadge.getIconUrl());
             }
 
             badge.setUpdateTime(LocalDateTime.now());

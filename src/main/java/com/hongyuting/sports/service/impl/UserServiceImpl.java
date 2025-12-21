@@ -19,11 +19,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -221,8 +217,25 @@ public class UserServiceImpl implements UserService {
                 return ResponseDTO.error("Token不能为空");
             }
 
-            // 从Redis中获取用户信息 (使用TokenService)
-            User user = tokenService.getUserInfo(token);
+            // 如果Token以"Bearer "开头，则去掉前缀
+            String actualToken = token;
+            if (token.startsWith("Bearer ")) {
+                actualToken = token.substring(7);
+            }
+
+            // 首先验证JWT Token格式是否有效
+            if (!jwtUtil.validateToken(actualToken)) {
+                return ResponseDTO.error("Token格式无效");
+            }
+
+            // 从JWT Token中解析用户ID
+            Integer userId = jwtUtil.getUserIdFromToken(actualToken);
+            if (userId == null) {
+                return ResponseDTO.error("Token解析失败");
+            }
+
+            // 从Redis中获取用户信息
+            User user = tokenService.getUserInfo(actualToken);
             if (user == null) {
                 return ResponseDTO.error("Token无效或已过期");
             }
@@ -250,8 +263,14 @@ public class UserServiceImpl implements UserService {
                 return ResponseDTO.error("Token不能为空");
             }
 
+            // 如果Token以"Bearer "开头，则去掉前缀
+            String actualToken = token;
+            if (token.startsWith("Bearer ")) {
+                actualToken = token.substring(7);
+            }
+
             // 从Redis中获取用户信息 (使用TokenService)
-            User user = tokenService.getUserInfo(token);
+            User user = tokenService.getUserInfo(actualToken);
             if (user == null) {
                 return ResponseDTO.error("Token无效或已过期");
             }
@@ -267,7 +286,7 @@ public class UserServiceImpl implements UserService {
 
             // 存储新的Token并删除旧的Token (使用TokenService)
             tokenService.storeUserInfo(newToken, user);
-            tokenService.deleteToken(token);
+            tokenService.deleteToken(actualToken);
 
             // 构造返回结果
             LoginResponse loginResponse = new LoginResponse();
@@ -338,6 +357,11 @@ public class UserServiceImpl implements UserService {
             // 更新用户头像（如果有）
             if (StringUtils.hasText(user.getAvatar())) {
                 existingUser.setAvatar(user.getAvatar());
+            }
+            
+            // 更新用户状态（如果提供）
+            if (user.getUserStatus() != null) {
+                existingUser.setUserStatus(user.getUserStatus());
             }
 
             int result = userMapper.updateUser(existingUser);
@@ -439,6 +463,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public List<User> searchUsers(String username, String email, Integer status) {
+        try {
+            return userMapper.searchUsers(username, email, status);
+        } catch (Exception e) {
+            log.error("搜索用户异常: ", e);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
     public boolean checkUsernameExists(String username) {
         try {
             if (!StringUtils.hasText(username)) {
@@ -467,20 +501,107 @@ public class UserServiceImpl implements UserService {
     @Override
     public Map<String, Object> getUserActivityStats(Integer userId, LocalDate startDate, LocalDate endDate) {
         try {
-            Map<String, Object> stats = new HashMap<>();
+            if (userId == null || startDate == null || endDate == null) {
+                return Collections.emptyMap();
+            }
             
-            // 获取总时长
+            // 获取用户在指定时间段内的总运动时长
             Integer totalDuration = userMapper.selectTotalDurationByUserAndDate(userId, startDate, endDate);
-            stats.put("totalDuration", totalDuration != null ? totalDuration : 0);
+            if (totalDuration == null) {
+                totalDuration = 0;
+            }
             
-            // 获取行为类型分布
+            // 获取用户在指定时间段内的运动类型分布
             List<Map<String, Object>> typeDistribution = userMapper.selectBehaviorTypeDistribution(userId, startDate, endDate);
+            
+            // 构造返回结果
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("totalDuration", totalDuration);
             stats.put("typeDistribution", typeDistribution);
+            
+            // 计算总次数
+            int totalCount = 0;
+            if (typeDistribution != null) {
+                for (Map<String, Object> item : typeDistribution) {
+                    // 获取每个类型的记录数
+                    Object typeName = item.get("typeName");
+                    if (typeName != null) {
+                        // 通过关联查询获取每个类型的记录数
+                        Integer recordCount = userMapper.countBehaviorRecordsByTypeAndDate(
+                            userId, typeName.toString(), startDate, endDate);
+                        item.put("recordCount", recordCount != null ? recordCount : 0);
+                        totalCount += recordCount != null ? recordCount : 0;
+                    }
+                }
+            }
+            stats.put("totalCount", totalCount);
             
             return stats;
         } catch (Exception e) {
             log.error("获取用户活跃度统计异常: userId={}, startDate={}, endDate={}", userId, startDate, endDate, e);
             return Collections.emptyMap();
+        }
+    }
+    
+    @Override
+    public int getUserStreakDays(Integer userId) {
+        try {
+            if (userId == null) {
+                return 0;
+            }
+            
+            // 获取用户所有运动记录的日期
+            List<LocalDate> exerciseDates = userMapper.selectExerciseDatesByUser(userId);
+            
+            if (exerciseDates == null || exerciseDates.isEmpty()) {
+                return 0;
+            }
+            
+            // 按日期排序（从新到旧）
+            exerciseDates.sort(Collections.reverseOrder());
+            
+            // 计算连续天数
+            int streakDays = 1;
+            LocalDate currentDate = LocalDate.now();
+            
+            // 检查今天是否有运动记录
+            if (!exerciseDates.contains(currentDate)) {
+                // 如果今天没有运动记录，检查昨天是否有
+                LocalDate yesterday = currentDate.minusDays(1);
+                if (!exerciseDates.contains(yesterday)) {
+                    // 如果昨天也没有运动记录，连续天数为0
+                    return 0;
+                } else {
+                    // 如果昨天有运动记录，从昨天开始计算
+                    currentDate = yesterday;
+                }
+            }
+            
+            // 向前检查连续天数
+            for (int i = 1; i < exerciseDates.size(); i++) {
+                LocalDate previousDate = currentDate.minusDays(1);
+                if (exerciseDates.get(i).equals(previousDate)) {
+                    streakDays++;
+                    currentDate = previousDate;
+                } else {
+                    break;
+                }
+            }
+            
+            return streakDays;
+        } catch (Exception e) {
+            log.error("获取用户连续打卡天数异常: userId={}", userId, e);
+            return 0;
+        }
+    }
+    
+    @Override
+    public int getUserCountByMonth(int year, int month) {
+        try {
+            return userMapper.selectUserCountByMonth(year, month);
+        } catch (Exception e) {
+            log.error("获取月份用户数量异常: year={}, month={}", year, month, e);
+            return 0;
         }
     }
 

@@ -1,8 +1,6 @@
 package com.hongyuting.sports.entity;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,8 +13,6 @@ public class User {
     private Integer userId;
     private String username;
     private String password;
-    @Setter
-    @Getter
     private String confirmPassword;//确认密码
     private String salt;//密码盐
     private String email;
@@ -30,8 +26,6 @@ public class User {
     private Integer userStatus = 1;
     private LocalDateTime registerTime;
     private LocalDateTime lastLoginTime;
-    @Setter
-    @Getter
+    private LocalDateTime updateTime;//更新时间
     private String captcha;//验证码
-
 }

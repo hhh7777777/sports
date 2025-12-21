@@ -126,6 +126,8 @@
   </style>
 </head>
 <body>
+<div id="alert-container" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
 <div class="login-container">
   <div class="login-card">
     <div class="login-header">
@@ -170,12 +172,14 @@
       
       <div class="links">
         <p class="mb-2">还没有账户？<a href="/register">立即注册</a></p>
-        <p class="mb-0"><a href="/index">返回首页</a></p>
+        <p class="mb-0"><a href="/">返回首页</a></p>
       </div>
     </div>
   </div>
 </div>
 
+<script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
+<script src="/js/common.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
@@ -201,7 +205,7 @@
 
         // 简单前端验证
         if (!username || !password || !captcha) {
-          showAlert('请填写完整信息', 'danger');
+          CommonUtils.showAlert('请填写完整信息', 'error');
           return;
         }
 
@@ -224,21 +228,21 @@
             // 存储token
             if (result.data && result.data.token) {
               if (rememberMe) {
-                localStorage.setItem('accessToken', result.data.token);
+                CommonUtils.storage.set('accessToken', result.data.token);
               } else {
                 sessionStorage.setItem('accessToken', result.data.token);
               }
             }
 
-            // 跳转到仪表板
-            window.location.href = '/dashboard';
+            // 登录成功后跳转到首页而不是仪表板
+            window.location.href = '/';
           } else {
-            showAlert(result.message || '登录失败', 'danger');
+            CommonUtils.showAlert(result.message || '登录失败', 'error');
             refreshCaptcha();
           }
         } catch (error) {
           console.error('登录错误:', error);
-          showAlert('网络错误，请稍后重试', 'danger');
+          CommonUtils.showAlert('网络错误，请稍后重试', 'error');
         }
       });
     }
@@ -249,26 +253,6 @@
       if (captchaImage) {
         captchaImage.src = '/api/common/captcha?t=' + new Date().getTime();
       }
-    }
-
-    function showAlert(message, type) {
-      // 移除现有提示
-      const existingAlert = document.querySelector('.alert');
-      if (existingAlert) {
-        existingAlert.remove();
-      }
-
-      const alertDiv = document.createElement('div');
-      alertDiv.className = `alert alert-${type} mt-3`;
-      alertDiv.textContent = message;
-
-      const container = document.querySelector('.login-body');
-      const form = document.getElementById('loginForm');
-      container.insertBefore(alertDiv, form);
-
-      setTimeout(() => {
-        alertDiv.remove();
-      }, 3000);
     }
   });
 </script>

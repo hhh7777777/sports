@@ -1,6 +1,9 @@
 package com.hongyuting.sports.dto;
 
 import lombok.Data;
+
+import java.util.Collection;
+
 /**
  * 响应数据传输对象
  */
