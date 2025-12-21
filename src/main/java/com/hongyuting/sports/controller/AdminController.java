@@ -4,16 +4,28 @@ import com.hongyuting.sports.dto.AdminLoginDTO;
 import com.hongyuting.sports.dto.ResponseDTO;
 import com.hongyuting.sports.entity.Admin;
 import com.hongyuting.sports.entity.AdminLog;
+import com.hongyuting.sports.entity.Badge;
+import com.hongyuting.sports.entity.Behavior;
+import com.hongyuting.sports.entity.BehaviorType;
+import com.hongyuting.sports.entity.User;
 import com.hongyuting.sports.service.AdminService;
+import com.hongyuting.sports.service.BadgeService;
+import com.hongyuting.sports.service.BehaviorService;
+import com.hongyuting.sports.service.FileUploadService;
+import com.hongyuting.sports.service.UserService;
 import com.hongyuting.sports.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -23,6 +35,10 @@ public class AdminController {
      * 管理员服务
      */
     private final AdminService adminService;
+    private final BehaviorService behaviorService;
+    private final BadgeService badgeService;
+    private final UserService userService;
+    private final FileUploadService fileUploadService;
     private final JwtUtil jwtUtil;
     
     /**
@@ -187,8 +203,238 @@ public class AdminController {
      */
     @GetMapping("/stats/system")
     public ResponseDTO getSystemStats() {
-        // 这里可以返回用户总数、活跃用户数、总记录数等统计信息
-        // 需要扩展Service来实现具体逻辑
-        return ResponseDTO.success("获取成功", "系统统计信息");
+        try {
+            // 获取用户总数
+            List<User> allUsers = userService.getAllUsers();
+            int totalUsers = allUsers != null ? allUsers.size() : 0;
+
+            // 获取今日活跃用户数（今天有行为记录的用户数）
+            LocalDate today = LocalDate.now();
+            List<Behavior> todaysBehaviors = behaviorService.getBehaviorRecordsByUserAndDate(null, today, today);
+            int activeToday = todaysBehaviors != null ? (int) todaysBehaviors.stream()
+                    .map(Behavior::getUserId)
+                    .distinct()
+                    .count() : 0;
+
+            // 获取行为记录总数
+            int totalRecords = behaviorService.getTotalBehaviorRecords();
+
+            // 获取徽章总数
+            int totalBadges = badgeService.getTotalBadgeCount();
+
+            // 构造返回结果
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("totalUsers", totalUsers);
+            stats.put("activeToday", activeToday);
+            stats.put("totalRecords", totalRecords);
+            stats.put("totalBadges", totalBadges);
+
+            return ResponseDTO.success("获取成功", stats);
+        } catch (Exception e) {
+            return ResponseDTO.error("获取系统统计信息失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取用户增长趋势数据
+     */
+    @GetMapping("/stats/user-growth")
+    public ResponseDTO getUserGrowthStats(@RequestParam(required = false, defaultValue = "6") Integer months) {
+        try {
+            // 这里应该实现用户增长趋势的统计逻辑
+            // 暂时返回模拟数据，后续需要根据实际需求实现
+            Map<String, Object> growthData = new HashMap<>();
+            growthData.put("labels", List.of("一月", "二月", "三月", "四月", "五月", "六月"));
+            growthData.put("data", List.of(120, 190, 130, 180, 210, 250));
+            
+            return ResponseDTO.success("获取成功", growthData);
+        } catch (Exception e) {
+            return ResponseDTO.error("获取用户增长趋势数据失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取运动类型分布数据
+     */
+    @GetMapping("/stats/activity-type-distribution")
+    public ResponseDTO getActivityTypeDistribution() {
+        try {
+            // 获取所有行为类型
+            List<BehaviorType> behaviorTypes = behaviorService.getAllBehaviorTypes();
+            
+            // 获取每种行为类型的记录数量（示例数据）
+            // 实际应用中应该根据具体时间段统计数据
+            LocalDate startDate = LocalDate.now().minusMonths(1); // 最近一个月
+            LocalDate endDate = LocalDate.now();
+            
+            Map<String, Object> distributionData = new HashMap<>();
+            distributionData.put("labels", behaviorTypes.stream().map(BehaviorType::getTypeName).toArray());
+            
+            // 示例数据，实际应从数据库统计得出
+            int[] exampleData = {45, 25, 20, 10};
+            distributionData.put("data", exampleData);
+            
+            return ResponseDTO.success("获取成功", distributionData);
+        } catch (Exception e) {
+            return ResponseDTO.error("获取运动类型分布数据失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取最新的行为记录
+     */
+    @GetMapping("/behaviors/recent")
+    public ResponseDTO getRecentBehaviors(@RequestParam(required = false, defaultValue = "10") Integer limit) {
+        try {
+            // 获取最新的行为记录
+            List<Behavior> recentBehaviors = behaviorService.getBehaviorRecordsByUser(null); // 这里需要修改实现
+            
+            // 限制返回数量
+            if (recentBehaviors.size() > limit) {
+                recentBehaviors = recentBehaviors.subList(0, limit);
+            }
+            
+            return ResponseDTO.success("获取成功", recentBehaviors);
+        } catch (Exception e) {
+            return ResponseDTO.error("获取最新行为记录失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取所有行为类型
+     */
+    @GetMapping("/behavior-types")
+    public ResponseDTO getAllBehaviorTypes() {
+        List<BehaviorType> behaviorTypes = behaviorService.getAllBehaviorTypes();
+        return ResponseDTO.success("获取成功", behaviorTypes);
+    }
+
+    /**
+     * 添加行为类型
+     */
+    @PostMapping("/behavior-types")
+    public ResponseDTO addBehaviorType(@RequestBody BehaviorType behaviorType) {
+        return behaviorService.addBehaviorType(behaviorType);
+    }
+
+    /**
+     * 更新行为类型
+     */
+    @PutMapping("/behavior-types")
+    public ResponseDTO updateBehaviorType(@RequestBody BehaviorType behaviorType) {
+        return behaviorService.updateBehaviorType(behaviorType);
+    }
+
+    /**
+     * 删除行为类型
+     */
+    @DeleteMapping("/behavior-types/{typeId}")
+    public ResponseDTO deleteBehaviorType(@PathVariable Integer typeId) {
+        return behaviorService.deleteBehaviorType(typeId);
+    }
+
+    /**
+     * 获取行为类型详情
+     */
+    @GetMapping("/behavior-types/{typeId}")
+    public ResponseDTO getBehaviorType(@PathVariable Integer typeId) {
+        BehaviorType behaviorType = behaviorService.getBehaviorTypeById(typeId);
+        if (behaviorType != null) {
+            return ResponseDTO.success("获取成功", behaviorType);
+        } else {
+            return ResponseDTO.error("行为类型不存在");
+        }
+    }
+
+    /**
+     * 获取所有徽章
+     */
+    @GetMapping("/badges")
+    public ResponseDTO getAllBadges() {
+        List<Badge> badges = badgeService.getAllBadges();
+        return ResponseDTO.success("获取成功", badges);
+    }
+
+    /**
+     * 添加徽章
+     */
+    @PostMapping("/badges")
+    public ResponseDTO addBadge(@RequestBody Badge badge) {
+        return badgeService.addBadge(badge);
+    }
+
+    /**
+     * 更新徽章
+     */
+    @PutMapping("/badges")
+    public ResponseDTO updateBadge(@RequestBody Badge badge) {
+        return badgeService.updateBadge(badge);
+    }
+
+    /**
+     * 删除徽章
+     */
+    @DeleteMapping("/badges/{badgeId}")
+    public ResponseDTO deleteBadge(@PathVariable Integer badgeId) {
+        return badgeService.deleteBadge(badgeId);
+    }
+
+    /**
+     * 获取徽章详情
+     */
+    @GetMapping("/badges/{badgeId}")
+    public ResponseDTO getBadge(@PathVariable Integer badgeId) {
+        Badge badge = badgeService.getBadgeById(badgeId);
+        if (badge != null) {
+            return ResponseDTO.success("获取成功", badge);
+        } else {
+            return ResponseDTO.error("徽章不存在");
+        }
+    }
+
+    /**
+     * 上传徽章图标
+     */
+    @PostMapping("/badges/upload-icon")
+    public ResponseDTO uploadBadgeIcon(@RequestParam("file") MultipartFile file) {
+        try {
+            String iconUrl = fileUploadService.uploadImage(file);
+            return ResponseDTO.success("上传成功", iconUrl);
+        } catch (Exception e) {
+            return ResponseDTO.error("上传失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取用户活跃度统计
+     */
+    @GetMapping("/users/{userId}/activity-stats")
+    public ResponseDTO getUserActivityStats(@PathVariable Integer userId,
+                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+        Map<String, Object> stats = userService.getUserActivityStats(userId, startDate, endDate);
+        return ResponseDTO.success("获取成功", stats);
+    }
+    
+    /**
+     * 获取所有用户列表
+     */
+    @GetMapping("/users")
+    public ResponseDTO getAllUsers() {
+        List<User> users = userService.getAllUsers();
+        return ResponseDTO.success("获取成功", users);
+    }
+    
+    /**
+     * 获取用户详情
+     */
+    @GetMapping("/users/{userId}")
+    public ResponseDTO getUser(@PathVariable Integer userId) {
+        User user = userService.getUserById(userId);
+        if (user != null) {
+            return ResponseDTO.success("获取成功", user);
+        } else {
+            return ResponseDTO.error("用户不存在");
+        }
     }
 }

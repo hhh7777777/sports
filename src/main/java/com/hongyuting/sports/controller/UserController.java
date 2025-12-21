@@ -15,10 +15,13 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
     /**
      * 用户控制器
      */
@@ -233,6 +236,17 @@ public class UserController {
             log.error("获取用户徽章异常，用户ID: {}", userId, e);
             return ResponseDTO.error("获取用户徽章异常: " + e.getMessage());
         }
+    }
+
+    /**
+     * 获取用户活跃度统计
+     */
+    @GetMapping("/activity-stats")
+    public ResponseDTO getUserActivityStats(@RequestAttribute Integer userId,
+                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+        Map<String, Object> stats = userService.getUserActivityStats(userId, startDate, endDate);
+        return ResponseDTO.success("获取成功", stats);
     }
 
     /* 管理员：获取所有用户列表

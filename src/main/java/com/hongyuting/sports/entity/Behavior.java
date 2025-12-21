@@ -21,7 +21,12 @@ public class Behavior {
     private Integer duration;
     private String content;
     private String imageUrl;
+    private Double distance; // 距离（公里）
+    private Integer calories; // 消耗卡路里
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
+    
+    // 类型名称（用于前端展示）
+    private String typeName;
 
 }

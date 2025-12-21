@@ -5,7 +5,9 @@ import com.hongyuting.sports.dto.RegisterDTO;
 import com.hongyuting.sports.dto.ResponseDTO;
 import com.hongyuting.sports.entity.User;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 用户服务接口
@@ -63,4 +65,9 @@ public interface UserService {
      * 检查邮箱是否存在
      */
     boolean checkEmailExists(String email);
+    
+    /**
+     * 获取用户活跃度统计
+     */
+    Map<String, Object> getUserActivityStats(Integer userId, LocalDate startDate, LocalDate endDate);
 }

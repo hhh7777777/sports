@@ -6,6 +6,7 @@ import com.hongyuting.sports.entity.UserBadge;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
 /**
  * 徽章服务接口
  */
@@ -47,4 +48,7 @@ public interface BadgeService {
 
     // 新增方法：获取徽章总数
     Integer getTotalBadgeCount();
+    
+    // 新增方法：根据用户行为自动授予徽章
+    ResponseDTO autoGrantBadgesBasedOnBehavior(Integer userId);
 }

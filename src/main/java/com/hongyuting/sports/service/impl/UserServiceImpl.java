@@ -17,8 +17,12 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -73,6 +77,8 @@ public class UserServiceImpl implements UserService {
             user.setUsername(registerDTO.getUsername());
             user.setEmail(registerDTO.getEmail());
             user.setNickname(registerDTO.getNickname());
+            // 设置默认头像路径
+            user.setAvatar("/images/avatar/avatar.png");
 
             // 生成盐值和加密密码
             String salt = saltUtil.generateSalt();
@@ -455,6 +461,26 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             log.error("检查邮箱是否存在异常: email={}", email, e);
             return false;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getUserActivityStats(Integer userId, LocalDate startDate, LocalDate endDate) {
+        try {
+            Map<String, Object> stats = new HashMap<>();
+            
+            // 获取总时长
+            Integer totalDuration = userMapper.selectTotalDurationByUserAndDate(userId, startDate, endDate);
+            stats.put("totalDuration", totalDuration != null ? totalDuration : 0);
+            
+            // 获取行为类型分布
+            List<Map<String, Object>> typeDistribution = userMapper.selectBehaviorTypeDistribution(userId, startDate, endDate);
+            stats.put("typeDistribution", typeDistribution);
+            
+            return stats;
+        } catch (Exception e) {
+            log.error("获取用户活跃度统计异常: userId={}, startDate={}, endDate={}", userId, startDate, endDate, e);
+            return Collections.emptyMap();
         }
     }
 

@@ -84,6 +84,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         // 验证JWT Token格式是否有效
         if (!jwtUtil.validateToken(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"code\":401,\"message\":\"认证令牌格式无效\"}");
             return false;
         }
@@ -91,6 +92,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         // 验证Token是否存在于Redis中
         if (!tokenService.existsToken(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"code\":401,\"message\":\"认证令牌无效或已过期\"}");
             return false;
         }

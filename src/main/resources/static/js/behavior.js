@@ -140,8 +140,24 @@ async function loadActivities() {
             throw new Error('无法获取用户ID');
         }
         
+        // 构建查询参数
+        let url = `/api/behavior/record/user/${userId}`;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const typeId = document.getElementById('activityType').value;
+        
+        // 添加查询参数
+        const params = new URLSearchParams();
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        if (typeId) params.append('typeId', typeId);
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+        
         // 从API获取真实数据
-        const response = await fetch(`/api/behavior/record/user/${userId}`, {
+        const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -161,6 +177,9 @@ async function loadActivities() {
         
         // 渲染活动列表
         renderActivities(activities);
+        
+        // 更新统计信息
+        updateStatistics(activities);
         
     } catch (error) {
         console.error('加载活动时出错:', error);
@@ -245,11 +264,33 @@ function renderActivities(activities) {
     });
 }
 
+function updateStatistics(activities) {
+    // 计算统计信息
+    let totalDuration = 0;
+    let totalCount = activities.length;
+    let totalDistance = 0;
+    let totalCalories = 0;
+    
+    activities.forEach(activity => {
+        totalDuration += activity.duration || 0;
+        totalDistance += activity.distance || 0;
+        totalCalories += activity.calories || 0;
+    });
+    
+    // 更新页面上的统计信息
+    document.getElementById('monthlyDuration').textContent = totalDuration;
+    document.getElementById('monthlyCount').textContent = totalCount;
+    document.getElementById('monthlyDistance').textContent = totalDistance.toFixed(1);
+    document.getElementById('monthlyCalories').textContent = Math.round(totalCalories);
+}
+
 async function addActivity() {
     const activityType = document.getElementById('newActivityType').value;
     const activityDate = document.getElementById('activityDate').value;
     const activityDuration = document.getElementById('activityDuration').value;
     const activityDescription = document.getElementById('activityDescription').value;
+    const activityDistance = document.getElementById('activityDistance').value;
+    const activityCalories = document.getElementById('activityCalories').value;
     
     if (!activityType || !activityDate || !activityDuration) {
         showAlert('请填写必填字段', 'warning');
@@ -263,6 +304,29 @@ async function addActivity() {
             return;
         }
         
+        // 获取用户ID
+        let userId = getUserIdFromToken(token);
+        if (!userId) {
+            // 如果无法从token中解析用户ID，则通过用户信息API获取
+            const userInfoResponse = await fetch('/api/user/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (userInfoResponse.ok) {
+                const userInfoResult = await userInfoResponse.json();
+                if (userInfoResult.code === 200 && userInfoResult.data) {
+                    userId = userInfoResult.data.userId;
+                }
+            }
+        }
+        
+        if (!userId) {
+            showAlert('无法获取用户ID', 'error');
+            return;
+        }
+        
         // 调用API添加活动
         const response = await fetch('/api/behavior/record', {
             method: 'POST',
@@ -271,10 +335,13 @@ async function addActivity() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                userId: userId,  // 添加用户ID
                 typeId: getActivityTypeId(activityType),
                 recordDate: activityDate,
                 duration: parseInt(activityDuration),
-                content: activityDescription
+                content: activityDescription,
+                distance: activityDistance ? parseFloat(activityDistance) : null,
+                calories: activityCalories ? parseInt(activityCalories) : null
             })
         });
         

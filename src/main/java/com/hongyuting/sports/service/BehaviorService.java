@@ -10,26 +10,96 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 行为服务接口
+ * 行为记录服务接口
  */
 public interface BehaviorService {
+    /**
+     * 添加行为记录
+     */
     ResponseDTO addBehaviorRecord(BehaviorDTO behaviorDTO);
+
+    /**
+     * 修改行为记录
+     */
     ResponseDTO updateBehaviorRecord(Behavior record);
+
+    /**
+     * 删除行为记录
+     */
     ResponseDTO deleteBehaviorRecord(Long recordId);
+
+    /**
+     * 根据ID获取行为记录
+     */
     Behavior getBehaviorRecordById(Long recordId);
+
+    /**
+     * 根据用户ID获取行为记录
+     */
     List<Behavior> getBehaviorRecordsByUser(Integer userId);
+
+    /**
+     * 根据用户ID和日期范围获取行为记录
+     */
     List<Behavior> getBehaviorRecordsByUserAndDate(Integer userId, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * 获取用户今日行为记录
+     */
     List<Behavior> getTodayBehaviorRecords(Integer userId);
+
+    /**
+     * 获取用户行为总时长
+     */
     Integer getTotalBehaviorDuration(Integer userId, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * 获取所有行为类型
+     */
     List<BehaviorType> getAllBehaviorTypes();
-    ResponseDTO addBehaviorType(BehaviorType behaviorType);
-    ResponseDTO updateBehaviorType(BehaviorType behaviorType);
-    ResponseDTO deleteBehaviorType(Integer typeId);
+
+    /**
+     * 根据ID获取行为类型
+     */
     BehaviorType getBehaviorTypeById(Integer typeId);
 
-    // 新增方法：获取行为类型分布
-    List<Map<String, Object>> getBehaviorTypeDistribution(Integer userId, LocalDate startDate, LocalDate endDate);
+    /**
+     * 添加行为类型
+     */
+    ResponseDTO addBehaviorType(BehaviorType behaviorType);
 
-    // 新增方法：获取行为记录总数
+    /**
+     * 修改行为类型
+     */
+    ResponseDTO updateBehaviorType(BehaviorType behaviorType);
+
+    /**
+     * 删除行为类型
+     */
+    ResponseDTO deleteBehaviorType(Integer typeId);
+
+    /**
+     * 获取行为类型分布
+     */
+    List<Map<String, Object>> getBehaviorTypeDistribution(Integer userId, LocalDate startDate, LocalDate endDate);
+    
+    /**
+     * 获取行为记录总数
+     */
     Integer getTotalBehaviorRecords();
+    
+    /**
+     * 获取用户周统计
+     */
+    Map<String, Object> getWeeklyStatistics(Integer userId);
+    
+    /**
+     * 获取用户月统计
+     */
+    Map<String, Object> getMonthlyStatistics(Integer userId);
+    
+    /**
+     * 获取所有行为记录（用于管理员查看）
+     */
+    List<Behavior> getAllBehaviors();
 }

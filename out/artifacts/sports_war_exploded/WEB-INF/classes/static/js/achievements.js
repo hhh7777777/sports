@@ -1,3 +1,4 @@
+// 页面加载完成时执行
 document.addEventListener('DOMContentLoaded', function() {
     // 检查用户是否已登录
     checkAuth();
@@ -239,6 +240,10 @@ function getBadgeIcon(badgeName, iconClass) {
         '坚持不懈': '/images/icons/iron-will.png',
         '健身爱好者': '/images/icons/all-rounder.png',
         '跑步达人': '/images/icons/marathon.png',
+        '运动新人': '/images/icons/new.png',
+        '坚持之星':'/images/icons/consist.png',
+        '运动达人':'/images/icons/professor.png',
+        '全能选手':'/images/icons/export.png',
         '周年纪念': '/images/icons/anniversary.png',
         '生日特别': '/images/icons/birthday.png',
         '节日限定': '/images/icons/holiday.png',

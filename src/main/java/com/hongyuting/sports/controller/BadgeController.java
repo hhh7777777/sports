@@ -203,4 +203,12 @@ public class BadgeController {
         List<UserBadge> achievements = badgeService.getUserAchievements(userId);
         return ResponseDTO.success("获取成功", achievements);
     }
+
+    /**
+     * 自动授予徽章（基于用户行为）
+     */
+    @PostMapping("/auto-grant")
+    public ResponseDTO autoGrantBadges(@RequestParam Integer userId) {
+        return badgeService.autoGrantBadgesBasedOnBehavior(userId);
+    }
 }

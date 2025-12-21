@@ -5,7 +5,6 @@ import com.hongyuting.sports.dto.ResponseDTO;
 import com.hongyuting.sports.entity.Behavior;
 import com.hongyuting.sports.entity.BehaviorType;
 import com.hongyuting.sports.mapper.BehaviorMapper;
-import com.hongyuting.sports.mapper.BehaviorRecordMapper;
 import com.hongyuting.sports.service.BehaviorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +12,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,7 +28,6 @@ import java.util.Map;
  */
 public class BehaviorServiceImpl implements BehaviorService {
 
-    private final BehaviorRecordMapper behaviorRecordMapper;
     private final BehaviorMapper behaviorMapper;
 
     @Override
@@ -57,10 +58,12 @@ public class BehaviorServiceImpl implements BehaviorService {
             record.setDuration(behaviorDTO.getDuration());
             record.setContent(behaviorDTO.getContent());
             record.setImageUrl(behaviorDTO.getImageUrl());
+            record.setDistance(behaviorDTO.getDistance());
+            record.setCalories(behaviorDTO.getCalories());
             record.setCreateTime(LocalDateTime.now());
             record.setUpdateTime(LocalDateTime.now());
 
-            int result = behaviorRecordMapper.insertBehaviorRecord(record);
+            int result = behaviorMapper.insertBehaviorRecord(record);
             if (result > 0) {
                 log.info("行为记录添加成功：记录ID={}", record.getRecordId());
                 return ResponseDTO.success("行为记录添加成功", record.getRecordId());
@@ -80,7 +83,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (recordId == null) {
                 return null;
             }
-            return behaviorRecordMapper.selectBehaviorRecordById(recordId);
+            return behaviorMapper.selectBehaviorRecordById(recordId);
         } catch (Exception e) {
             log.error("根据ID获取行为记录异常: recordId={}", recordId, e);
             return null;
@@ -93,7 +96,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (userId == null) {
                 return List.of();
             }
-            return behaviorRecordMapper.selectBehaviorRecordsByUserId(userId);
+            return behaviorMapper.selectBehaviorRecordsByUserId(userId);
         } catch (Exception e) {
             log.error("根据用户ID获取行为记录异常: userId={}", userId, e);
             return List.of();
@@ -106,7 +109,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (userId == null || startDate == null || endDate == null) {
                 return List.of();
             }
-            return behaviorRecordMapper.selectBehaviorRecordsByUserAndDate(userId, startDate, endDate);
+            return behaviorMapper.selectBehaviorRecordsByUserAndDate(userId, startDate, endDate);
         } catch (Exception e) {
             log.error("根据用户ID和日期范围获取行为记录异常: userId={}, startDate={}, endDate={}", userId, startDate, endDate, e);
             return List.of();
@@ -133,7 +136,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (userId == null || startDate == null || endDate == null) {
                 return 0;
             }
-            Integer duration = behaviorRecordMapper.selectTotalDurationByUserAndDate(userId, startDate, endDate);
+            Integer duration = behaviorMapper.selectTotalDurationByUserAndDate(userId, startDate, endDate);
             return duration != null ? duration : 0;
         } catch (Exception e) {
             log.error("获取行为总时长异常: userId={}, startDate={}, endDate={}", userId, startDate, endDate, e);
@@ -257,7 +260,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             }
 
             record.setUpdateTime(LocalDateTime.now());
-            int result = behaviorRecordMapper.updateBehaviorRecord(record);
+            int result = behaviorMapper.updateBehaviorRecord(record);
             if (result > 0) {
                 log.info("行为记录更新成功：记录ID={}", record.getRecordId());
                 return ResponseDTO.success("行为记录更新成功");
@@ -280,7 +283,7 @@ public class BehaviorServiceImpl implements BehaviorService {
                 return ResponseDTO.error("记录ID不能为空");
             }
 
-            int result = behaviorRecordMapper.deleteBehaviorRecord(recordId);
+            int result = behaviorMapper.deleteBehaviorRecord(recordId);
             if (result > 0) {
                 log.info("行为记录删除成功：记录ID={}", recordId);
                 return ResponseDTO.success("行为记录删除成功");
@@ -300,7 +303,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (userId == null || startDate == null || endDate == null) {
                 return List.of();
             }
-            return behaviorRecordMapper.selectBehaviorTypeDistribution(userId, startDate, endDate);
+            return behaviorMapper.selectBehaviorTypeDistribution(userId, startDate, endDate);
         } catch (Exception e) {
             log.error("获取行为类型分布异常: userId={}, startDate={}, endDate={}", userId, startDate, endDate, e);
             return List.of();
@@ -310,11 +313,89 @@ public class BehaviorServiceImpl implements BehaviorService {
     @Override
     public Integer getTotalBehaviorRecords() {
         try {
-            List<Behavior> records = behaviorRecordMapper.selectAllBehaviorRecords();
+            List<Behavior> records = behaviorMapper.selectAllBehaviorRecords();
             return records != null ? records.size() : 0;
         } catch (Exception e) {
             log.error("获取行为记录总数异常", e);
             return 0;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getWeeklyStatistics(Integer userId) {
+        Map<String, Object> statistics = new HashMap<>();
+        try {
+            if (userId == null) {
+                return statistics;
+            }
+
+            // 计算本周的开始和结束日期
+            LocalDate today = LocalDate.now();
+            LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+            LocalDate weekEnd = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+
+            // 获取本周总时长
+            Integer totalDuration = behaviorMapper.selectTotalDurationByUserAndDate(userId, weekStart, weekEnd);
+            totalDuration = totalDuration != null ? totalDuration : 0;
+
+            // 获取本周行为记录数量
+            List<Behavior> weeklyRecords = behaviorMapper.selectBehaviorRecordsByUserAndDate(userId, weekStart, weekEnd);
+            int recordCount = weeklyRecords != null ? weeklyRecords.size() : 0;
+
+            statistics.put("weekStart", weekStart);
+            statistics.put("weekEnd", weekEnd);
+            statistics.put("totalDuration", totalDuration);
+            statistics.put("recordCount", recordCount);
+            statistics.put("averageDuration", recordCount > 0 ? totalDuration / recordCount : 0);
+
+            return statistics;
+        } catch (Exception e) {
+            log.error("获取周统计异常: userId={}", userId, e);
+            return statistics;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getMonthlyStatistics(Integer userId) {
+        Map<String, Object> statistics = new HashMap<>();
+        try {
+            if (userId == null) {
+                return statistics;
+            }
+
+            // 计算本月的开始和结束日期
+            LocalDate today = LocalDate.now();
+            LocalDate monthStart = today.with(TemporalAdjusters.firstDayOfMonth());
+            LocalDate monthEnd = today.with(TemporalAdjusters.lastDayOfMonth());
+
+            // 获取本月总时长
+            Integer totalDuration = behaviorMapper.selectTotalDurationByUserAndDate(userId, monthStart, monthEnd);
+            totalDuration = totalDuration != null ? totalDuration : 0;
+
+            // 获取本月行为记录数量
+            List<Behavior> monthlyRecords = behaviorMapper.selectBehaviorRecordsByUserAndDate(userId, monthStart, monthEnd);
+            int recordCount = monthlyRecords != null ? monthlyRecords.size() : 0;
+
+            statistics.put("monthStart", monthStart);
+            statistics.put("monthEnd", monthEnd);
+            statistics.put("totalDuration", totalDuration);
+            statistics.put("recordCount", recordCount);
+            statistics.put("averageDuration", recordCount > 0 ? totalDuration / recordCount : 0);
+
+            return statistics;
+        } catch (Exception e) {
+            log.error("获取月统计异常: userId={}", userId, e);
+            return statistics;
+        }
+    }
+    
+    @Override
+    public List<Behavior> getAllBehaviors() {
+        try {
+            return behaviorMapper.selectAllBehaviorRecords();
+        } catch (Exception e) {
+            log.error("获取所有行为记录异常", e);
+            return List.of();
         }
     }
 }

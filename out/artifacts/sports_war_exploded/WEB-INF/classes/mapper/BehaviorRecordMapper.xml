@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.hongyuting.sports.mapper.BehaviorRecordMapper">
+<mapper namespace="com.hongyuting.sports.mapper.BehaviorMapper">
 
     <resultMap id="BehaviorRecordResultMap" type="com.hongyuting.sports.entity.Behavior">
         <id property="recordId" column="record_id"/>
@@ -11,8 +11,11 @@
         <result property="duration" column="duration"/>
         <result property="content" column="content"/>
         <result property="imageUrl" column="image_url"/>
+        <result property="distance" column="distance"/>
+        <result property="calories" column="calories"/>
         <result property="createTime" column="create_time"/>
         <result property="updateTime" column="update_time"/>
+        <result property="typeName" column="type_name"/>
     </resultMap>
 
     <!-- BehaviorType resultMap -->
@@ -27,22 +30,34 @@
     </resultMap>
 
     <select id="selectAllBehaviorRecords" resultMap="BehaviorRecordResultMap">
-        SELECT * FROM behavior_record ORDER BY create_time DESC
+        SELECT br.*, bt.type_name 
+        FROM behavior_record br
+        LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+        ORDER BY br.create_time DESC
     </select>
 
     <select id="selectBehaviorRecordById" resultMap="BehaviorRecordResultMap">
-        SELECT * FROM behavior_record WHERE record_id = #{recordId}
+        SELECT br.*, bt.type_name 
+        FROM behavior_record br
+        LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+        WHERE br.record_id = #{recordId}
     </select>
 
     <select id="selectBehaviorRecordsByUserId" resultMap="BehaviorRecordResultMap">
-        SELECT * FROM behavior_record WHERE user_id = #{userId} ORDER BY record_date DESC
+        SELECT br.*, bt.type_name 
+        FROM behavior_record br
+        LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+        WHERE br.user_id = #{userId} 
+        ORDER BY br.record_date DESC
     </select>
 
     <select id="selectBehaviorRecordsByUserAndDate" resultMap="BehaviorRecordResultMap">
-        SELECT * FROM behavior_record
-        WHERE user_id = #{userId}
-          AND record_date BETWEEN #{startDate} AND #{endDate}
-        ORDER BY record_date DESC
+        SELECT br.*, bt.type_name 
+        FROM behavior_record br
+        LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+        WHERE br.user_id = #{userId}
+          AND br.record_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY br.record_date DESC
     </select>
 
     <select id="selectTotalDurationByUserAndDate" resultType="int">
@@ -65,14 +80,15 @@
 
     <insert id="insertBehaviorRecord" parameterType="com.hongyuting.sports.entity.Behavior"
             useGeneratedKeys="true" keyProperty="recordId">
-        INSERT INTO behavior_record (user_id, type_id, record_date, duration, content, image_url, create_time, update_time)
-        VALUES (#{userId}, #{typeId}, #{recordDate}, #{duration}, #{content}, #{imageUrl}, #{createTime}, #{updateTime})
+        INSERT INTO behavior_record (user_id, type_id, record_date, duration, content, image_url, distance, calories, create_time, update_time)
+        VALUES (#{userId}, #{typeId}, #{recordDate}, #{duration}, #{content}, #{imageUrl}, #{distance}, #{calories}, #{createTime}, #{updateTime})
     </insert>
 
     <update id="updateBehaviorRecord" parameterType="com.hongyuting.sports.entity.Behavior">
         UPDATE behavior_record
         SET user_id = #{userId}, type_id = #{typeId}, record_date = #{recordDate},
             duration = #{duration}, content = #{content}, image_url = #{imageUrl},
+            distance = #{distance}, calories = #{calories},
             update_time = #{updateTime}
         WHERE record_id = #{recordId}
     </update>

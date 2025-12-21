@@ -153,7 +153,7 @@
                 </span>
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle user-dropdown" href="#" role="button" data-bs-toggle="dropdown">
-                        <img src="/images/avatar/avatar.png" alt="用户头像" class="user-avatar">
+                        <img src="/images/avatar.png" alt="用户头像" class="user-avatar">
                         <span class="d-none d-md-inline">用户</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
@@ -214,7 +214,7 @@
                 <div class="col-md-3 mb-3">
                     <div class="card stat-card">
                         <div class="card-body text-center">
-                            <h5 class="card-title text-primary">150</h5>
+                            <h5 class="card-title text-primary" id="monthlyDuration">0</h5>
                             <p class="card-text text-muted mb-0">本月时长(分钟)</p>
                         </div>
                     </div>
@@ -222,7 +222,7 @@
                 <div class="col-md-3 mb-3">
                     <div class="card stat-card">
                         <div class="card-body text-center">
-                            <h5 class="card-title text-success">15</h5>
+                            <h5 class="card-title text-success" id="monthlyCount">0</h5>
                             <p class="card-text text-muted mb-0">本月次数</p>
                         </div>
                     </div>
@@ -230,7 +230,7 @@
                 <div class="col-md-3 mb-3">
                     <div class="card stat-card">
                         <div class="card-body text-center">
-                            <h5 class="card-title text-warning">50</h5>
+                            <h5 class="card-title text-warning" id="monthlyDistance">0</h5>
                             <p class="card-text text-muted mb-0">本月里程(km)</p>
                         </div>
                     </div>
@@ -238,7 +238,7 @@
                 <div class="col-md-3 mb-3">
                     <div class="card stat-card">
                         <div class="card-body text-center">
-                            <h5 class="card-title text-info">5000</h5>
+                            <h5 class="card-title text-info" id="monthlyCalories">0</h5>
                             <p class="card-text text-muted mb-0">本月卡路里</p>
                         </div>
                     </div>
@@ -283,92 +283,7 @@
 
             <!-- 运动记录列表 -->
             <div class="row" id="activityList">
-                <div class="col-12 mb-4">
-                    <div class="card activity-card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="d-flex">
-                                    <div class="activity-icon running me-3">
-                                        <i class="fas fa-running"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="card-title mb-1">跑步</h5>
-                                        <p class="card-text text-muted mb-2">晨跑5公里</p>
-                                        <div class="d-flex flex-wrap">
-                                            <span class="me-3"><i class="far fa-calendar me-1"></i> 2024-01-15</span>
-                                            <span class="me-3"><i class="far fa-clock me-1"></i> 30分钟</span>
-                                            <span class="me-3"><i class="fas fa-road me-1"></i> 5.0公里</span>
-                                            <span><i class="fas fa-fire me-1"></i> 300卡路里</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-12 mb-4">
-                    <div class="card activity-card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="d-flex">
-                                    <div class="activity-icon swimming me-3">
-                                        <i class="fas fa-swimmer"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="card-title mb-1">游泳</h5>
-                                        <p class="card-text text-muted mb-2">游泳训练</p>
-                                        <div class="d-flex flex-wrap">
-                                            <span class="me-3"><i class="far fa-calendar me-1"></i> 2024-01-14</span>
-                                            <span class="me-3"><i class="far fa-clock me-1"></i> 45分钟</span>
-                                            <span class="me-3"><i class="fas fa-road me-1"></i> 1.5公里</span>
-                                            <span><i class="fas fa-fire me-1"></i> 400卡路里</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-12 mb-4">
-                    <div class="card activity-card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div class="d-flex">
-                                    <div class="activity-icon cycling me-3">
-                                        <i class="fas fa-bicycle"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="card-title mb-1">骑行</h5>
-                                        <p class="card-text text-muted mb-2">周末骑行</p>
-                                        <div class="d-flex flex-wrap">
-                                            <span class="me-3"><i class="far fa-calendar me-1"></i> 2024-01-13</span>
-                                            <span class="me-3"><i class="far fa-clock me-1"></i> 60分钟</span>
-                                            <span class="me-3"><i class="fas fa-road me-1"></i> 20.0公里</span>
-                                            <span><i class="fas fa-fire me-1"></i> 500卡路里</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <!-- 动态加载内容 -->
             </div>
 
             <!-- 分页 -->

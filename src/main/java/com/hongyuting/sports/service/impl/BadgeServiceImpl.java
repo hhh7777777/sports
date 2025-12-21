@@ -6,14 +6,19 @@ import com.hongyuting.sports.entity.UserBadge;
 import com.hongyuting.sports.mapper.AchievementBadgeMapper;
 import com.hongyuting.sports.mapper.UserAchievementMapper;
 import com.hongyuting.sports.service.BadgeService;
+import com.hongyuting.sports.service.BehaviorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -25,6 +30,7 @@ public class BadgeServiceImpl implements BadgeService {
 
     private final AchievementBadgeMapper achievementBadgeMapper;
     private final UserAchievementMapper userAchievementMapper;
+    private final BehaviorService behaviorService;
 
     @Override
     public List<Badge> getBadgesByConditionType(String conditionType) {
@@ -370,6 +376,93 @@ public class BadgeServiceImpl implements BadgeService {
         } catch (Exception e) {
             log.error("获取徽章总数异常", e);
             return 0;
+        }
+    }
+
+    @Override
+    @Transactional
+    public ResponseDTO autoGrantBadgesBasedOnBehavior(Integer userId) {
+        try {
+            if (userId == null) {
+                return ResponseDTO.error("用户ID不能为空");
+            }
+
+            // 获取所有徽章
+            List<Badge> allBadges = achievementBadgeMapper.selectAllBadges();
+            if (allBadges == null || allBadges.isEmpty()) {
+                return ResponseDTO.success("没有可授予的徽章");
+            }
+
+            int grantedCount = 0;
+            for (Badge badge : allBadges) {
+                // 检查用户是否已拥有该徽章
+                if (checkUserHasBadge(userId, badge.getBadgeId())) {
+                    continue;
+                }
+
+                // 根据徽章条件类型检查是否满足授予条件
+                if (checkBadgeCondition(userId, badge)) {
+                    ResponseDTO result = grantBadgeToUser(userId, badge.getBadgeId());
+                    if (result.getCode() == 200) {
+                        grantedCount++;
+                    }
+                }
+            }
+
+            return ResponseDTO.success("自动授予徽章完成，共授予 " + grantedCount + " 个徽章");
+        } catch (Exception e) {
+            log.error("根据用户行为自动授予徽章异常: userId={}", userId, e);
+            return ResponseDTO.error("自动授予徽章异常: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 检查用户是否满足徽章授予条件
+     * @param userId 用户ID
+     * @param badge 徽章
+     * @return 是否满足条件
+     */
+    private boolean checkBadgeCondition(Integer userId, Badge badge) {
+        try {
+            String conditionType = badge.getConditionType();
+            Integer conditionValue = badge.getConditionValue();
+
+            if (!StringUtils.hasText(conditionType) || conditionValue == null) {
+                return false;
+            }
+
+            switch (conditionType) {
+                case "weekly_duration":
+                    // 检查周运动时长
+                    Map<String, Object> weeklyStats = behaviorService.getWeeklyStatistics(userId);
+                    Integer weeklyDuration = (Integer) weeklyStats.get("totalDuration");
+                    return weeklyDuration != null && weeklyDuration >= conditionValue;
+
+                case "monthly_duration":
+                    // 检查月运动时长
+                    Map<String, Object> monthlyStats = behaviorService.getMonthlyStatistics(userId);
+                    Integer monthlyDuration = (Integer) monthlyStats.get("totalDuration");
+                    return monthlyDuration != null && monthlyDuration >= conditionValue;
+
+                case "weekly_count":
+                    // 检查周运动次数
+                    Map<String, Object> weeklyStatsCount = behaviorService.getWeeklyStatistics(userId);
+                    Integer weeklyCount = (Integer) weeklyStatsCount.get("recordCount");
+                    return weeklyCount != null && weeklyCount >= conditionValue;
+
+                case "monthly_count":
+                    // 检查月运动次数
+                    Map<String, Object> monthlyStatsCount = behaviorService.getMonthlyStatistics(userId);
+                    Integer monthlyCount = (Integer) monthlyStatsCount.get("recordCount");
+                    return monthlyCount != null && monthlyCount >= conditionValue;
+
+                default:
+                    // 其他条件类型暂不支持
+                    return false;
+            }
+        } catch (Exception e) {
+            log.error("检查徽章条件异常: userId={}, badgeId={}", userId, badge.getBadgeId(), e);
+            return false;
         }
     }
 }

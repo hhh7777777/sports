@@ -63,6 +63,22 @@
     <select id="countByEmail" resultType="int">
         SELECT COUNT(*) FROM user WHERE email = #{email}
     </select>
+    
+    <select id="selectTotalDurationByUserAndDate" resultType="int">
+        SELECT COALESCE(SUM(duration), 0) 
+        FROM behavior_record 
+        WHERE user_id = #{userId} 
+        AND record_date BETWEEN #{startDate} AND #{endDate}
+    </select>
+    
+    <select id="selectBehaviorTypeDistribution" resultType="map">
+        SELECT bt.type_name as typeName, COALESCE(SUM(br.duration), 0) as totalDuration
+        FROM behavior_type bt
+        LEFT JOIN behavior_record br ON bt.type_id = br.type_id 
+        AND br.user_id = #{userId} 
+        AND br.record_date BETWEEN #{startDate} AND #{endDate}
+        GROUP BY bt.type_id, bt.type_name
+    </select>
 
     <delete id="deleteUser">
         DELETE FROM user WHERE user_id = #{userId}

@@ -72,10 +72,16 @@ async function checkAuth() {
         });
         
         if (!response.ok) {
+            // 清除无效的token
+            localStorage.removeItem('accessToken');
+            sessionStorage.removeItem('accessToken');
             window.location.href = '/login';
         }
     } catch (error) {
         console.error('验证用户身份时出错:', error);
+        // 清除无效的token
+        localStorage.removeItem('accessToken');
+        sessionStorage.removeItem('accessToken');
         window.location.href = '/login';
     }
 }
@@ -118,7 +124,11 @@ async function loadUserProfile() {
         });
 
         if (!response.ok) {
-            throw new Error('获取用户资料失败');
+            // 清除无效的token
+            localStorage.removeItem('accessToken');
+            sessionStorage.removeItem('accessToken');
+            window.location.href = '/login';
+            return;
         }
 
         const result = await response.json();
@@ -158,9 +168,9 @@ async function loadUserProfile() {
             if (headerAvatar) headerAvatar.src = userData.avatar;
             userAvatarElements.forEach(el => el.src = userData.avatar);
         } else {
-            if (profileImage) profileImage.src = '/images/avatar.png';
-            if (headerAvatar) headerAvatar.src = '/images/avatar.png';
-            userAvatarElements.forEach(el => el.src = '/images/avatar.png');
+            if (profileImage) profileImage.src = '/images/avatar/avatar.png';
+            if (headerAvatar) headerAvatar.src = '/images/avatar/avatar.png';
+            userAvatarElements.forEach(el => el.src = '/images/avatar/avatar.png');
         }
         
         // 更新头部信息
@@ -174,17 +184,62 @@ async function loadUserProfile() {
             registerDate.textContent = regDate.toLocaleDateString('zh-CN');
         }
         
-        // TODO: 以下统计数据需要从后端API获取真实数据
-        // 临时使用默认值
-        const monthDuration = document.getElementById('monthDuration');
-        if (monthDuration) monthDuration.textContent = '0';
+        // 获取真实统计数据
+        const userId = getUserIdFromToken(token);
         
-        const monthCount = document.getElementById('monthCount');
-        if (monthCount) monthCount.textContent = '0';
+        // 获取本月运动统计
+        const startDate = new Date();
+        startDate.setDate(1); // 本月第一天
+        const endDate = new Date();
         
-        const badgeCount = document.getElementById('badgeCount');
-        if (badgeCount) badgeCount.textContent = '0';
+        const activityStatsResponse = await fetch(`/api/user/activity-stats?startDate=${startDate.toISOString().split('T')[0]}&endDate=${endDate.toISOString().split('T')[0]}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         
+        let monthDuration = 0;
+        let monthCount = 0;
+        if (activityStatsResponse.ok) {
+            const activityStatsResult = await activityStatsResponse.json();
+            if (activityStatsResult.code === 200 && activityStatsResult.data) {
+                monthDuration = activityStatsResult.data.totalDuration || 0;
+                
+                // 计算本月运动次数
+                if (activityStatsResult.data.typeDistribution) {
+                    monthCount = activityStatsResult.data.typeDistribution.reduce((total, item) => {
+                        return total + (item.recordCount || 0);
+                    }, 0);
+                }
+            }
+        }
+        
+        // 获取徽章统计
+        const badgeStatsResponse = await fetch('/api/user/badges', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        let badgeCount = 0;
+        if (badgeStatsResponse.ok) {
+            const badgeStatsResult = await badgeStatsResponse.json();
+            if (badgeStatsResult.code === 200 && badgeStatsResult.data) {
+                badgeCount = Array.isArray(badgeStatsResult.data) ? badgeStatsResult.data.length : 0;
+            }
+        }
+        
+        // 更新统计数据
+        const monthDurationEl = document.getElementById('monthDuration');
+        if (monthDurationEl) monthDurationEl.textContent = monthDuration;
+        
+        const monthCountEl = document.getElementById('monthCount');
+        if (monthCountEl) monthCountEl.textContent = monthCount;
+        
+        const badgeCountEl = document.getElementById('badgeCount');
+        if (badgeCountEl) badgeCountEl.textContent = badgeCount;
+        
+        // TODO: 连续打卡天数需要后端提供API
         const streakDays = document.getElementById('streakDays');
         if (streakDays) streakDays.textContent = '0';
         
@@ -228,6 +283,17 @@ async function updateProfile() {
             body: JSON.stringify(formData)
         });
 
+        if (!response.ok) {
+            // 如果是认证错误，清除token并重定向到登录页
+            if (response.status === 401) {
+                localStorage.removeItem('accessToken');
+                sessionStorage.removeItem('accessToken');
+                window.location.href = '/login';
+                return;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         // 即使响应不是2xx，我们也想查看响应内容
         const resultText = await response.text();
         let result;
@@ -237,7 +303,7 @@ async function updateProfile() {
             throw new Error(`服务器响应不是有效的JSON格式: ${resultText}`);
         }
 
-        if (response.ok && result.code === 200) {
+        if (result.code === 200) {
             showAlert('资料更新成功', 'success');
             // 重新加载用户资料以更新界面上的显示
             loadUserProfile();
@@ -288,6 +354,17 @@ async function uploadAvatar(file) {
             body: formData
         });
 
+        if (!response.ok) {
+            // 如果是认证错误，清除token并重定向到登录页
+            if (response.status === 401) {
+                localStorage.removeItem('accessToken');
+                sessionStorage.removeItem('accessToken');
+                window.location.href = '/login';
+                return;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const resultText = await response.text();
         let result;
         try {
@@ -296,7 +373,7 @@ async function uploadAvatar(file) {
             throw new Error(`服务器响应不是有效的JSON格式: ${resultText}`);
         }
 
-        if (response.ok && result.code === 200) {
+        if (result.code === 200) {
             showAlert('头像上传成功', 'success');
             // 更新所有头像显示
             const avatarUrl = result.data;
@@ -359,6 +436,17 @@ async function changePassword() {
             })
         });
 
+        if (!response.ok) {
+            // 如果是认证错误，清除token并重定向到登录页
+            if (response.status === 401) {
+                localStorage.removeItem('accessToken');
+                sessionStorage.removeItem('accessToken');
+                window.location.href = '/login';
+                return;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const resultText = await response.text();
         let result;
         try {
@@ -367,7 +455,7 @@ async function changePassword() {
             throw new Error(`服务器响应不是有效的JSON格式: ${resultText}`);
         }
 
-        if (response.ok && result.code === 200) {
+        if (result.code === 200) {
             showAlert('密码修改成功，请重新登录', 'success');
             
             // 关闭模态框
@@ -390,6 +478,18 @@ async function changePassword() {
     } catch (error) {
         console.error('修改密码时出错:', error);
         showAlert('密码修改失败: ' + error.message, 'error');
+    }
+}
+
+// 辅助函数：从token中提取用户ID
+function getUserIdFromToken(token) {
+    try {
+        const base64Payload = token.split('.')[1];
+        const payload = JSON.parse(atob(base64Payload));
+        return payload.userId || payload.sub || payload.id;
+    } catch (e) {
+        console.error('解析token失败:', e);
+        return null;
     }
 }
 
