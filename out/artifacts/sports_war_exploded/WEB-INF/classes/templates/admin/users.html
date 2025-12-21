@@ -27,6 +27,32 @@
         .stat-card:hover {
             transform: translateY(-2px);
         }
+        
+        /* 管理员头像下拉菜单样式修复 */
+        .admin-dropdown {
+            position: relative;
+        }
+        
+        .admin-dropdown .dropdown-menu {
+            right: 0;
+            left: auto;
+            min-width: 150px;
+            z-index: 1050;
+        }
+        
+        .admin-dropdown .dropdown-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body>
@@ -40,7 +66,7 @@
             <span class="navbar-text me-3">
                 欢迎，管理员
             </span>
-            <div class="dropdown">
+            <div class="dropdown admin-dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                     <i class="fas fa-user-circle"></i>
                 </a>
@@ -117,9 +143,9 @@
                                 <label for="status" class="form-label">状态</label>
                                 <select class="form-select" id="status">
                                     <option value="">全部</option>
-                                    <option value="active">活跃</option>
-                                    <option value="inactive">未激活</option>
-                                    <option value="banned">封禁</option>
+                                    <option value="1">活跃</option>
+                                    <option value="0">未激活</option>
+                                    <option value="-1">封禁</option>
                                 </select>
                             </div>
                             <div class="col-md-3 mb-3 d-flex align-items-end">
@@ -232,9 +258,9 @@
                     <div class="mb-3">
                         <label for="modalStatus" class="form-label">状态</label>
                         <select class="form-select" id="modalStatus">
-                            <option value="active">活跃</option>
-                            <option value="inactive">未激活</option>
-                            <option value="banned">封禁</option>
+                            <option value="1">活跃</option>
+                            <option value="0">未激活</option>
+                            <option value="-1">封禁</option>
                         </select>
                     </div>
                 </form>

@@ -201,13 +201,17 @@ function renderAchievements(achievements, tabId) {
         const badgeCard = document.createElement('div');
         badgeCard.className = 'col-md-6 col-lg-4 mb-4';
         
-        // 根据徽章名称或等级选择合适的图标
-        const iconSrc = getBadgeIcon(achievement.name, achievement.icon);
+        // 根据徽章名称选择合适的图标
+        const iconSrc = getBadgeIcon(achievement.name);
+        
+        // 根据成就状态设置样式类
+        const cardClass = achievement.earned ? 'card badge-card h-100' : 'card badge-card h-100 badge-locked';
+        const iconClass = achievement.earned ? '' : 'opacity-50'; // 未获得的徽章图标半透明
         
         badgeCard.innerHTML = `
-            <div class="card badge-card h-100 ${achievement.earned ? '' : 'badge-locked'}">
+            <div class="${cardClass}">
                 <div class="card-body text-center">
-                    <div class="badge-icon">
+                    <div class="badge-icon ${iconClass}">
                         <img src="${iconSrc}" alt="${achievement.name}" class="badge-img">
                     </div>
                     <h5 class="card-title">${achievement.name}</h5>
@@ -233,7 +237,7 @@ function renderAchievements(achievements, tabId) {
     });
 }
 
-function getBadgeIcon(badgeName, iconClass) {
+function getBadgeIcon(badgeName) {
     // 根据徽章名称映射到对应的图片
     const badgeNameMap = {
         '第一步': '/images/icons/early-bird.png',
@@ -241,9 +245,9 @@ function getBadgeIcon(badgeName, iconClass) {
         '健身爱好者': '/images/icons/all-rounder.png',
         '跑步达人': '/images/icons/marathon.png',
         '运动新人': '/images/icons/new.png',
-        '坚持之星':'/images/icons/consist.png',
-        '运动达人':'/images/icons/professor.png',
-        '全能选手':'/images/icons/export.png',
+        '坚持之星': '/images/icons/consist.png',
+        '运动达人': '/images/icons/professor.png',
+        '全能选手': '/images/icons/export.png',
         '周年纪念': '/images/icons/anniversary.png',
         '生日特别': '/images/icons/birthday.png',
         '节日限定': '/images/icons/holiday.png',
@@ -264,25 +268,12 @@ function getBadgeIcon(badgeName, iconClass) {
         '百公里俱乐部': '/images/icons/100km.png',
         '钢铁意志': '/images/icons/iron-will.png'
     };
-    
+
     // 如果有匹配的名称，返回对应的图片路径
     if (badgeNameMap[badgeName]) {
         return badgeNameMap[badgeName];
     }
-    
-    // 根据图标类名映射
-    const iconClassMap = {
-        'fa-walking': '/images/icons/early-bird.png',
-        'fa-calendar-check': '/images/icons/iron-will.png',
-        'fa-heart': '/images/icons/all-rounder.png',
-        'fa-running': '/images/icons/marathon.png',
-        'fa-medal': '/images/icons/bronze.png'
-    };
-    
-    if (iconClass && iconClassMap[iconClass]) {
-        return iconClassMap[iconClass];
-    }
-    
+
     // 默认返回青铜徽章
     return '/images/icons/bronze.png';
 }

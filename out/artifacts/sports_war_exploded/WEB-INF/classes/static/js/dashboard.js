@@ -238,10 +238,11 @@ async function loadDashboardData() {
         const badgesResult = await badgesResponse.json();
         const badges = badgesResult.data;
         
-        // 更新徽章数量
+        // 更新徽章数量（只计算已获得且进度为100%的徽章）
         const badgeCountElement = document.getElementById('badgeCount');
         if (badgeCountElement) {
-            badgeCountElement.textContent = Array.isArray(badges) ? badges.length : 0;
+            const achievedBadges = Array.isArray(badges) ? badges.filter(badge => badge.achieved && badge.progress >= 100) : [];
+            badgeCountElement.textContent = achievedBadges.length;
         }
         
         // 加载最近活动
@@ -249,7 +250,6 @@ async function loadDashboardData() {
         
         // 初始化图表
         initCharts(monthStats.typeDistribution || []);
-
     } catch (error) {
         console.error('加载仪表板数据时出错:', error);
         showAlert('加载数据失败，请稍后重试', 'error');

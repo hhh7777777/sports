@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         filterLogs();
     });
+    
+    // 页面加载时获取日志列表
+    loadLogs();
 });
 
 async function checkAdminAuth() {
@@ -64,6 +67,71 @@ async function adminLogout() {
     }
 }
 
+async function loadLogs() {
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        const response = await fetch('/api/admin/logs', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                renderLogs(result.data);
+            }
+        } else {
+            throw new Error('获取日志列表失败');
+        }
+    } catch (error) {
+        console.error('加载日志列表时出错:', error);
+        showAlert('加载日志列表失败: ' + error.message, 'error');
+    }
+}
+
+function renderLogs(logs) {
+    const tbody = document.getElementById('logsTableBody');
+    tbody.innerHTML = '';
+    
+    if (!Array.isArray(logs) || logs.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="5" class="text-center">暂无日志数据</td>';
+        tbody.appendChild(row);
+        return;
+    }
+    
+    logs.forEach(log => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${log.operationTime ? new Date(log.operationTime).toLocaleString() : ''}</td>
+            <td>${getLogLevelBadge(log.logLevel)}</td>
+            <td>${log.module || ''}</td>
+            <td>${log.message || ''}</td>
+            <td>${log.ipAddress || ''}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function getLogLevelBadge(level) {
+    switch (level) {
+        case 'ERROR':
+            return '<span class="log-level-error">ERROR</span>';
+        case 'WARN':
+            return '<span class="log-level-warn">WARN</span>';
+        case 'INFO':
+            return '<span class="log-level-info">INFO</span>';
+        default:
+            return level;
+    }
+}
+
 function initDatePickers() {
     // 初始化日期选择器
     flatpickr("#startDate", {
@@ -77,14 +145,48 @@ function initDatePickers() {
     });
 }
 
-function filterLogs() {
-    const logLevel = document.getElementById('logLevel').value;
-    const startDate = document.getElementById('startDate').value;
-    const endDate = document.getElementById('endDate').value;
-    
-    // 这里应该调用API进行筛选，目前只是模拟
-    console.log('筛选条件:', { logLevel, startDate, endDate });
-    showAlert('筛选功能演示', 'info');
+async function filterLogs() {
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        const logLevel = document.getElementById('logLevel').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        // 构建查询参数
+        let url = '/api/admin/logs';
+        const params = new URLSearchParams();
+        
+        if (logLevel) params.append('logLevel', logLevel);
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+        
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                renderLogs(result.data);
+            }
+        } else {
+            throw new Error('筛选日志失败');
+        }
+    } catch (error) {
+        console.error('筛选日志时出错:', error);
+        showAlert('筛选日志失败: ' + error.message, 'error');
+    }
 }
 
 function showAlert(message, type) {

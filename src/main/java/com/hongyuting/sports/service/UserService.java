@@ -57,6 +57,11 @@ public interface UserService {
      * 获取所有用户信息
      */
     List<User> getAllUsers();
+    
+    /**
+     * 根据条件搜索用户
+     */
+    List<User> searchUsers(String username, String email, Integer status);
     /**
      * 检查用户名是否存在
      */
@@ -70,4 +75,9 @@ public interface UserService {
      * 获取用户活跃度统计
      */
     Map<String, Object> getUserActivityStats(Integer userId, LocalDate startDate, LocalDate endDate);
+    
+    /**
+     * 根据年月获取用户数量
+     */
+    int getUserCountByMonth(int year, int month);
 }

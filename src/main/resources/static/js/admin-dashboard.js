@@ -127,12 +127,12 @@ async function loadRecentActivities() {
         } else {
             recentActivities.forEach(activity => {
                 const row = document.createElement('tr');
-                // 这里需要根据实际返回的数据结构调整
+                // 根据实际返回的数据结构调整
                 row.innerHTML = `
                     <td>${activity.userId || '未知用户'}</td>
                     <td>${activity.typeName || '未知类型'}</td>
                     <td>${activity.duration || 0}</td>
-                    <td>${activity.createTime || '未知时间'}</td>
+                    <td>${activity.createTime ? new Date(activity.createTime).toLocaleString() : '未知时间'}</td>
                 `;
                 tbody.appendChild(row);
             });
@@ -148,13 +148,18 @@ function initCharts() {
     
     // 先获取真实数据
     fetchUserGrowthData().then(data => {
-        new Chart(userGrowthCtx, {
+        // 销毁已有的图表实例（如果存在）
+        if (window.userGrowthChartInstance) {
+            window.userGrowthChartInstance.destroy();
+        }
+        
+        window.userGrowthChartInstance = new Chart(userGrowthCtx, {
             type: 'line',
             data: {
-                labels: data.labels || ['一月', '二月', '三月', '四月', '五月', '六月'],
+                labels: data.labels || [],
                 datasets: [{
                     label: '用户增长',
-                    data: data.data || [120, 190, 130, 180, 210, 250],
+                    data: data.data || [],
                     borderColor: 'rgb(75, 192, 192)',
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     tension: 0.1
@@ -171,28 +176,6 @@ function initCharts() {
         });
     }).catch(error => {
         console.error('获取用户增长数据失败:', error);
-        // 使用默认数据
-        new Chart(userGrowthCtx, {
-            type: 'line',
-            data: {
-                labels: ['一月', '二月', '三月', '四月', '五月', '六月'],
-                datasets: [{
-                    label: '用户增长',
-                    data: [120, 190, 130, 180, 210, 250],
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
     });
 
     // 运动类型分布图
@@ -200,13 +183,18 @@ function initCharts() {
     
     // 先获取真实数据
     fetchActivityTypeDistribution().then(data => {
-        new Chart(activityTypeCtx, {
+        // 销毁已有的图表实例（如果存在）
+        if (window.activityTypeChartInstance) {
+            window.activityTypeChartInstance.destroy();
+        }
+        
+        window.activityTypeChartInstance = new Chart(activityTypeCtx, {
             type: 'pie',
             data: {
-                labels: data.labels || ['跑步', '游泳', '骑行', '瑜伽'],
+                labels: data.labels || [],
                 datasets: [{
                     label: '运动类型分布',
-                    data: data.data || [45, 25, 20, 10],
+                    data: data.data || [],
                     backgroundColor: [
                         'rgb(255, 99, 132)',
                         'rgb(54, 162, 235)',
@@ -221,26 +209,6 @@ function initCharts() {
         });
     }).catch(error => {
         console.error('获取运动类型分布数据失败:', error);
-        // 使用默认数据
-        new Chart(activityTypeCtx, {
-            type: 'pie',
-            data: {
-                labels: ['跑步', '游泳', '骑行', '瑜伽'],
-                datasets: [{
-                    label: '运动类型分布',
-                    data: [45, 25, 20, 10],
-                    backgroundColor: [
-                        'rgb(255, 99, 132)',
-                        'rgb(54, 162, 235)',
-                        'rgb(255, 205, 86)',
-                        'rgb(75, 192, 192)'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true
-            }
-        });
     });
 }
 

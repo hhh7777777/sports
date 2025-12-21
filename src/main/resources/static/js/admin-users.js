@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteUser(userId);
         }
     });
+    
+    // 页面加载时获取用户列表
+    loadUsers();
 });
 
 async function checkAdminAuth() {
@@ -77,67 +80,270 @@ async function adminLogout() {
     }
 }
 
-function filterUsers() {
-    const username = document.getElementById('username').value;
-    const email = document.getElementById('email').value;
-    const status = document.getElementById('status').value;
-    
-    // 这里应该调用API进行筛选，目前只是模拟
-    console.log('筛选条件:', { username, email, status });
-    showAlert('筛选功能演示', 'info');
-}
-
-function editUser(userId) {
-    // 模拟编辑用户
-    document.getElementById('addUserModalLabel').textContent = '编辑用户';
-    document.getElementById('userId').value = userId;
-    document.getElementById('modalUsername').value = '用户' + userId;
-    document.getElementById('modalEmail').value = 'user' + userId + '@example.com';
-    document.getElementById('modalPassword').value = '';
-    
-    // 显示模态框
-    const modal = new bootstrap.Modal(document.getElementById('addUserModal'));
-    modal.show();
-}
-
-function deleteUser(userId) {
-    if (confirm('确定要删除这个用户吗？')) {
-        // 模拟删除用户
-        console.log('删除用户ID:', userId);
-        showAlert('用户删除成功', 'success');
+async function loadUsers() {
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = '/admin/login';
+            return;
+        }
         
-        // 在实际应用中，这里应该调用API删除用户
-        // 删除后重新加载用户列表
-        setTimeout(() => {
-            location.reload();
-        }, 1000);
+        const response = await fetch('/api/admin/users', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                renderUsers(result.data);
+            }
+        } else {
+            throw new Error('获取用户列表失败');
+        }
+    } catch (error) {
+        console.error('加载用户列表时出错:', error);
+        showAlert('加载用户列表失败: ' + error.message, 'error');
     }
 }
 
-function saveUser() {
-    const userId = document.getElementById('userId').value;
-    const username = document.getElementById('modalUsername').value;
-    const email = document.getElementById('modalEmail').value;
-    const password = document.getElementById('modalPassword').value;
-    const status = document.getElementById('modalStatus').value;
+function renderUsers(users) {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '';
     
-    if (!username || !email) {
-        showAlert('请填写必填字段', 'warning');
+    if (!Array.isArray(users) || users.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="7" class="text-center">暂无用户数据</td>';
+        tbody.appendChild(row);
         return;
     }
     
-    // 模拟保存用户
-    console.log('保存用户:', { userId, username, email, password, status });
-    showAlert(userId ? '用户更新成功' : '用户添加成功', 'success');
+    users.forEach(user => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${user.userId || ''}</td>
+            <td>${user.username || ''}</td>
+            <td>${user.email || ''}</td>
+            <td>${user.registerTime ? new Date(user.registerTime).toLocaleDateString() : ''}</td>
+            <td>${user.lastLoginTime ? new Date(user.lastLoginTime).toLocaleString() : ''}</td>
+            <td>${getStatusBadge(user.userStatus)}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary edit-btn" data-id="${user.userId}">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${user.userId}">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+function getStatusBadge(status) {
+    switch (status) {
+        case 1:
+            return '<span class="badge bg-success">活跃</span>';
+        case 0:
+            return '<span class="badge bg-warning">未激活</span>';
+        case -1:
+            return '<span class="badge bg-danger">封禁</span>';
+        default:
+            return '<span class="badge bg-secondary">未知</span>';
+    }
+}
+
+async function filterUsers() {
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const status = document.getElementById('status').value;
+        
+        // 构建查询参数
+        let url = '/api/admin/users';
+        const params = new URLSearchParams();
+        
+        if (username) params.append('username', username);
+        if (email) params.append('email', email);
+        if (status) params.append('status', status);
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+        
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                renderUsers(result.data);
+            }
+        } else {
+            throw new Error('筛选用户失败');
+        }
+    } catch (error) {
+        console.error('筛选用户时出错:', error);
+        showAlert('筛选用户失败: ' + error.message, 'error');
+    }
+}
+
+async function editUser(userId) {
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                const user = result.data;
+                
+                document.getElementById('addUserModalLabel').textContent = '编辑用户';
+                document.getElementById('userId').value = user.userId;
+                document.getElementById('modalUsername').value = user.username;
+                document.getElementById('modalEmail').value = user.email;
+                document.getElementById('modalPassword').value = '';
+                document.getElementById('modalStatus').value = user.userStatus || 1;
+                
+                // 显示模态框
+                const modal = new bootstrap.Modal(document.getElementById('addUserModal'));
+                modal.show();
+            }
+        } else {
+            throw new Error('获取用户信息失败');
+        }
+    } catch (error) {
+        console.error('编辑用户时出错:', error);
+        showAlert('获取用户信息失败: ' + error.message, 'error');
+    }
+}
+
+async function deleteUser(userId) {
+    if (!confirm('确定要删除这个用户吗？')) {
+        return;
+    }
     
-    // 隐藏模态框
-    const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
-    modal.hide();
-    
-    // 重新加载用户列表
-    setTimeout(() => {
-        location.reload();
-    }, 1000);
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.code === 200) {
+                showAlert('用户删除成功', 'success');
+                // 重新加载用户列表
+                loadUsers();
+            } else {
+                throw new Error(result.message || '删除用户失败');
+            }
+        } else {
+            throw new Error('删除用户失败');
+        }
+    } catch (error) {
+        console.error('删除用户时出错:', error);
+        showAlert('删除用户失败: ' + error.message, 'error');
+    }
+}
+
+async function saveUser() {
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        const userId = document.getElementById('userId').value;
+        const username = document.getElementById('modalUsername').value;
+        const email = document.getElementById('modalEmail').value;
+        const password = document.getElementById('modalPassword').value;
+        const status = document.getElementById('modalStatus').value;
+        
+        if (!username || !email) {
+            showAlert('请填写必填字段', 'warning');
+            return;
+        }
+        
+        const userData = {
+            username: username,
+            email: email,
+            userStatus: parseInt(status)
+        };
+        
+        // 如果有密码，则添加到数据中
+        if (password) {
+            userData.password = password;
+        }
+        
+        let url = '/api/admin/users';
+        let method = 'POST';
+        
+        // 如果是编辑用户，则使用PUT方法
+        if (userId) {
+            url += `/${userId}`;
+            method = 'PUT';
+            userData.userId = parseInt(userId);
+        }
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.code === 200) {
+                showAlert(userId ? '用户更新成功' : '用户添加成功', 'success');
+                
+                // 隐藏模态框
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addUserModal'));
+                modal.hide();
+                
+                // 重新加载用户列表
+                loadUsers();
+            } else {
+                throw new Error(result.message || (userId ? '更新用户失败' : '添加用户失败'));
+            }
+        } else {
+            throw new Error(userId ? '更新用户失败' : '添加用户失败');
+        }
+    } catch (error) {
+        console.error('保存用户时出错:', error);
+        showAlert('保存用户失败: ' + error.message, 'error');
+    }
 }
 
 function showAlert(message, type) {

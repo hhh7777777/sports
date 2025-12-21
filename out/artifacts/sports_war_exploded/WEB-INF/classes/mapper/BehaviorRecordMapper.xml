@@ -97,6 +97,24 @@
         DELETE FROM behavior_record WHERE record_id = #{recordId}
     </delete>
     
+    <select id="selectTotalBehaviorRecords" resultType="int">
+        SELECT COUNT(*) FROM behavior_record
+    </select>
+    
+    <select id="selectBehaviorCountByTypeAndDate" resultType="int">
+        SELECT COUNT(*) FROM behavior_record
+        WHERE type_id = #{typeId}
+        AND record_date BETWEEN #{startDate} AND #{endDate}
+    </select>
+    
+    <select id="selectRecentBehaviors" resultMap="BehaviorRecordResultMap">
+        SELECT br.*, bt.type_name
+        FROM behavior_record br
+        LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+        ORDER BY br.create_time DESC
+        LIMIT #{limit}
+    </select>
+    
     <!-- BehaviorType mappings -->
     <select id="selectAllBehaviorTypes" resultMap="BehaviorTypeResultMap">
         SELECT * FROM behavior_type WHERE status = 1

@@ -39,6 +39,32 @@
             font-size: 2.5rem;
             margin-bottom: 1rem;
         }
+        
+        /* 管理员头像下拉菜单样式修复 */
+        .admin-dropdown {
+            position: relative;
+        }
+        
+        .admin-dropdown .dropdown-menu {
+            right: 0;
+            left: auto;
+            min-width: 150px;
+            z-index: 1050;
+        }
+        
+        .admin-dropdown .dropdown-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body>
@@ -52,7 +78,7 @@
             <span class="navbar-text me-3">
                 欢迎，管理员
             </span>
-            <div class="dropdown">
+            <div class="dropdown admin-dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                     <i class="fas fa-user-circle"></i>
                 </a>
@@ -235,12 +261,14 @@
                         <textarea class="form-control" id="modalBadgeDescription" rows="3" required></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="modalBadgeIcon" class="form-label">图标类名</label>
-                        <input type="text" class="form-control" id="modalBadgeIcon" placeholder="例如: fas fa-running">
-                    </div>
-                    <div class="mb-3">
-                        <label for="modalBadgeColor" class="form-label">颜色类名</label>
-                        <input type="text" class="form-control" id="modalBadgeColor" placeholder="例如: text-primary">
+                        <label for="modalBadgeIcon" class="form-label">徽章图标</label>
+                        <input type="file" class="form-control" id="modalBadgeIcon" accept="image/*">
+                        <div class="form-text">支持 JPG, PNG, GIF, BMP 格式，文件大小不超过 5MB</div>
+                        <div id="currentIconPreview" class="mt-2" style="display: none;">
+                            <small class="text-muted">当前图标:</small>
+                            <img id="currentIconImg" src="" alt="当前图标" style="max-width: 50px; max-height: 50px; margin-top: 5px;">
+                        </div>
+                        <input type="hidden" id="modalBadgeIconUrl">
                     </div>
                     <div class="mb-3">
                         <label for="modalBadgeType" class="form-label">类型</label>

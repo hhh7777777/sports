@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', function() {
             deleteBadge(badgeId);
         }
     });
+    
+    // 页面加载时获取徽章列表
+    loadBadges();
 });
 
 async function checkAdminAuth() {
@@ -77,86 +80,205 @@ async function adminLogout() {
     }
 }
 
-function filterBadges() {
-    const badgeName = document.getElementById('badgeName').value;
-    const badgeType = document.getElementById('badgeType').value;
-    
-    // 这里应该调用API进行筛选，目前只是模拟
-    console.log('筛选条件:', { badgeName, badgeType });
-    showAlert('筛选功能演示', 'info');
-}
-
-function editBadge(badgeId) {
-    // 模拟编辑徽章
-    document.getElementById('addBadgeModalLabel').textContent = '编辑徽章';
-    document.getElementById('badgeId').value = badgeId;
-    document.getElementById('modalBadgeName').value = '徽章' + badgeId;
-    document.getElementById('modalBadgeDescription').value = '这是第' + badgeId + '个徽章的描述';
-    
-    // 显示模态框
-    const modal = new bootstrap.Modal(document.getElementById('addBadgeModal'));
-    modal.show();
-}
-
-function deleteBadge(badgeId) {
-    if (confirm('确定要删除这个徽章吗？')) {
-        // 模拟删除徽章
-        console.log('删除徽章ID:', badgeId);
-        showAlert('徽章删除成功', 'success');
+async function loadBadges() {
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = '/admin/login';
+            return;
+        }
         
-        // 在实际应用中，这里应该调用API删除徽章
-        // 删除后重新加载列表
-        setTimeout(() => {
-            location.reload();
-        }, 1000);
+        const response = await fetch('/api/admin/badges', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                renderBadges(result.data);
+            }
+        } else {
+            throw new Error('获取徽章列表失败');
+        }
+    } catch (error) {
+        console.error('加载徽章列表时出错:', error);
+        showAlert('加载徽章列表失败: ' + error.message, 'error');
     }
 }
 
-function saveBadge() {
-    const badgeId = document.getElementById('badgeId').value;
-    const badgeName = document.getElementById('modalBadgeName').value;
-    const badgeDescription = document.getElementById('modalBadgeDescription').value;
-    const badgeIcon = document.getElementById('modalBadgeIcon').value;
-    const badgeColor = document.getElementById('modalBadgeColor').value;
-    const badgeType = document.getElementById('modalBadgeType').value;
+function renderBadges(badges) {
+    const container = document.getElementById('badgesContainer');
+    container.innerHTML = '';
     
-    if (!badgeName || !badgeDescription) {
-        showAlert('请填写必填字段', 'warning');
+    if (!Array.isArray(badges) || badges.length === 0) {
+        container.innerHTML = '<div class="col-12"><p class="text-center">暂无徽章数据</p></div>';
         return;
     }
     
-    // 模拟保存徽章
-    console.log('保存徽章:', { badgeId, badgeName, badgeDescription, badgeIcon, badgeColor, badgeType });
-    showAlert(badgeId ? '徽章更新成功' : '徽章添加成功', 'success');
-    
-    // 隐藏模态框
-    const modal = bootstrap.Modal.getInstance(document.getElementById('addBadgeModal'));
-    modal.hide();
-    
-    // 重新加载徽章列表
-    setTimeout(() => {
-        location.reload();
-    }, 1000);
+    badges.forEach(badge => {
+        const col = document.createElement('div');
+        col.className = 'col-lg-4 col-md-6 mb-4';
+        // 使用 iconUrl 来显示图标
+        let iconHtml = '';
+        if (badge.iconUrl) {
+            let iconUrl = badge.iconUrl;
+            if (iconUrl.startsWith('/icons/')) {
+                iconUrl = iconUrl.replace('/icons/', '/images/icons/');
+            }
+            iconHtml = `<img src="${iconUrl}" alt="${badge.badgeName}" style="width: 64px; height: 64px;">`;
+        } else {
+            // 默认使用奖杯图标
+            iconHtml = '<i class="fas fa-trophy"></i>';
+        }
+        
+        col.innerHTML = `
+            <div class="card badge-card h-100">
+                <div class="card-body text-center">
+                    <div class="badge-icon text-primary">
+                        ${iconHtml}
+                    </div>
+                    <h5 class="card-title">${badge.badgeName || ''}</h5>
+                    <p class="card-text">${badge.description || ''}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">类型: ${getBadgeTypeText(badge.badgeType)}</small>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary edit-btn" data-id="${badge.badgeId}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${badge.badgeId}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(col);
+    });
 }
 
-function showAlert(message, type) {
-    // 创建提示元素
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    alertDiv.role = 'alert';
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-    alertDiv.style.top = '20px';
-    alertDiv.style.right = '20px';
-    alertDiv.style.zIndex = '9999';
-    
-    // 添加到页面
-    document.body.appendChild(alertDiv);
-    
-    // 3秒后自动移除
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 3000);
+function getBadgeTypeText(type) {
+    switch (type) {
+        case 'activity':
+            return '活动徽章';
+        case 'achievement':
+            return '成就徽章';
+        case 'participation':
+            return '参与徽章';
+        default:
+            return '未知类型';
+    }
 }
+
+async function filterBadges() {
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        const badgeName = document.getElementById('badgeName').value;
+        const badgeType = document.getElementById('badgeType').value;
+        
+        // 构建查询参数
+        let url = '/api/admin/badges';
+        const params = new URLSearchParams();
+        
+        if (badgeName) params.append('badgeName', badgeName);
+        if (badgeType) params.append('badgeType', badgeType);
+        
+        if (params.toString()) {
+            url += '?' + params.toString();
+        }
+        
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                renderBadges(result.data);
+            }
+        } else {
+            throw new Error('筛选徽章失败');
+        }
+    } catch (error) {
+        console.error('筛选徽章时出错:', error);
+        showAlert('筛选徽章失败: ' + error.message, 'error');
+    }
+}
+
+async function editBadge(badgeId) {
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        const response = await fetch(`/api/admin/badges/${badgeId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                const badge = result.data;
+                
+                // 检查DOM元素是否存在
+                const modalTitleElement = document.getElementById('addBadgeModalLabel');
+                const badgeIdElement = document.getElementById('badgeId');
+                const badgeNameElement = document.getElementById('modalBadgeName');
+                const badgeDescriptionElement = document.getElementById('modalBadgeDescription');
+                const badgeIconUrlElement = document.getElementById('modalBadgeIconUrl');
+                const currentIconPreviewElement = document.getElementById('currentIconPreview');
+                const currentIconImgElement = document.getElementById('currentIconImg');
+                const badgeTypeElement = document.getElementById('modalBadgeType');
+                
+                if (!modalTitleElement || !badgeIdElement || !badgeNameElement || 
+                    !badgeDescriptionElement || !badgeIconUrlElement || 
+                    !badgeTypeElement) {
+                    throw new Error('页面元素缺失，请刷新页面后重试');
+                }
+                
+                modalTitleElement.textContent = '编辑徽章';
+                badgeIdElement.value = badge.badgeId;
+                badgeNameElement.value = badge.badgeName;
+                badgeDescriptionElement.value = badge.description;
+                // 设置图标URL到隐藏字段
+                badgeIconUrlElement.value = badge.iconUrl || '';
+                
+                // 显示当前图标预览
+                if (badge.iconUrl && currentIconPreviewElement && currentIconImgElement) {
+                    currentIconImgElement.src = badge.iconUrl;
+                    currentIconPreviewElement.style.display = 'block';
+                }
+                
+                badgeTypeElement.value = badge.badgeType || 'activity';
+                
+                // 显示模态框
+                const modal = new bootstrap.Modal(document.getElementById('addBadgeModal'));
+                modal.show();
+            } else {
+                throw new Error(result.message || '获取徽章信息失败');
+            }
+        } else {
+            throw new Error('获取徽章信息失败');
+        }
+    } catch (error) {
+        console.error('编辑徽章时出错:', error);
+        showAlert('获取徽章信息失败: ' + error.message, 'error');
+    }
+}
+
+async function deleteBadge(badgeId) {
+    if (!confirm('确定要删除这个徽章吗？')) {
+        return;

@@ -27,7 +27,14 @@ public interface BehaviorMapper {
     List<Map<String, Object>> selectBehaviorTypeDistribution(@Param("userId") Integer userId,
                                                              @Param("startDate") LocalDate startDate,
                                                              @Param("endDate") LocalDate endDate);
-                                                             
+    
+    // 新增方法
+    int selectTotalBehaviorRecords();
+    int selectBehaviorCountByTypeAndDate(@Param("typeId") Integer typeId,
+                                         @Param("startDate") LocalDate startDate,
+                                         @Param("endDate") LocalDate endDate);
+    List<Behavior> selectRecentBehaviors(@Param("limit") int limit);
+    
     // BehaviorType related methods
     List<BehaviorType> selectAllBehaviorTypes();
     BehaviorType selectBehaviorTypeById(@Param("typeId") Integer typeId);

@@ -53,7 +53,7 @@
     </select>
 
     <select id="selectAllUsers" resultMap="userResultMap">
-        SELECT * FROM user WHERE user_status = 1
+        SELECT * FROM user
     </select>
 
     <select id="countByUsername" resultType="int">
@@ -78,6 +78,20 @@
         AND br.user_id = #{userId} 
         AND br.record_date BETWEEN #{startDate} AND #{endDate}
         GROUP BY bt.type_id, bt.type_name
+    </select>
+    
+    <select id="countBehaviorRecordsByTypeAndDate" resultType="int">
+        SELECT COUNT(*) 
+        FROM behavior_record br
+        JOIN behavior_type bt ON br.type_id = bt.type_id
+        WHERE br.user_id = #{userId}
+        AND bt.type_name = #{typeName}
+        AND br.record_date BETWEEN #{startDate} AND #{endDate}
+    </select>
+    
+    <select id="selectUserCountByMonth" resultType="int">
+        SELECT COUNT(*) FROM user 
+        WHERE YEAR(register_time) = #{year} AND MONTH(register_time) = #{month}
     </select>
 
     <delete id="deleteUser">

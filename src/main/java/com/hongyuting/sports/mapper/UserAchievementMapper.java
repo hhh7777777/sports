@@ -37,6 +37,8 @@ public interface UserAchievementMapper {
 
     int sumPointsByUserId(@Param("userId") int userId);
 
+    // 添加根据用户ID查询成就的方法
+    List<UserAchievement> selectByUserId(@Param("userId") Integer userId);
 
     List<UserBadge> selectUserBadgesByUserId(@Param("userId") Integer userId);
 
