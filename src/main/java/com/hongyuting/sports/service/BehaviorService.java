@@ -9,6 +9,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 行为服务接口
+ */
 public interface BehaviorService {
     ResponseDTO addBehaviorRecord(BehaviorDTO behaviorDTO);
     ResponseDTO updateBehaviorRecord(Behavior record);

@@ -6,7 +6,9 @@ import com.hongyuting.sports.entity.UserBadge;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
+/**
+ * 徽章服务接口
+ */
 public interface BadgeService {
 
     ResponseDTO addBadge(Badge badge);
