@@ -7,6 +7,12 @@
         <result property="password" column="password"/>
         <result property="email" column="email"/>
         <result property="salt" column="salt"/>
+        <result property="nickname" column="nickname"/>
+        <result property="birthday" column="birthday"/>
+        <result property="gender" column="gender"/>
+        <result property="height" column="height"/>
+        <result property="weight" column="weight"/>
+        <result property="avatar" column="avatar"/>
         <result property="wxOpenid" column="wx_openid"/>
         <result property="registerTime" column="register_time"/>
         <result property="userStatus" column="user_status"/>
@@ -14,24 +20,28 @@
     </resultMap>
 
     <insert id="insertUser" useGeneratedKeys="true" keyProperty="userId">
-        INSERT INTO user (username, password, salt, nickname, email, wx_openid, user_status, register_time)
-        VALUES (#{username}, #{password}, #{salt}, #{nickname}, #{email}, #{wxOpenid}, #{userStatus}, #{registerTime})
+        INSERT INTO user (username, password, nickname,salt,birthday,gender,height,weight, email, wx_openid, user_status, register_time)
+        VALUES (#{username}, #{password},#{nickname}, #{salt}, #{birthday}, #{gender}, #{height}, #{weight},#{email}, #{wxOpenid}, #{userStatus}, #{registerTime})
     </insert>
 
     <update id="updateUser">
         UPDATE user SET
-                        username = #{username},
-                        password = #{password},
-                        nickname = #{nickname},
-                        salt = #{salt},
-                        email = #{email},
-                        wx_openid = #{wxOpenid},
-                        user_status = #{userStatus}
+            username = #{username},
+            password = #{password},
+            nickname = #{nickname},
+            salt = #{salt},
+            email = #{email},
+            birthday = #{birthday},
+            gender = #{gender},
+            height = #{height},
+            weight = #{weight},
+            wx_openid = #{wxOpenid},
+            user_status = #{userStatus}
         WHERE user_id = #{userId}
     </update>
 
-    <update id="disableUser">
-        UPDATE user SET user_status = 0 WHERE user_id = #{userId}
+    <update id="updateUserAvatar">
+        UPDATE user SET avatar = #{avatar} WHERE user_id = #{userId}
     </update>
 
     <select id="selectUserById" resultMap="userResultMap">
@@ -42,40 +52,19 @@
         SELECT * FROM user WHERE username = #{username}
     </select>
 
-    <select id="selectUserByWxOpenid" resultMap="userResultMap">
-        SELECT * FROM user WHERE wx_openid = #{openid}
-    </select>
-
     <select id="selectAllUsers" resultMap="userResultMap">
         SELECT * FROM user WHERE user_status = 1
     </select>
 
-    <update id="updateLastLoginTime">
-        UPDATE user SET last_login_time = #{loginTime} WHERE user_id = #{userId}
-    </update>
-
-    <select id="countUsers" resultType="int">
-        SELECT COUNT(*) FROM user
+    <select id="countByUsername" resultType="int">
+        SELECT COUNT(*) FROM user WHERE username = #{username}
     </select>
 
-    <select id="selectUserCount" resultType="int">
-        SELECT COUNT(*) FROM user
+    <select id="countByEmail" resultType="int">
+        SELECT COUNT(*) FROM user WHERE email = #{email}
     </select>
 
-    <update id="updateUserPassword">
-        UPDATE user SET password = #{password}, salt = #{salt} WHERE user_id = #{userId}
-    </update>
-
-    <select id="selectUserByEmail" resultMap="userResultMap">
-        SELECT * FROM user WHERE email = #{email}
-    </select>
-
-    <select id="existsByUsername" resultType="boolean">
-        SELECT COUNT(*) > 0 FROM user WHERE username = #{username}
-    </select>
-
-    <select id="existsByEmail" resultType="boolean">
-        SELECT COUNT(*) > 0 FROM user WHERE email = #{email}
-    </select>
-
+    <delete id="deleteUser">
+        DELETE FROM user WHERE user_id = #{userId}
+    </delete>
 </mapper>

@@ -8,6 +8,15 @@
         <result property="achieveTime" column="achieve_time"/>
         <result property="progress" column="progress"/>
     </resultMap>
+    
+    <resultMap id="userBadgeResultMap" type="UserBadge">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="badgeId" column="badge_id"/>
+        <result property="achieveTime" column="achieve_time"/>
+        <result property="progress" column="progress"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
 
     <insert id="insertUserAchievement" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO user_achievement
@@ -18,7 +27,8 @@
 
     <update id="updateUserAchievement">
         UPDATE user_achievement SET
-            progress = #{progress}
+            progress = #{progress},
+            update_time = #{updateTime}
         WHERE user_id = #{userId} AND badge_id = #{badgeId}
     </update>
 
@@ -54,7 +64,29 @@
     <select id="sumPointsByUserId" resultType="int">
         SELECT COALESCE(SUM(ab.reward_points), 0)
         FROM user_achievement ua
-                 JOIN springboot_db.achievement_badge ab ON ua.badge_id = ab.badge_id
+                 JOIN achievement_badge ab ON ua.badge_id = ab.badge_id
         WHERE ua.user_id = #{userId}
+    </select>
+    
+    <select id="selectUserBadgesByUserId" resultMap="userBadgeResultMap">
+        SELECT * FROM user_achievement WHERE user_id = #{userId} ORDER BY achieve_time DESC
+    </select>
+    
+    <insert id="insertUserBadge" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_achievement (user_id, badge_id, achieve_time, progress, update_time)
+        VALUES (#{userId}, #{badgeId}, #{achieveTime}, #{progress}, #{updateTime})
+    </insert>
+    
+    <select id="selectUserBadge" resultMap="userBadgeResultMap">
+        SELECT * FROM user_achievement WHERE user_id = #{userId} AND badge_id = #{badgeId}
+    </select>
+    
+    <select id="selectRecentlyAchievedBadges" resultMap="userBadgeResultMap">
+        SELECT * FROM user_achievement WHERE user_id = #{userId} 
+        ORDER BY achieve_time DESC LIMIT #{limit}
+    </select>
+    
+    <select id="countUsersWithBadge" resultType="int">
+        SELECT COUNT(DISTINCT user_id) FROM user_achievement WHERE badge_id = #{badgeId} AND progress >= 100
     </select>
 </mapper>

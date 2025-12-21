@@ -7,6 +7,9 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * 行为记录实体类
+ */
 @Data
 public class Behavior {
     @Setter

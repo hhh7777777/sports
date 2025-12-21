@@ -1,19 +1,13 @@
 package com.hongyuting.sports.entity;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import java.time.LocalDateTime;
 
+/**
+ * 徽章实体类
+ */
 @Data
 public class Badge {
-    @Setter
-    @Getter
-    private String name;
-    @Setter
-    @Getter
-    private Integer points;
-
     private Integer badgeId;
     private String badgeName;
     private String description;
@@ -24,7 +18,5 @@ public class Badge {
     private Integer rewardPoints;
     private Integer status;
     private LocalDateTime createTime;
-    @Setter
     private LocalDateTime updateTime;
-
 }

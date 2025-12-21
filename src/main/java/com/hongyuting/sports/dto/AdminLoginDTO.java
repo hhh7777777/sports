@@ -2,14 +2,11 @@ package com.hongyuting.sports.dto;
 
 import lombok.Data;
 /**
- * 注册DTO
+ * 管理员登录传输对象
  */
 @Data
-public class RegisterDTO {
+public class AdminLoginDTO {
     private String username;
-    private String email;
-    private String nickname;
     private String password;
-    private String confirmPassword;
     private String captcha;
 }

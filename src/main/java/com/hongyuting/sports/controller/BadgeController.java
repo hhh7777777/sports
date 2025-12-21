@@ -1,5 +1,6 @@
 package com.hongyuting.sports.controller;
 
+import com.hongyuting.sports.dto.BadgeDTO;
 import com.hongyuting.sports.dto.ResponseDTO;
 import com.hongyuting.sports.entity.Badge;
 import com.hongyuting.sports.entity.UserBadge;
@@ -8,12 +9,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/badge")
 @RequiredArgsConstructor
 public class BadgeController {
-
+    /**
+     * 徽章服务
+     */
     private final BadgeService badgeService;
 
     /**
@@ -22,7 +26,20 @@ public class BadgeController {
     @GetMapping("/list")
     public ResponseDTO getAllBadges() {
         List<Badge> badges = badgeService.getAllBadges();
-        return ResponseDTO.success("获取成功", badges);
+        List<BadgeDTO> badgeDTOs = badges.stream().map(badge -> {
+            BadgeDTO dto = new BadgeDTO();
+            dto.setBadgeId(badge.getBadgeId());
+            dto.setBadgeName(badge.getBadgeName());
+            dto.setDescription(badge.getDescription());
+            dto.setIconUrl(badge.getIconUrl());
+            dto.setConditionType(badge.getConditionType());
+            dto.setConditionValue(badge.getConditionValue());
+            dto.setLevel(badge.getLevel());
+            dto.setRewardPoints(badge.getRewardPoints());
+            dto.setStatus(badge.getStatus());
+            return dto;
+        }).collect(Collectors.toList());
+        return ResponseDTO.success("获取成功", badgeDTOs);
     }
 
     /**
@@ -34,7 +51,17 @@ public class BadgeController {
         if (badge == null) {
             return ResponseDTO.error("徽章不存在");
         }
-        return ResponseDTO.success("获取成功", badge);
+        BadgeDTO badgeDTO = new BadgeDTO();
+        badgeDTO.setBadgeId(badge.getBadgeId());
+        badgeDTO.setBadgeName(badge.getBadgeName());
+        badgeDTO.setDescription(badge.getDescription());
+        badgeDTO.setIconUrl(badge.getIconUrl());
+        badgeDTO.setConditionType(badge.getConditionType());
+        badgeDTO.setConditionValue(badge.getConditionValue());
+        badgeDTO.setLevel(badge.getLevel());
+        badgeDTO.setRewardPoints(badge.getRewardPoints());
+        badgeDTO.setStatus(badge.getStatus());
+        return ResponseDTO.success("获取成功", badgeDTO);
     }
 
     /**
@@ -79,7 +106,16 @@ public class BadgeController {
      * 管理员：添加徽章
      */
     @PostMapping("/admin")
-    public ResponseDTO addBadge(@RequestBody Badge badge) {
+    public ResponseDTO addBadge(@RequestBody BadgeDTO badgeDTO) {
+        Badge badge = new Badge();
+        badge.setBadgeName(badgeDTO.getBadgeName());
+        badge.setDescription(badgeDTO.getDescription());
+        badge.setIconUrl(badgeDTO.getIconUrl());
+        badge.setConditionType(badgeDTO.getConditionType());
+        badge.setConditionValue(badgeDTO.getConditionValue());
+        badge.setLevel(badgeDTO.getLevel());
+        badge.setRewardPoints(badgeDTO.getRewardPoints());
+        badge.setStatus(badgeDTO.getStatus());
         return badgeService.addBadge(badge);
     }
 
@@ -87,7 +123,17 @@ public class BadgeController {
      * 管理员：更新徽章
      */
     @PutMapping("/admin")
-    public ResponseDTO updateBadge(@RequestBody Badge badge) {
+    public ResponseDTO updateBadge(@RequestBody BadgeDTO badgeDTO) {
+        Badge badge = new Badge();
+        badge.setBadgeId(badgeDTO.getBadgeId());
+        badge.setBadgeName(badgeDTO.getBadgeName());
+        badge.setDescription(badgeDTO.getDescription());
+        badge.setIconUrl(badgeDTO.getIconUrl());
+        badge.setConditionType(badgeDTO.getConditionType());
+        badge.setConditionValue(badgeDTO.getConditionValue());
+        badge.setLevel(badgeDTO.getLevel());
+        badge.setRewardPoints(badgeDTO.getRewardPoints());
+        badge.setStatus(badgeDTO.getStatus());
         return badgeService.updateBadge(badge);
     }
 
@@ -113,7 +159,21 @@ public class BadgeController {
         } else {
             badges = badgeService.getAllBadges();
         }
-        return ResponseDTO.success("获取成功", badges);
+        
+        List<BadgeDTO> badgeDTOs = badges.stream().map(badge -> {
+            BadgeDTO dto = new BadgeDTO();
+            dto.setBadgeId(badge.getBadgeId());
+            dto.setBadgeName(badge.getBadgeName());
+            dto.setDescription(badge.getDescription());
+            dto.setIconUrl(badge.getIconUrl());
+            dto.setConditionType(badge.getConditionType());
+            dto.setConditionValue(badge.getConditionValue());
+            dto.setLevel(badge.getLevel());
+            dto.setRewardPoints(badge.getRewardPoints());
+            dto.setStatus(badge.getStatus());
+            return dto;
+        }).collect(Collectors.toList());
+        return ResponseDTO.success("获取成功", badgeDTOs);
     }
 
     /**

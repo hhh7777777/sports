@@ -1,18 +1,17 @@
 package com.hongyuting.sports.entity;
 
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.Data;
 import java.time.LocalDateTime;
 
+/**
+ * 用户成就实体类
+ */
+@Data
 public class UserAchievement {
-
-    @Getter
-    @Setter
     private Integer id;
     private Integer userId;
     private Integer badgeId;
-    private LocalDateTime achieveTime;
-    private Integer progress;
+    private LocalDateTime achieveTime;//成就时间
+    private Integer progress;//进度
 
 }

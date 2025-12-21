@@ -14,9 +14,9 @@
 
     <insert id="insertAdminLog" useGeneratedKeys="true" keyProperty="logId">
         INSERT INTO admin_log
-            (admin_id, operation, target_type, target_id, detail, ip_address)
+            (admin_id, operation, target_type, target_id, detail, ip_address, operation_time)
         VALUES
-            (#{adminId}, #{operation}, #{targetType}, #{targetId}, #{detail}, #{ipAddress})
+            (#{adminId}, #{operation}, #{targetType}, #{targetId}, #{detail}, #{ipAddress}, #{operationTime})
     </insert>
 
     <select id="selectAdminLogById" resultMap="adminLogResultMap">
@@ -34,8 +34,6 @@
         WHERE operation = #{operation}
         ORDER BY operation_time DESC
     </select>
-
-
 
     <select id="countAdminLogs" resultType="int">
         SELECT COUNT(*) FROM admin_log

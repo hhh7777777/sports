@@ -2,7 +2,9 @@ package com.hongyuting.sports.entity;
 
 import lombok.Data;
 import java.time.LocalDateTime;
-
+/**
+ * 管理员操作日志实体类
+ */
 @Data
 public class AdminLog {
     private Long logId;

@@ -11,14 +11,14 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 
+/**
+ * JWT工具类
+ */
 @Component
 public class JwtUtil {
 
     @Value("${jwt.secret:defaultSecretKeyForHongYuTingSportsApplication2024}")
     private String secret;
-
-    @Value("${jwt.expiration:86400000}") // 默认24小时
-    private long expiration;
 
     private Key key;
 
@@ -35,23 +35,38 @@ public class JwtUtil {
         } else if (secret.length() > 32) {
             secret = secret.substring(0, 32);
         }
-        this.key = Keys.hmacShaKeyFor(secret.getBytes());
+        key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
     /**
      * 生成Token
      */
-    public String generateToken(Integer userId, String username) {
+    public String generateToken(Integer userId) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + expiration);
+        Date expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24小时
 
         return Jwts.builder()
                 .setSubject(userId.toString())
-                .claim("username", username)
                 .claim("userId", userId)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(key, SignatureAlgorithm.HS256) // 使用HS256算法
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    /**
+     * 生成刷新Token
+     */
+    public String generateRefreshToken(Integer userId) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + 30L * 24 * 60 * 60 * 1000); // 30天
+
+        return Jwts.builder()
+                .setSubject(userId.toString())
+                .claim("userId", userId)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -76,14 +91,6 @@ public class JwtUtil {
     public Integer getUserIdFromToken(String token) {
         Claims claims = getClaimsFromToken(token);
         return claims.get("userId", Integer.class);
-    }
-
-    /**
-     * 从Token中获取用户名
-     */
-    public String getUsernameFromToken(String token) {
-        Claims claims = getClaimsFromToken(token);
-        return claims.get("username", String.class);
     }
 
     /**

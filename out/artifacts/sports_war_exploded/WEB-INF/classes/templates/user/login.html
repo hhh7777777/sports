@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>用户登录 - 运动健康管理系统</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
+  <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
   <style>
     :root {
       --primary-color: #4361ee;
@@ -17,7 +17,7 @@
     
     body {
       font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #4af7f1 0%, #ffffff 100%);
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -170,7 +170,7 @@
       
       <div class="links">
         <p class="mb-2">还没有账户？<a href="/register">立即注册</a></p>
-        <p class="mb-0"><a href="/">返回首页</a></p>
+        <p class="mb-0"><a href="/index">返回首页</a></p>
       </div>
     </div>
   </div>
@@ -243,6 +243,7 @@
       });
     }
 
+    //刷新验证码
     function refreshCaptcha() {
       const captchaImage = document.getElementById('captchaImg');
       if (captchaImage) {
@@ -251,7 +252,7 @@
     }
 
     function showAlert(message, type) {
-      // 移除现有的提示
+      // 移除现有提示
       const existingAlert = document.querySelector('.alert');
       if (existingAlert) {
         existingAlert.remove();

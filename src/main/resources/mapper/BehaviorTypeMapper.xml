@@ -8,23 +8,25 @@
         <result property="iconUrl" column="icon_url"/>
         <result property="status" column="status"/>
         <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
     </resultMap>
 
     <insert id="insertBehaviorType" useGeneratedKeys="true" keyProperty="typeId">
-        INSERT INTO behavior_type (type_name, description, icon_url)
-        VALUES (#{typeName}, #{description}, #{iconUrl})
+        INSERT INTO behavior_type (type_name, description, icon_url, create_time, update_time)
+        VALUES (#{typeName}, #{description}, #{iconUrl}, #{createTime}, #{updateTime})
     </insert>
 
     <update id="updateBehaviorType">
         UPDATE behavior_type SET
-                                 type_name = #{typeName},
-                                 description = #{description},
-                                 icon_url = #{iconUrl}
+            type_name = #{typeName},
+            description = #{description},
+            icon_url = #{iconUrl},
+            update_time = #{updateTime}
         WHERE type_id = #{typeId}
     </update>
 
     <update id="disableBehaviorType">
-        UPDATE behavior_type SET status = 0 WHERE type_id = #{typeId}
+        UPDATE behavior_type SET status = 0, update_time = NOW() WHERE type_id = #{typeId}
     </update>
 
     <select id="selectBehaviorTypeById" resultMap="behaviorTypeResultMap">

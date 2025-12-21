@@ -1,110 +1,66 @@
 package com.hongyuting.sports.service;
 
-import com.hongyuting.sports.entity.User;
 import com.hongyuting.sports.dto.LoginDTO;
 import com.hongyuting.sports.dto.RegisterDTO;
 import com.hongyuting.sports.dto.ResponseDTO;
-import com.hongyuting.sports.entity.UserStats;
+import com.hongyuting.sports.entity.User;
 
 import java.util.List;
 
+/**
+ * 用户服务接口
+ */
 public interface UserService {
-
+    /**
+     * 注册用户
+     */
     ResponseDTO register(RegisterDTO registerDTO);
-
+    /**
+     * 登录用户
+     */
     ResponseDTO login(LoginDTO loginDTO);
-
+    /**
+     * 登出用户
+     */
     ResponseDTO logout(String token);
-
-    User getUserById(Integer userId);
-
-    User getUserByUsername(String username);
-
-    List<User> getAllUsers();
-
-    ResponseDTO updateUserStatus(Integer userId, Integer status);
-
-    ResponseDTO updateUserInfo(User user);
-
-    ResponseDTO deleteUser(Integer userId);
-
-    boolean checkUsernameExists(String username);
-
-    boolean checkEmailExists(String email);
-
-    boolean validatePassword(String inputPassword, String encryptedPassword);
-
-    /**
-     * 验证密码
-     */
-    boolean validatePassword(String inputPassword, String encryptedPassword, String salt);
-
-    /**
-     * 更新用户密码
-     */
-    ResponseDTO updateUserPassword(Integer userId, String newPassword);
-
-    // 新增方法：获取用户总数
-    int getUserCount();
-
-    List<String> getRecentActivities();
-
-    // 新增方法：获取用户统计信息
-    UserStats getUserStats(Integer userId);
-
-    // ========== Token验证相关方法 ==========
-
     /**
      * 验证Token有效性
-     *
-     * @param token 用户令牌
-     * @return 验证结果，true表示有效，false表示无效
      */
     ResponseDTO validateToken(String token);
-
-    /**
-     * 根据Token获取用户信息
-     * @param token 用户令牌
-     * @return 用户信息，如果Token无效返回null
-     */
-    User getUserByToken(String token);
-
     /**
      * 刷新Token
-     *
-     * @param token 旧令牌
-     * @return 新的令牌，如果刷新失败返回null
      */
     ResponseDTO refreshToken(String token);
-
     /**
-     * 生成新的Token
-     * @param userId 用户ID
-     * @param username 用户名
-     * @return 生成的Token字符串
+     *  根据id获取用户信息
      */
-    String generateToken(Integer userId, String username);
-
+    User getUserById(Integer userId);
     /**
-     * 使Token失效
-     * @param token 需要失效的令牌
-     * @return 操作结果，true表示成功，false表示失败
+     * 更新用户信息
      */
-    boolean invalidateToken(String token);
-
+    ResponseDTO updateUserInfo(User user);
     /**
-     * 检查Token是否即将过期
-     * @param token 用户令牌
-     * @return 剩余有效时间（分钟），如果Token无效返回-1
+     * 更新用户头像
      */
-    long getTokenExpireTime(String token);
-
+    int updateUserAvatar(User user);
     /**
-     * 清理过期的Token
-     * @return 清理的Token数量
+     * 更新用户状态
      */
-    int cleanupExpiredTokens();
-
-    // 新增方法：更新用户最后登录时间
-    ResponseDTO updateLastLoginTime(Integer userId);
+    ResponseDTO updateUserStatus(Integer userId, Integer status);
+    /**
+     * 删除用户
+     */
+    ResponseDTO deleteUser(Integer userId);
+    /**
+     * 获取所有用户信息
+     */
+    List<User> getAllUsers();
+    /**
+     * 检查用户名是否存在
+     */
+    boolean checkUsernameExists(String username);
+    /**
+     * 检查邮箱是否存在
+     */
+    boolean checkEmailExists(String email);
 }

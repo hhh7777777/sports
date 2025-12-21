@@ -1,10 +1,9 @@
-// 完善FileUtil.java
 package com.hongyuting.sports.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -12,7 +11,11 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.UUID;
 
+/**
+ * 文件处理工具类
+ */
 @Slf4j
+@Component
 public class FileUtil {
 
     private static final String[] ALLOWED_IMAGE_TYPES = {".jpg", ".jpeg", ".png", ".gif", ".bmp"};
@@ -21,7 +24,7 @@ public class FileUtil {
     /**
      * 上传文件到指定目录
      */
-    public static String uploadFile(MultipartFile file, String uploadDir) throws IOException {
+    public String uploadFile(MultipartFile file, String uploadDir) throws IOException {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("文件不能为空");
         }
@@ -58,7 +61,7 @@ public class FileUtil {
     /**
      * 获取文件扩展名
      */
-    public static String getFileExtension(String filename) {
+    public String getFileExtension(String filename) {
         if (filename == null || filename.lastIndexOf(".") == -1) {
             return "";
         }
@@ -68,7 +71,7 @@ public class FileUtil {
     /**
      * 删除文件
      */
-    public static boolean deleteFile(String filePath) {
+    public boolean deleteFile(String filePath) {
         try {
             Path path = Paths.get(filePath);
             return Files.deleteIfExists(path);
@@ -81,7 +84,7 @@ public class FileUtil {
     /**
      * 检查文件类型是否允许
      */
-    public static boolean isAllowedFileType(String filename, String[] allowedTypes) {
+    public boolean isAllowedFileType(String filename, String[] allowedTypes) {
         if (filename == null || allowedTypes == null) {
             return false;
         }
@@ -93,14 +96,14 @@ public class FileUtil {
     /**
      * 获取文件大小（MB）
      */
-    public static double getFileSizeMB(MultipartFile file) {
+    public double getFileSizeMB(MultipartFile file) {
         return file.getSize() / (1024.0 * 1024.0);
     }
 
     /**
      * 确保目录存在
      */
-    public static void ensureDirectoryExists(String dirPath) throws IOException {
+    public void ensureDirectoryExists(String dirPath) throws IOException {
         Path path = Paths.get(dirPath);
         if (!Files.exists(path)) {
             Files.createDirectories(path);

@@ -3,10 +3,13 @@ document.addEventListener('DOMContentLoaded', function() {
     checkAuth();
     
     // 绑定退出登录事件
-    document.getElementById('logoutBtn').addEventListener('click', function(e) {
-        e.preventDefault();
-        logout();
-    });
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
     
     // 加载仪表板数据
     loadDashboardData();
@@ -31,7 +34,23 @@ async function checkAuth() {
         } else {
             const result = await response.json();
             if (result.code === 200 && result.data) {
-                document.getElementById('userName').textContent = result.data.username || result.data.nickname || '用户';
+                const userNameElement = document.getElementById('userName');
+                if (userNameElement) {
+                    userNameElement.textContent = result.data.nickname || result.data.username || '用户';
+                }
+                
+                // 更新用户头像
+                const userAvatarElements = document.querySelectorAll('.user-avatar');
+                if (userAvatarElements.length > 0) {
+                    const avatarUrl = result.data.avatar;
+                    userAvatarElements.forEach(element => {
+                        if (avatarUrl) {
+                            element.src = avatarUrl;
+                        } else {
+                            element.src = '/images/avatar/avatar.png';
+                        }
+                    });
+                }
             } else {
                 window.location.href = '/login';
             }
@@ -67,11 +86,30 @@ async function logout() {
 
 async function loadDashboardData() {
     try {
-        // 模拟统计数据
-        document.getElementById('totalDuration').textContent = '150 分钟';
-        document.getElementById('badgeCount').textContent = '5 个';
-        document.getElementById('streakDays').textContent = '7 天';
-        document.getElementById('totalPoints').textContent = '350 分';
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+        
+        // 获取用户徽章统计
+        const badgeStatsResponse = await fetch('/api/badge/my-points', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        let totalPoints = 0;
+        if (badgeStatsResponse.ok) {
+            const badgeStatsResult = await badgeStatsResponse.json();
+            if (badgeStatsResult.code === 200 && badgeStatsResult.data) {
+                totalPoints = badgeStatsResult.data;
+            }
+        }
+        
+        // 显示总积分
+        const totalPointsElement = document.getElementById('totalPoints');
+        if (totalPointsElement) totalPointsElement.textContent = `${totalPoints} 分`;
         
         // 初始化图表
         initCharts();
@@ -87,110 +125,125 @@ async function loadDashboardData() {
 
 function initCharts() {
     // 本周运动统计图
-    const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
-    new Chart(weeklyCtx, {
-        type: 'bar',
-        data: {
-            labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-            datasets: [{
-                label: '运动时长(分钟)',
-                data: [30, 0, 45, 30, 60, 45, 30],
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
+    const weeklyChart = document.getElementById('weeklyChart');
+    if (weeklyChart) {
+        const weeklyCtx = weeklyChart.getContext('2d');
+        new Chart(weeklyCtx, {
+            type: 'bar',
+            data: {
+                labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                datasets: [{
+                    label: '运动时长(分钟)',
+                    data: [30, 0, 45, 30, 60, 45, 30],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
                 }
             }
-        }
-    });
+        });
+    }
     
     // 运动类型分布图
-    const typeCtx = document.getElementById('typeChart').getContext('2d');
-    new Chart(typeCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['跑步', '游泳', '骑行', '瑜伽'],
-            datasets: [{
-                data: [40, 25, 20, 15],
-                backgroundColor: [
-                    '#FF6384',
-                    '#36A2EB',
-                    '#FFCE56',
-                    '#4BC0C0'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
+    const typeChart = document.getElementById('typeChart');
+    if (typeChart) {
+        const typeCtx = typeChart.getContext('2d');
+        new Chart(typeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['跑步', '游泳', '骑行', '瑜伽'],
+                datasets: [{
+                    data: [40, 25, 20, 15],
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
                 }
             }
-        }
-    });
+        });
+    }
 }
 
 async function loadRecentActivities() {
     try {
-        // 模拟最近活动数据
-        const activities = [
-            {
-                date: '2024-01-15',
-                type: '跑步',
-                duration: 30,
-                description: '晨跑5公里'
-            },
-            {
-                date: '2024-01-14',
-                type: '游泳',
-                duration: 45,
-                description: '游泳训练'
-            },
-            {
-                date: '2024-01-13',
-                type: '骑行',
-                duration: 60,
-                description: '周末骑行'
-            },
-            {
-                date: '2024-01-12',
-                type: '瑜伽',
-                duration: 30,
-                description: '晚间瑜伽'
-            },
-            {
-                date: '2024-01-11',
-                type: '跑步',
-                duration: 30,
-                description: '夜跑'
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        if (!token) {
+            window.location.href = '/login';
+            return;
+        }
+        
+        // 从API获取真实数据
+        const response = await fetch('/api/behavior/record/user/' + getUserIdFromToken(token), {
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
-        ];
+        });
+        
+        let activities = [];
+        if (response.ok) {
+            const result = await response.json();
+            if (result.code === 200 && result.data) {
+                activities = Array.isArray(result.data) ? result.data : [];
+                // 只显示最近5条记录
+                activities = activities.slice(0, 5);
+            }
+        }
         
         // 渲染最近活动
-        const tbody = document.querySelector('#recentActivities tbody');
-        tbody.innerHTML = '';
-        
-        activities.forEach(activity => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${activity.date}</td>
-                <td>${activity.type}</td>
-                <td>${activity.duration}</td>
-                <td>${activity.description}</td>
-            `;
-            tbody.appendChild(row);
-        });
+        const recentActivitiesTable = document.querySelector('.table tbody');
+        if (recentActivitiesTable) {
+            recentActivitiesTable.innerHTML = '';
+            
+            if (activities.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="4" class="text-center">暂无活动记录</td>`;
+                recentActivitiesTable.appendChild(row);
+            } else {
+                activities.forEach(activity => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${activity.recordDate || activity.date || '未知日期'}</td>
+                        <td><span class="activity-badge ${(activity.type || 'unknown').toLowerCase()}">${activity.typeName || activity.type || '未知类型'}</span></td>
+                        <td>${activity.duration || 0}</td>
+                        <td>${activity.content || activity.description || '无描述'}</td>
+                    `;
+                    recentActivitiesTable.appendChild(row);
+                });
+            }
+        }
         
     } catch (error) {
         console.error('加载最近活动时出错:', error);
         showAlert('加载活动数据失败', 'error');
+    }
+}
+
+// 辅助函数：从token中提取用户ID
+function getUserIdFromToken(token) {
+    try {
+        const base64Payload = token.split('.')[1];
+        const payload = JSON.parse(atob(base64Payload));
+        return payload.userId || payload.sub || payload.id;
+    } catch (e) {
+        console.error('解析token失败:', e);
+        return null;
     }
 }
 
@@ -212,6 +265,8 @@ function showAlert(message, type) {
     
     // 3秒后自动移除
     setTimeout(() => {
-        alertDiv.remove();
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
     }, 3000);
 }

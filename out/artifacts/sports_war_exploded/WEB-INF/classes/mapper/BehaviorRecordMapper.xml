@@ -15,20 +15,16 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
-    <select id="selectById" resultMap="BehaviorRecordResultMap">
-        SELECT * FROM behavior_record WHERE record_id = #{recordId}
-    </select>
-
-    <select id="selectByUserId" resultMap="BehaviorRecordResultMap">
-        SELECT * FROM behavior_record WHERE user_id = #{userId} ORDER BY record_date DESC
-    </select>
-
-    <select id="selectByUserIdAndDateRange" resultMap="BehaviorRecordResultMap">
-        SELECT * FROM behavior_record
-        WHERE user_id = #{userId}
-          AND record_date BETWEEN #{startDate} AND #{endDate}
-        ORDER BY record_date DESC
-    </select>
+    <!-- BehaviorType resultMap -->
+    <resultMap id="BehaviorTypeResultMap" type="com.hongyuting.sports.entity.BehaviorType">
+        <id property="typeId" column="type_id"/>
+        <result property="typeName" column="type_name"/>
+        <result property="description" column="description"/>
+        <result property="iconUrl" column="icon_url"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
 
     <select id="selectAllBehaviorRecords" resultMap="BehaviorRecordResultMap">
         SELECT * FROM behavior_record ORDER BY create_time DESC
@@ -83,5 +79,32 @@
 
     <delete id="deleteBehaviorRecord">
         DELETE FROM behavior_record WHERE record_id = #{recordId}
+    </delete>
+    
+    <!-- BehaviorType mappings -->
+    <select id="selectAllBehaviorTypes" resultMap="BehaviorTypeResultMap">
+        SELECT * FROM behavior_type WHERE status = 1
+    </select>
+
+    <select id="selectBehaviorTypeById" resultMap="BehaviorTypeResultMap">
+        SELECT * FROM behavior_type WHERE type_id = #{typeId}
+    </select>
+
+    <insert id="insertBehaviorType" useGeneratedKeys="true" keyProperty="typeId">
+        INSERT INTO behavior_type (type_name, description, icon_url, create_time, update_time)
+        VALUES (#{typeName}, #{description}, #{iconUrl}, #{createTime}, #{updateTime})
+    </insert>
+
+    <update id="updateBehaviorType">
+        UPDATE behavior_type SET
+            type_name = #{typeName},
+            description = #{description},
+            icon_url = #{iconUrl},
+            update_time = #{updateTime}
+        WHERE type_id = #{typeId}
+    </update>
+
+    <delete id="deleteBehaviorType">
+        DELETE FROM behavior_type WHERE type_id = #{typeId}
     </delete>
 </mapper>

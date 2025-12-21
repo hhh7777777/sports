@@ -9,7 +9,9 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
-
+    /**
+     * 配置RedisTemplate
+     */
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
@@ -32,7 +34,6 @@ public class RedisConfig {
 
         // 启用事务支持
         template.setEnableTransactionSupport(true);
-
         template.afterPropertiesSet();
         return template;
     }

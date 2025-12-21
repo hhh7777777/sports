@@ -15,8 +15,8 @@ public class WebappApplication {
     public static void main(String[] args) {
         SpringApplication.run(WebappApplication.class, args);
         System.out.println("=========================================");
-        System.out.println("运动管理系统启动成功!");
-        System.out.println("本地访问: http://localhost:8080");
+        System.out.println("运动管理平台启动成功!");
+        System.out.println("本地访问: http://localhost:8080/index");
         System.out.println("API文档: http://localhost:8080/swagger-ui.html");
         System.out.println("=========================================");
     }

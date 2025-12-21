@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+/**
+ * 日志拦截器
+ */
 @Component
 public class LogInterceptor implements HandlerInterceptor {
 
@@ -19,7 +22,7 @@ public class LogInterceptor implements HandlerInterceptor {
         // 记录管理员操作日志（只记录管理员操作）
         String requestURI = request.getRequestURI();
         if (requestURI.contains("/admin/")) {
-            Integer adminId = (Integer) request.getAttribute("userId");
+            Integer adminId = (Integer) request.getAttribute("adminId");
             if (adminId != null) {
                 AdminLog adminLog = new AdminLog();
                 adminLog.setAdminId(adminId);

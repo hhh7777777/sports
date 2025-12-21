@@ -1,13 +1,16 @@
 package com.hongyuting.sports.mapper;
 
 import com.hongyuting.sports.entity.Behavior;
-import org.apache.ibatis.annotations.*;
+import com.hongyuting.sports.entity.BehaviorType;
+import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-@Mapper
+/**
+ * 行为记录映射接口
+ */
 public interface BehaviorRecordMapper {
     List<Behavior> selectAllBehaviorRecords();
     Behavior selectBehaviorRecordById(Long recordId);
@@ -24,4 +27,11 @@ public interface BehaviorRecordMapper {
     List<Map<String, Object>> selectBehaviorTypeDistribution(@Param("userId") Integer userId,
                                                              @Param("startDate") LocalDate startDate,
                                                              @Param("endDate") LocalDate endDate);
+                                                             
+    // BehaviorType related methods
+    List<BehaviorType> selectAllBehaviorTypes();
+    BehaviorType selectBehaviorTypeById(@Param("typeId") Integer typeId);
+    int insertBehaviorType(BehaviorType behaviorType);
+    int updateBehaviorType(BehaviorType behaviorType);
+    int deleteBehaviorType(@Param("typeId") Integer typeId);
 }

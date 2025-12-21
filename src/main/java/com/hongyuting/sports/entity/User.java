@@ -1,44 +1,37 @@
 package com.hongyuting.sports.entity;
 
-import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * 用户实体类
+ */
 @Data
-@Entity
-@Table(name = "user")
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer userId;
-
-    @Column(unique = true, nullable = false)
     private String username;
-
-    @Column(nullable = false)
     private String password;
-
-    @Column(nullable = false)
-    private String salt;
-
-    private String nickname;
-
-    @Column(unique = true)
+    @Setter
+    @Getter
+    private String confirmPassword;//确认密码
+    private String salt;//密码盐
     private String email;
-
-    @Column(name = "wx_openid")
-    private String wxOpenid;
-
+    private String nickname;
+    private LocalDate birthday;
+    private String gender;
+    private Double height;
+    private Double weight;
     private String avatar;
-
-    private String bio;
-
-    @Column(name = "user_status", columnDefinition = "TINYINT DEFAULT 1")
-    private Integer userStatus;
-
-    @Column(name = "register_time", columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
+    private String wxOpenid;//微信openid
+    private Integer userStatus = 1;
     private LocalDateTime registerTime;
-
-    @Column(name = "last_login_time")
     private LocalDateTime lastLoginTime;
+    @Setter
+    @Getter
+    private String captcha;//验证码
+
 }

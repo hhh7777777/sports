@@ -1,43 +1,42 @@
 package com.hongyuting.sports.service;
 
-import com.alibaba.fastjson.JSON;
 import com.hongyuting.sports.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Token服务类
+ */
 @Service
 public class TokenService {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    @Value("${jwt.expiration:86400000}")
-    private long expiration;
+    // Token过期时间（毫秒）- 24小时
+    private static final long TOKEN_EXPIRATION = 24 * 60 * 60 * 1000L;
+    
+    // Refresh Token过期时间（毫秒）- 30天
+    private static final long REFRESH_TOKEN_EXPIRATION = 30 * 24 * 60 * 60 * 1000L;
 
     /**
      * 存储用户信息到Redis
      */
     public void storeUserInfo(String token, User user) {
-        String userJson = JSON.toJSONString(user);
         // 存储用户信息，过期时间与token一致
-        redisTemplate.opsForValue().set(buildTokenKey(token), userJson, expiration, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(buildTokenKey(token), user, TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
         // 存储token与用户ID的映射
-        redisTemplate.opsForValue().set(buildUserIdKey(user.getUserId()), token, expiration, TimeUnit.MILLISECONDS);
+        redisTemplate.opsForValue().set(buildUserIdKey(user.getUserId()), token, TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
     }
 
     /**
      * 从Redis获取用户信息
      */
     public User getUserInfo(String token) {
-        String userJson = (String) redisTemplate.opsForValue().get(buildTokenKey(token));
-        if (userJson != null) {
-            return JSON.parseObject(userJson, User.class);
-        }
-        return null;
+        return (User) redisTemplate.opsForValue().get(buildTokenKey(token));
     }
 
     /**
@@ -67,9 +66,8 @@ public class TokenService {
     public void refreshToken(String token) {
         User user = getUserInfo(token);
         if (user != null) {
-            String userJson = JSON.toJSONString(user);
-            redisTemplate.expire(buildTokenKey(token), expiration, TimeUnit.MILLISECONDS);
-            redisTemplate.expire(buildUserIdKey(user.getUserId()), expiration, TimeUnit.MILLISECONDS);
+            redisTemplate.expire(buildTokenKey(token), TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
+            redisTemplate.expire(buildUserIdKey(user.getUserId()), TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
         }
     }
 

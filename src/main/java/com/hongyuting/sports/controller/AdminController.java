@@ -1,9 +1,13 @@
 package com.hongyuting.sports.controller;
 
+import com.hongyuting.sports.dto.AdminLoginDTO;
 import com.hongyuting.sports.dto.ResponseDTO;
+import com.hongyuting.sports.entity.Admin;
 import com.hongyuting.sports.entity.AdminLog;
 import com.hongyuting.sports.service.AdminService;
-import jakarta.servlet.http.HttpSession;
+import com.hongyuting.sports.util.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -15,9 +19,106 @@ import java.util.List;
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
 public class AdminController {
-
+    /**
+     * 管理员服务
+     */
     private final AdminService adminService;
+    private final JwtUtil jwtUtil;
+    
+    /**
+     * 管理员登录
+     */
+    @PostMapping("/login")
+    public ResponseDTO login(@RequestBody AdminLoginDTO loginDTO, HttpServletRequest request) {
+        String clientIP = getClientIP(request);
+        return adminService.login(loginDTO, clientIP);
+    }
 
+    /**
+     * 管理员退出登录
+     */
+    @PostMapping("/logout")
+    public ResponseDTO logout(@RequestAttribute Integer adminId,
+                              @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7); // 去掉"Bearer "前缀
+        return adminService.logout(adminId, token);
+    }
+
+    /**
+     * 刷新Token
+     */
+    @PostMapping("/refresh")
+    public ResponseDTO refreshAccessToken(@RequestHeader("Authorization") String authHeader) {
+        String refreshToken = authHeader.substring(7); // 去掉"Bearer "前缀
+        return adminService.refreshAccessToken(refreshToken);
+    }
+
+    /**
+     * 修改密码
+     */
+    @PostMapping("/change-password")
+    public ResponseDTO changePassword(@RequestAttribute Integer adminId,
+                                      @RequestBody ChangePasswordRequest request) {
+        return adminService.changePassword(adminId, request.getOldPassword(), request.getNewPassword());
+    }
+
+    /**
+     * 验证Token有效性
+     */
+    @GetMapping("/validate")
+    public ResponseDTO validateToken(@RequestAttribute Integer adminId,
+                                     @RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7); // 去掉"Bearer "前缀
+        
+        // 验证JWT Token格式是否有效
+        if (!jwtUtil.validateToken(token)) {
+            return ResponseDTO.error("认证令牌格式无效");
+        }
+
+        // 验证Token是否存在于Redis中
+        if (adminService.existsToken(token)) {
+            return ResponseDTO.error("认证令牌无效或已过期");
+        }
+
+        // 获取管理员信息
+        Admin admin = adminService.getAdminById(adminId);
+        if (admin != null) {
+            admin.setPassword(null);
+            admin.setSalt(null);
+        }
+
+        return ResponseDTO.success("Token有效", admin);
+    }
+
+    /**
+     * 创建管理员（需要超级管理员权限）
+     */
+    @PostMapping("/create")
+    public ResponseDTO createAdmin(@RequestBody com.hongyuting.sports.entity.Admin admin,
+                                   @RequestAttribute Integer adminId) {
+        // 这里可以添加权限验证逻辑
+        return adminService.createAdmin(admin);
+    }
+
+    private String getClientIP(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getHeader("WL-Proxy-Client-IP");
+        }
+        if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+        }
+        return ip;
+    }
+
+    @Data
+    public static class ChangePasswordRequest {
+        private String oldPassword;
+        private String newPassword;
+    }
     /**
      * 获取操作日志
      */

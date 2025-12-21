@@ -43,7 +43,20 @@ async function checkAuth() {
             const result = await response.json();
             const userNameElement = document.getElementById('userName');
             if (userNameElement) {
-                userNameElement.textContent = result.data.username;
+                userNameElement.textContent = result.data.nickname || result.data.username || '用户';
+            }
+            
+            // 更新用户头像
+            const userAvatarElements = document.querySelectorAll('.user-avatar');
+            if (userAvatarElements.length > 0) {
+                const avatarUrl = result.data.avatar;
+                userAvatarElements.forEach(element => {
+                    if (avatarUrl) {
+                        element.src = avatarUrl;
+                    } else {
+                        element.src = '/images/avatar/avatar.png';
+                    }
+                });
             }
         }
     } catch (error) {
@@ -287,6 +300,8 @@ function showAlert(message, type) {
     
     // 3秒后自动移除
     setTimeout(() => {
-        alertDiv.remove();
+        if (alertDiv.parentNode) {
+            alertDiv.parentNode.removeChild(alertDiv);
+        }
     }, 3000);
 }

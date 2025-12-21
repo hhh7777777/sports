@@ -1,5 +1,6 @@
 package com.hongyuting.sports.service;
 
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,6 +13,10 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.UUID;
 
+/**
+ * 文件上传服务
+ */
+@Getter
 @Service
 public class FileUploadService {
 
@@ -23,6 +28,25 @@ public class FileUploadService {
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     public String uploadImage(MultipartFile file) throws IOException {
+        String fileExtension = getString(file);
+
+        // 创建上传目录 - 使用绝对路径确保目录存在
+        Path uploadPath = Paths.get(System.getProperty("user.dir"), "uploads");
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        // 生成唯一文件名
+        String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
+        Path filePath = uploadPath.resolve(uniqueFileName);
+
+        // 保存文件
+        file.transferTo(filePath.toFile());
+
+        return "/uploads/" + uniqueFileName;
+    }
+
+    private String getString(MultipartFile file) {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("文件不能为空");
         }
@@ -42,21 +66,7 @@ public class FileUploadService {
         if (!Arrays.asList(ALLOWED_IMAGE_TYPES).contains(fileExtension)) {
             throw new IllegalArgumentException("只支持JPG, JPEG, PNG, GIF, BMP格式的图片");
         }
-
-        // 创建上传目录
-        Path uploadPath = Paths.get(uploadDir);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
-
-        // 生成唯一文件名
-        String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
-        Path filePath = uploadPath.resolve(uniqueFileName);
-
-        // 保存文件
-        file.transferTo(filePath.toFile());
-
-        return "/uploads/" + uniqueFileName;
+        return fileExtension;
     }
 
     public boolean deleteImage(String imageUrl) {
@@ -66,7 +76,7 @@ public class FileUploadService {
             }
 
             String filename = imageUrl.substring("/uploads/".length());
-            Path filePath = Paths.get(uploadDir, filename);
+            Path filePath = Paths.get(System.getProperty("user.dir"), "uploads", filename);
 
             return Files.deleteIfExists(filePath);
         } catch (IOException e) {
@@ -74,7 +84,4 @@ public class FileUploadService {
         }
     }
 
-    public String getUploadDir() {
-        return uploadDir;
-    }
 }

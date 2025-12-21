@@ -11,29 +11,32 @@
         <result property="level" column="level"/>
         <result property="rewardPoints" column="reward_points"/>
         <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
     </resultMap>
 
     <insert id="insertBadge" useGeneratedKeys="true" keyProperty="badgeId">
         INSERT INTO achievement_badge
-        (badge_name, description, icon_url, condition_type, condition_value, level, reward_points)
+        (badge_name, description, icon_url, condition_type, condition_value, level, reward_points, create_time, update_time)
         VALUES
-            (#{badgeName}, #{description}, #{iconUrl}, #{conditionType}, #{conditionValue}, #{level}, #{rewardPoints})
+            (#{badgeName}, #{description}, #{iconUrl}, #{conditionType}, #{conditionValue}, #{level}, #{rewardPoints}, #{createTime}, #{updateTime})
     </insert>
 
     <update id="updateBadge">
         UPDATE achievement_badge SET
-                                     badge_name = #{badgeName},
-                                     description = #{description},
-                                     icon_url = #{iconUrl},
-                                     condition_type = #{conditionType},
-                                     condition_value = #{conditionValue},
-                                     level = #{level},
-                                     reward_points = #{rewardPoints}
+            badge_name = #{badgeName},
+            description = #{description},
+            icon_url = #{iconUrl},
+            condition_type = #{conditionType},
+            condition_value = #{conditionValue},
+            level = #{level},
+            reward_points = #{rewardPoints},
+            update_time = #{updateTime}
         WHERE badge_id = #{badgeId}
     </update>
 
     <update id="disableBadge">
-        UPDATE achievement_badge SET status = 0 WHERE badge_id = #{badgeId}
+        UPDATE achievement_badge SET status = 0, update_time = NOW() WHERE badge_id = #{badgeId}
     </update>
 
     <delete id="deleteBadge">

@@ -66,4 +66,4 @@ app:
     expire-minutes: 5
 
 server:
-  port: 8083
+  port: 8080

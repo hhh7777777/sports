@@ -1,44 +1,32 @@
 package com.hongyuting.sports.mapper;
 
 import com.hongyuting.sports.entity.User;
-import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Param;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-@Mapper
+/**
+ * 用户映射接口
+ */
 public interface UserMapper {
-    int selectUserCount();
-
     int insertUser(User user);
+
+    User selectUserByUsername(String username);
+
+    User selectUserById(Integer userId);
 
     int updateUser(User user);
 
-    int disableUser(@Param("userId") int userId);
+    int updateUserAvatar(User user);
 
-    User selectUserById(@Param("userId") int userId);
+    int updateUserStatus(User user);
 
-    User selectUserByUsername(@Param("username") String username);
-
-    User selectUserByWxOpenid(@Param("openid") String openid);
+    int deleteUser(Integer userId);
 
     List<User> selectAllUsers();
 
-    int updateLastLoginTime(@Param("userId") int userId, @Param("loginTime") LocalDateTime loginTime);
+    int countByUsername(String username);
 
-    int countUsers();
-    int deleteUser(@Param("userId") Integer userId);
-
-
-    int updateUserPassword(@Param("userId") Integer userId,
-                           @Param("password") String password,
-                           @Param("salt") String salt);
-
-    boolean existsByUsername(String username);
-
-    boolean existsByEmail(String email);
-
-    User selectUserByEmail(@Param("email") String email);
-
+    int countByEmail(String email);
 
 }
