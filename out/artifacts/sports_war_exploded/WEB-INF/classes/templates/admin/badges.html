@@ -261,6 +261,17 @@
                         <textarea class="form-control" id="modalBadgeDescription" rows="3" required></textarea>
                     </div>
                     <div class="mb-3">
+                        <label for="modalBadgeLevel" class="form-label">等级</label>
+                        <select class="form-select" id="modalBadgeLevel" required>
+                            <option value="">请选择等级</option>
+                            <option value="1">1级</option>
+                            <option value="2">2级</option>
+                            <option value="3">3级</option>
+                            <option value="4">4级</option>
+                            <option value="5">5级</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
                         <label for="modalBadgeIcon" class="form-label">徽章图标</label>
                         <input type="file" class="form-control" id="modalBadgeIcon" accept="image/*">
                         <div class="form-text">支持 JPG, PNG, GIF, BMP 格式，文件大小不超过 5MB</div>
@@ -289,6 +300,6 @@
 </div>
 
 <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
-<script src="/js/admin-badges.js"></script>
+<script src="/js/admin/admin-badges.js"></script>
 </body>
 </html>

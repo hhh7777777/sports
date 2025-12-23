@@ -6,6 +6,7 @@ import com.hongyuting.sports.dto.ResponseDTO;
 import com.hongyuting.sports.entity.User;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -75,6 +76,11 @@ public interface UserService {
      * 获取用户活跃度统计
      */
     Map<String, Object> getUserActivityStats(Integer userId, LocalDate startDate, LocalDate endDate);
+    
+    /**
+     * 获取用户连续打卡天数
+     */
+    int getUserStreakDays(Integer userId);
     
     /**
      * 根据年月获取用户数量

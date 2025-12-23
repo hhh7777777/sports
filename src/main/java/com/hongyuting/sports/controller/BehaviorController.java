@@ -10,6 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -56,9 +57,9 @@ public class BehaviorController {
      */
     @GetMapping("/record/user/{userId}")
     public ResponseDTO getBehaviorRecordsByUser(@PathVariable Integer userId,
-                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-                                               @RequestParam(required = false) Integer typeId) {
+                                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+                                                               @RequestParam(required = false) Integer typeId) {
         List<Behavior> records;
         if (startDate != null && endDate != null) {
             records = behaviorService.getBehaviorRecordsByUserAndDate(userId, startDate, endDate);

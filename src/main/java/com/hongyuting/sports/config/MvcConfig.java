@@ -14,12 +14,12 @@ public class MvcConfig implements WebMvcConfigurer {
         // 统一视图控制器配置
         registry.addRedirectViewController("/", "/index");
         registry.addViewController("/index").setViewName("index");
-        registry.addViewController("/user/login").setViewName("login");
-        registry.addViewController("/user/register").setViewName("register");
+        registry.addViewController("/user/login").setViewName("user/login");
+        registry.addViewController("/user/register").setViewName("user/register");
         registry.addViewController("/user/dashboard").setViewName("user/dashboard");
-        registry.addViewController("/user/profile").setViewName("profile");
-        registry.addViewController("/user/behavior").setViewName("behavior");
-        registry.addViewController("/user/achievements").setViewName("achievements");
+        registry.addViewController("/user/profile").setViewName("user/profile");
+        registry.addViewController("/user/behavior").setViewName("user/behavior");
+        registry.addViewController("/user/achievements").setViewName("user/achievements");
 
         // 管理员页面路由
         registry.addViewController("/admin").setViewName("forward:/admin/dashboard");
@@ -29,5 +29,8 @@ public class MvcConfig implements WebMvcConfigurer {
         registry.addViewController("/admin/behaviors").setViewName("admin/behaviors");
         registry.addViewController("/admin/badges").setViewName("admin/badges");
         registry.addViewController("/admin/logs").setViewName("admin/logs");
+        
+        // 圣诞活动页面路由
+        registry.addViewController("/christmas-event").setViewName("christmas-event");
     }
 }

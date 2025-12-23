@@ -1,15 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // 检查用户是否已登录
-    checkAuth();
-    
-    // 绑定退出登录事件
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            logout();
-        });
-    }
+    AuthUtils.checkAuth();
     
     // 绑定表单提交事件
     const profileForm = document.getElementById('profileForm');
@@ -56,58 +47,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 加载用户资料
     loadUserProfile();
 });
-
-async function checkAuth() {
-    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-    if (!token) {
-        window.location.href = '/login';
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/user/profile', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (!response.ok) {
-            // 清除无效的token
-            localStorage.removeItem('accessToken');
-            sessionStorage.removeItem('accessToken');
-            window.location.href = '/login';
-        }
-    } catch (error) {
-        console.error('验证用户身份时出错:', error);
-        // 清除无效的token
-        localStorage.removeItem('accessToken');
-        sessionStorage.removeItem('accessToken');
-        window.location.href = '/login';
-    }
-}
-
-async function logout() {
-    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-    
-    try {
-        if (token) {
-            await fetch('/api/user/logout', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-        }
-    } catch (error) {
-        console.error('登出时出错:', error);
-    } finally {
-        // 清除本地存储的令牌
-        localStorage.removeItem('accessToken');
-        sessionStorage.removeItem('accessToken');
-        // 跳转到登录页面
-        window.location.href = '/login';
-    }
-}
 
 async function loadUserProfile() {
     try {
@@ -225,7 +164,24 @@ async function loadUserProfile() {
         if (badgeStatsResponse.ok) {
             const badgeStatsResult = await badgeStatsResponse.json();
             if (badgeStatsResult.code === 200 && badgeStatsResult.data) {
-                badgeCount = Array.isArray(badgeStatsResult.data) ? badgeStatsResult.data.length : 0;
+                // 只统计已获得且进度为100%的徽章
+                badgeCount = Array.isArray(badgeStatsResult.data) ? 
+                    badgeStatsResult.data.filter(badge => badge.achieved && badge.progress >= 100).length : 0;
+            }
+        }
+        
+        // 获取连续打卡天数
+        const streakDaysResponse = await fetch('/api/user/streak-days', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        let streakDays = 0;
+        if (streakDaysResponse.ok) {
+            const streakDaysResult = await streakDaysResponse.json();
+            if (streakDaysResult.code === 200 && streakDaysResult.data) {
+                streakDays = streakDaysResult.data.streakDays || 0;
             }
         }
         
@@ -239,9 +195,8 @@ async function loadUserProfile() {
         const badgeCountEl = document.getElementById('badgeCount');
         if (badgeCountEl) badgeCountEl.textContent = badgeCount;
         
-        // TODO: 连续打卡天数需要后端提供API
-        const streakDays = document.getElementById('streakDays');
-        if (streakDays) streakDays.textContent = '0';
+        const streakDaysEl = document.getElementById('streakDays');
+        if (streakDaysEl) streakDaysEl.textContent = streakDays;
         
     } catch (error) {
         console.error('加载用户资料时出错:', error);

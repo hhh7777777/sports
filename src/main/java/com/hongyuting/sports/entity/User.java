@@ -26,5 +26,6 @@ public class User {
     private Integer userStatus = 1;
     private LocalDateTime registerTime;
     private LocalDateTime lastLoginTime;
+    private LocalDateTime updateTime;//更新时间
     private String captcha;//验证码
 }

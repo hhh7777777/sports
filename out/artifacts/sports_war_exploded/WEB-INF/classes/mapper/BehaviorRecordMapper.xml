@@ -59,6 +59,15 @@
           AND br.record_date BETWEEN #{startDate} AND #{endDate}
         ORDER BY br.record_date DESC
     </select>
+    
+    <select id="selectBehaviorRecordsByDate" resultMap="BehaviorRecordResultMap">
+        SELECT br.*, bt.type_name, u.username as user_name
+        FROM behavior_record br
+        LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+        LEFT JOIN user u ON br.user_id = u.user_id
+        WHERE br.record_date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY br.record_date DESC
+    </select>
 
     <select id="selectTotalDurationByUserAndDate" resultType="int">
         SELECT COALESCE(SUM(duration), 0) FROM behavior_record

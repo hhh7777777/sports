@@ -1,16 +1,7 @@
 // 页面加载完成时执行
 document.addEventListener('DOMContentLoaded', function() {
     // 检查用户是否已登录
-    checkAuth();
-    
-    // 绑定退出登录事件
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            logout();
-        });
-    }
+    AuthUtils.checkAuth();
     
     // 绑定标签页切换事件
     document.querySelectorAll('#achievementTabs button').forEach(button => {
@@ -23,71 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 加载成就数据
     loadAchievements('all');
 });
-
-async function checkAuth() {
-    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-    if (!token) {
-        window.location.href = '/login';
-        return;
-    }
-    
-    try {
-        const response = await fetch('/api/user/profile', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        
-        if (!response.ok) {
-            window.location.href = '/login';
-        } else {
-            const result = await response.json();
-            const userNameElement = document.getElementById('userName');
-            if (userNameElement) {
-                userNameElement.textContent = result.data.nickname || result.data.username || '用户';
-            }
-            
-            // 更新用户头像
-            const userAvatarElements = document.querySelectorAll('.user-avatar');
-            if (userAvatarElements.length > 0) {
-                const avatarUrl = result.data.avatar;
-                userAvatarElements.forEach(element => {
-                    if (avatarUrl) {
-                        element.src = avatarUrl;
-                    } else {
-                        element.src = '/images/avatar/avatar.png';
-                    }
-                });
-            }
-        }
-    } catch (error) {
-        console.error('验证用户身份时出错:', error);
-        window.location.href = '/login';
-    }
-}
-
-async function logout() {
-    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-    
-    try {
-        if (token) {
-            await fetch('/api/user/logout', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-        }
-    } catch (error) {
-        console.error('登出时出错:', error);
-    } finally {
-        // 清除本地存储的令牌
-        localStorage.removeItem('accessToken');
-        sessionStorage.removeItem('accessToken');
-        // 跳转到登录页面
-        window.location.href = '/login';
-    }
-}
 
 async function loadAchievements(tabId) {
     try {
@@ -164,7 +90,7 @@ async function loadAchievements(tabId) {
 
     } catch (error) {
         console.error('加载成就时出错:', error);
-        showAlert('加载成就失败: ' + error.message, 'error');
+        CommonUtils.showAlert('加载成就失败: ' + error.message, 'error');
     }
 }
 
@@ -208,31 +134,29 @@ function renderAchievements(achievements, tabId) {
         const cardClass = achievement.earned ? 'card badge-card h-100' : 'card badge-card h-100 badge-locked';
         const iconClass = achievement.earned ? '' : 'opacity-50'; // 未获得的徽章图标半透明
         
-        badgeCard.innerHTML = `
-            <div class="${cardClass}">
-                <div class="card-body text-center">
-                    <div class="badge-icon ${iconClass}">
-                        <img src="${iconSrc}" alt="${achievement.name}" class="badge-img">
-                    </div>
-                    <h5 class="card-title">${achievement.name}</h5>
-                    <p class="card-text">${achievement.description}</p>
-                    ${achievement.earned ? 
-                        `<div class="text-success">
-                            <small>获得于 ${achievement.earnedDate}</small>
-                        </div>` :
-                        `<div class="progress mt-3">
-                            <div class="progress-bar" role="progressbar" 
-                                style="width: ${achievement.progress}%;" 
-                                aria-valuenow="${achievement.progress}" 
-                                aria-valuemin="0" 
-                                aria-valuemax="100">
-                                ${achievement.progress}%
-                            </div>
-                        </div>`
-                    }
-                </div>
-            </div>
-        `;
+        badgeCard.innerHTML = '<div class="' + cardClass + '">' +
+            '<div class="card-body text-center">' +
+                '<div class="badge-icon ' + iconClass + '">' +
+                    '<img src="' + iconSrc + '" alt="' + achievement.name + '" class="badge-img" onerror="this.style.display=\'none\'; this.parentElement.innerHTML=\'<i class=&quot;fas fa-medal&quot;></i>\';">' +
+                '</div>' +
+                '<h5 class="card-title">' + achievement.name + '</h5>' +
+                '<p class="card-text">' + achievement.description + '</p>' +
+                (achievement.earned ? 
+                    '<div class="text-success">' +
+                        '<small>获得于 ' + achievement.earnedDate + '</small>' +
+                    '</div>' :
+                    '<div class="progress mt-3">' +
+                        '<div class="progress-bar" role="progressbar" ' +
+                            'style="width: ' + achievement.progress + '%;" ' +
+                            'aria-valuenow="' + achievement.progress + '" ' +
+                            'aria-valuemin="0" ' +
+                            'aria-valuemax="100">' +
+                            achievement.progress + '%' +
+                        '</div>' +
+                    '</div>'
+                ) +
+            '</div>' +
+        '</div>';
         container.appendChild(badgeCard);
     });
 }

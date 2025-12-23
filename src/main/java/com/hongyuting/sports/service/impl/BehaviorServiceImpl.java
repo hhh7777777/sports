@@ -16,6 +16,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -141,6 +142,52 @@ public class BehaviorServiceImpl implements BehaviorService {
         } catch (Exception e) {
             log.error("获取行为总时长异常: userId={}, startDate={}, endDate={}", userId, startDate, endDate, e);
             return 0;
+        }
+    }
+    
+    @Override
+    public List<Behavior> getBehaviorRecordsByDate(LocalDate startDate, LocalDate endDate) {
+        try {
+            if (startDate == null || endDate == null) {
+                return List.of();
+            }
+            return behaviorMapper.selectBehaviorRecordsByDate(startDate, endDate);
+        } catch (Exception e) {
+            log.error("根据日期范围获取行为记录异常: startDate={}, endDate={}", startDate, endDate, e);
+            return List.of();
+        }
+    }
+    
+    @Override
+    public int getTotalBehaviorRecords() {
+        try {
+            return behaviorMapper.selectTotalBehaviorRecords();
+        } catch (Exception e) {
+            log.error("获取行为记录总数异常", e);
+            return 0;
+        }
+    }
+    
+    @Override
+    public int getBehaviorCountByTypeAndDate(Integer typeId, LocalDate startDate, LocalDate endDate) {
+        try {
+            if (typeId == null || startDate == null || endDate == null) {
+                return 0;
+            }
+            return behaviorMapper.selectBehaviorCountByTypeAndDate(typeId, startDate, endDate);
+        } catch (Exception e) {
+            log.error("获取行为记录数量异常: typeId={}, startDate={}, endDate={}", typeId, startDate, endDate, e);
+            return 0;
+        }
+    }
+    
+    @Override
+    public List<Behavior> getRecentBehaviors(int limit) {
+        try {
+            return behaviorMapper.selectRecentBehaviors(limit);
+        } catch (Exception e) {
+            log.error("获取最新行为记录异常: limit={}", limit, e);
+            return List.of();
         }
     }
 
@@ -307,17 +354,6 @@ public class BehaviorServiceImpl implements BehaviorService {
         } catch (Exception e) {
             log.error("获取行为类型分布异常: userId={}, startDate={}, endDate={}", userId, startDate, endDate, e);
             return List.of();
-        }
-    }
-
-    @Override
-    public Integer getTotalBehaviorRecords() {
-        try {
-            List<Behavior> records = behaviorMapper.selectAllBehaviorRecords();
-            return records != null ? records.size() : 0;
-        } catch (Exception e) {
-            log.error("获取行为记录总数异常", e);
-            return 0;
         }
     }
 

@@ -17,6 +17,7 @@ public class Badge {
     private Integer level;
     private Integer rewardPoints;
     private Integer status;
+    private String badgeType;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }

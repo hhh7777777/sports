@@ -1,58 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>用户管理 - 运动健康管理系统</title>
     <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
     <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
-    <style>
-        .sidebar {
-            background: #343a40;
-            min-height: calc(100vh - 56px);
-        }
-        .sidebar .nav-link {
-            color: #adb5bd;
-            padding: 0.75rem 1rem;
-        }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            color: #fff;
-            background: #495057;
-        }
-        .stat-card {
-            transition: transform 0.2s;
-            border: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .stat-card:hover {
-            transform: translateY(-2px);
-        }
-    </style>
+    <link href="/css/main.css" rel="stylesheet">
 </head>
 <body>
 <!-- 导航栏 -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="/admin/dashboard">
-            <i class="fas fa-tachometer-alt me-2"></i>管理员面板
-        </a>
-        <div class="navbar-nav ms-auto">
-            <span class="navbar-text me-3">
-                欢迎，管理员
-            </span>
-            <div class="dropdown">
-                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-user-circle"></i>
-                </a>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>个人资料</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="#" id="adminLogoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</nav>
+<th:block th:include="common/base :: admin-nav"></th:block>
 
 <div class="container-fluid">
     <div class="row">
@@ -117,9 +75,9 @@
                                 <label for="status" class="form-label">状态</label>
                                 <select class="form-select" id="status">
                                     <option value="">全部</option>
-                                    <option value="active">活跃</option>
-                                    <option value="inactive">未激活</option>
-                                    <option value="banned">封禁</option>
+                                    <option value="1">活跃</option>
+                                    <option value="0">未激活</option>
+                                    <option value="-1">封禁</option>
                                 </select>
                             </div>
                             <div class="col-md-3 mb-3 d-flex align-items-end">
@@ -184,70 +142,21 @@
                             </tbody>
                         </table>
                     </div>
-                    
-                    <!-- 分页 -->
-                    <nav aria-label="用户列表分页">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1">上一页</a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item"><a class="page-link" href="#">2</a></li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">下一页</a>
-                            </li>
-                        </ul>
-                    </nav>
                 </div>
             </div>
         </main>
     </div>
 </div>
 
-<!-- 添加/编辑用户模态框 -->
-<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addUserModalLabel">添加用户</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="userForm">
-                    <input type="hidden" id="userId">
-                    <div class="mb-3">
-                        <label for="modalUsername" class="form-label">用户名</label>
-                        <input type="text" class="form-control" id="modalUsername" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="modalEmail" class="form-label">邮箱</label>
-                        <input type="email" class="form-control" id="modalEmail" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="modalPassword" class="form-label">密码</label>
-                        <input type="password" class="form-control" id="modalPassword">
-                        <div class="form-text">留空表示不修改密码</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="modalStatus" class="form-label">状态</label>
-                        <select class="form-select" id="modalStatus">
-                            <option value="active">活跃</option>
-                            <option value="inactive">未激活</option>
-                            <option value="banned">封禁</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="saveUserBtn">保存</button>
-            </div>
-        </div>
-    </div>
-</div>
-
+<script src="/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
-<script src="/js/admin-users.js"></script>
+<script src="/js/admin/users.js"></script>
+<script>
+    // 页面加载完成后初始化
+    $(document).ready(function() {
+        // 检查管理员登录状态
+        checkAdminAuth();
+    });
+</script>
 </body>
 </html>

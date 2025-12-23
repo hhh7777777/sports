@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +38,19 @@ public class BadgeServiceImpl implements BadgeService {
             return achievementBadgeMapper.selectBadgesByConditionType(conditionType);
         } catch (Exception e) {
             log.error("根据条件类型获取徽章异常: conditionType={}", conditionType, e);
+            return List.of();
+        }
+    }
+
+    @Override
+    public List<Badge> getBadgesByType(String badgeType) {
+        try {
+            if (!StringUtils.hasText(badgeType)) {
+                return List.of();
+            }
+            return achievementBadgeMapper.selectBadgesByType(badgeType);
+        } catch (Exception e) {
+            log.error("根据类型获取徽章异常: badgeType={}", badgeType, e);
             return List.of();
         }
     }
@@ -219,6 +229,11 @@ public class BadgeServiceImpl implements BadgeService {
                 return ResponseDTO.error("徽章名称不能为空");
             }
             
+            // 如果没有提供图标URL，则使用默认图标
+            if (!StringUtils.hasText(badge.getIconUrl())) {
+                badge.setIconUrl("/images/icons/default-badge.png");
+            }
+            
             if (badge.getLevel() == null || badge.getLevel() < 1) {
                 return ResponseDTO.error("徽章等级必须大于0");
             }
@@ -280,6 +295,11 @@ public class BadgeServiceImpl implements BadgeService {
             Badge existingBadge = achievementBadgeMapper.selectBadgeById(badge.getBadgeId());
             if (existingBadge == null) {
                 return ResponseDTO.error("徽章不存在");
+            }
+
+            // 如果没有提供新的图标URL，则保留原来的图标URL
+            if (!StringUtils.hasText(badge.getIconUrl())) {
+                badge.setIconUrl(existingBadge.getIconUrl());
             }
 
             badge.setUpdateTime(LocalDateTime.now());
@@ -464,5 +484,37 @@ public class BadgeServiceImpl implements BadgeService {
             log.error("检查徽章条件异常: userId={}, badgeId={}", userId, badge.getBadgeId(), e);
             return false;
         }
+    }
+
+    @Override
+    public List<Badge> getChristmasBadges() {
+        try {
+            // 获取所有徽章并筛选出圣诞限定徽章
+            List<Badge> allBadges = getAllBadges();
+            return allBadges.stream()
+                .filter(badge -> isChristmasBadge(badge.getBadgeName()))
+                .toList();
+        } catch (Exception e) {
+            log.error("获取圣诞限定徽章异常", e);
+            return List.of();
+        }
+    }
+
+    /**
+     * 判断是否为圣诞限定徽章
+     * @param badgeName 徽章名称
+     * @return 是否为圣诞徽章
+     */
+    private boolean isChristmasBadge(String badgeName) {
+        // 根据项目规范，圣诞主题下只展示五个指定的圣诞限定徽章
+        String[] christmasBadges = {
+            "圣诞老人", "圣诞树装饰家", "雪地战士", "礼物收集者", "圣诞之星"
+        };
+        for (String name : christmasBadges) {
+            if (name.equals(badgeName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

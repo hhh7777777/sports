@@ -36,4 +36,7 @@ public interface UserMapper {
                                              @Param("typeName") String typeName,
                                              @Param("startDate") LocalDate startDate,
                                              @Param("endDate") LocalDate endDate);
+                                             
+    // 获取用户所有运动日期记录
+    List<LocalDate> selectExerciseDatesByUser(@Param("userId") Integer userId);
 }

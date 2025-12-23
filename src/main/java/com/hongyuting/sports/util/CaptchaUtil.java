@@ -11,7 +11,9 @@ import java.util.Random;
  */
 @Component
 public class CaptchaUtil {
-
+    /**
+     * 验证码字符集
+     */
     private static final String CHARACTERS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
     private static final int CAPTCHA_LENGTH = 4;
 

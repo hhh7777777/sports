@@ -18,6 +18,8 @@ public interface BehaviorMapper {
     List<Behavior> selectBehaviorRecordsByUserAndDate(@Param("userId") Integer userId,
                                                       @Param("startDate") LocalDate startDate,
                                                       @Param("endDate") LocalDate endDate);
+    List<Behavior> selectBehaviorRecordsByDate(@Param("startDate") LocalDate startDate,
+                                               @Param("endDate") LocalDate endDate);
     int insertBehaviorRecord(Behavior behavior);
     int updateBehaviorRecord(Behavior behavior);
     int deleteBehaviorRecord(Long recordId);

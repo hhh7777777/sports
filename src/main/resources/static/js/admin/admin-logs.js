@@ -14,12 +14,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // 绑定表单搜索事件
     document.getElementById('filterForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        filterLogs();
+        filterLogs(1); // 搜索时重置到第一页
     });
     
     // 页面加载时获取日志列表
-    loadLogs();
+    loadLogs(1);
 });
+
+// 当前页码
+let currentPage = 1;
 
 async function checkAdminAuth() {
     const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
@@ -67,7 +70,7 @@ async function adminLogout() {
     }
 }
 
-async function loadLogs() {
+async function loadLogs(page = 1) {
     try {
         const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
         if (!token) {
@@ -75,7 +78,10 @@ async function loadLogs() {
             return;
         }
         
-        const response = await fetch('/api/admin/logs', {
+        // 构建查询参数
+        let url = `/api/admin/logs?page=${page}&size=10`;
+        
+        const response = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -85,6 +91,8 @@ async function loadLogs() {
             const result = await response.json();
             if (result.code === 200 && result.data) {
                 renderLogs(result.data);
+            } else {
+                throw new Error(result.message || '获取日志列表失败');
             }
         } else {
             throw new Error('获取日志列表失败');
@@ -95,7 +103,8 @@ async function loadLogs() {
     }
 }
 
-function renderLogs(logs) {
+function renderLogs(data) {
+    const logs = data.logs;
     const tbody = document.getElementById('logsTableBody');
     tbody.innerHTML = '';
     
@@ -103,33 +112,41 @@ function renderLogs(logs) {
         const row = document.createElement('tr');
         row.innerHTML = '<td colspan="5" class="text-center">暂无日志数据</td>';
         tbody.appendChild(row);
+        
+        // 更新分页控件
+        renderPagination(1, 1, 0);
         return;
     }
     
     logs.forEach(log => {
         const row = document.createElement('tr');
+        // 注意：AdminLog实体类中没有logLevel和module字段，需要使用对应的字段
         row.innerHTML = `
             <td>${log.operationTime ? new Date(log.operationTime).toLocaleString() : ''}</td>
-            <td>${getLogLevelBadge(log.logLevel)}</td>
-            <td>${log.module || ''}</td>
-            <td>${log.message || ''}</td>
+            <td>${getLogLevelBadge(log.operation)}</td>
+            <td>${log.operation || ''}</td>
+            <td>${log.detail || ''}</td>
             <td>${log.ipAddress || ''}</td>
         `;
         tbody.appendChild(row);
     });
+    
+    // 更新分页控件
+    renderPagination(data.currentPage, data.totalPages, data.totalCount);
 }
 
-function getLogLevelBadge(level) {
-    switch (level) {
-        case 'ERROR':
+function getLogLevelBadge(operation) {
+    // 根据操作类型简单判断日志级别
+    if (operation) {
+        if (operation.includes('删除') || operation.includes('错误') || operation.includes('失败')) {
             return '<span class="log-level-error">ERROR</span>';
-        case 'WARN':
+        } else if (operation.includes('警告') || operation.includes('注意')) {
             return '<span class="log-level-warn">WARN</span>';
-        case 'INFO':
+        } else {
             return '<span class="log-level-info">INFO</span>';
-        default:
-            return level;
+        }
     }
+    return '<span class="log-level-info">INFO</span>';
 }
 
 function initDatePickers() {
@@ -145,7 +162,7 @@ function initDatePickers() {
     });
 }
 
-async function filterLogs() {
+async function filterLogs(page = 1) {
     try {
         const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
         if (!token) {
@@ -158,15 +175,25 @@ async function filterLogs() {
         const endDate = document.getElementById('endDate').value;
         
         // 构建查询参数
-        let url = '/api/admin/logs';
+        let url = `/api/admin/logs?page=${page}&size=10`;
         const params = new URLSearchParams();
         
-        if (logLevel) params.append('logLevel', logLevel);
-        if (startDate) params.append('startDate', startDate);
-        if (endDate) params.append('endDate', endDate);
+        // 根据前端的logLevel筛选转换为后端的operation参数
+        if (logLevel) {
+            // 这里可以根据需要做映射
+            params.append('operation', logLevel);
+        }
+        if (startDate) {
+            // 需要转换为完整的时间格式
+            params.append('startTime', startDate + ' 00:00:00');
+        }
+        if (endDate) {
+            // 需要转换为完整的时间格式
+            params.append('endTime', endDate + ' 23:59:59');
+        }
         
         if (params.toString()) {
-            url += '?' + params.toString();
+            url += '&' + params.toString();
         }
         
         const response = await fetch(url, {
@@ -179,6 +206,8 @@ async function filterLogs() {
             const result = await response.json();
             if (result.code === 200 && result.data) {
                 renderLogs(result.data);
+            } else {
+                throw new Error(result.message || '筛选日志失败');
             }
         } else {
             throw new Error('筛选日志失败');
@@ -186,6 +215,57 @@ async function filterLogs() {
     } catch (error) {
         console.error('筛选日志时出错:', error);
         showAlert('筛选日志失败: ' + error.message, 'error');
+    }
+}
+
+function renderPagination(currentPage, totalPages, totalCount) {
+    const paginationElement = document.querySelector('.pagination');
+    paginationElement.innerHTML = '';
+    
+    // 上一页按钮
+    const prevLi = document.createElement('li');
+    prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+    prevLi.innerHTML = `<a class="page-link" href="#" ${currentPage !== 1 ? `onclick="changePage(${currentPage - 1}); return false;"` : ''}>上一页</a>`;
+    paginationElement.appendChild(prevLi);
+    
+    // 页码按钮 (最多显示5个页码)
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    
+    if (endPage - startPage < 4) {
+        startPage = Math.max(1, endPage - 4);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const pageLi = document.createElement('li');
+        pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        pageLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>`;
+        paginationElement.appendChild(pageLi);
+    }
+    
+    // 下一页按钮
+    const nextLi = document.createElement('li');
+    nextLi.className = `page-item ${currentPage === totalPages || totalPages === 0 ? 'disabled' : ''}`;
+    nextLi.innerHTML = `<a class="page-link" href="#" ${currentPage !== totalPages && totalPages > 0 ? `onclick="changePage(${currentPage + 1}); return false;"` : ''}>下一页</a>`;
+    paginationElement.appendChild(nextLi);
+    
+    // 更新全局当前页
+    window.currentPage = currentPage;
+}
+
+// 页面切换函数
+async function changePage(page) {
+    // 检查是否有筛选条件
+    const logLevel = document.getElementById('logLevel').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+    
+    if (logLevel || startDate || endDate) {
+        // 如果有筛选条件，使用筛选函数
+        await filterLogs(page);
+    } else {
+        // 否则使用普通加载函数
+        await loadLogs(page);
     }
 }
 

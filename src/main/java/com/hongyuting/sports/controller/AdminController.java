@@ -1,6 +1,7 @@
 package com.hongyuting.sports.controller;
 
 import com.hongyuting.sports.dto.AdminLoginDTO;
+import com.hongyuting.sports.dto.BadgeDTO;
 import com.hongyuting.sports.dto.ResponseDTO;
 import com.hongyuting.sports.entity.Admin;
 import com.hongyuting.sports.entity.AdminLog;
@@ -23,9 +24,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -55,7 +55,7 @@ public class AdminController {
      */
     @PostMapping("/logout")
     public ResponseDTO logout(@RequestAttribute Integer adminId,
-                              @RequestHeader("Authorization") String authHeader) {
+                                             @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7); // 去掉"Bearer "前缀
         return adminService.logout(adminId, token);
     }
@@ -74,7 +74,7 @@ public class AdminController {
      */
     @PostMapping("/change-password")
     public ResponseDTO changePassword(@RequestAttribute Integer adminId,
-                                      @RequestBody ChangePasswordRequest request) {
+                                                     @RequestBody ChangePasswordRequest request) {
         return adminService.changePassword(adminId, request.getOldPassword(), request.getNewPassword());
     }
 
@@ -83,7 +83,7 @@ public class AdminController {
      */
     @GetMapping("/validate")
     public ResponseDTO validateToken(@RequestAttribute Integer adminId,
-                                     @RequestHeader("Authorization") String authHeader) {
+                                                    @RequestHeader("Authorization") String authHeader) {
         String token = authHeader.substring(7); // 去掉"Bearer "前缀
         
         // 验证JWT Token格式是否有效
@@ -92,7 +92,7 @@ public class AdminController {
         }
 
         // 验证Token是否存在于Redis中
-        if (adminService.existsToken(token)) {
+        if (!adminService.existsToken(token)) {
             return ResponseDTO.error("认证令牌无效或已过期");
         }
 
@@ -111,7 +111,7 @@ public class AdminController {
      */
     @PostMapping("/create")
     public ResponseDTO createAdmin(@RequestBody com.hongyuting.sports.entity.Admin admin,
-                                   @RequestAttribute Integer adminId) {
+                                                  @RequestAttribute Integer adminId) {
         // 这里可以添加权限验证逻辑
         return adminService.createAdmin(admin);
     }
@@ -143,10 +143,41 @@ public class AdminController {
             @RequestParam(required = false) Integer adminId,
             @RequestParam(required = false) String operation,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime,
+            @RequestParam(required = false, defaultValue = "1") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size) {
 
-        List<AdminLog> logs = adminService.getAdminLogs(adminId, operation, startTime, endTime);
-        return ResponseDTO.success("获取成功", logs);
+        // 获取符合条件的所有日志
+        List<AdminLog> allLogs = adminService.getAdminLogs(adminId, operation, startTime, endTime);
+        
+        if (page == null || page < 1) page = 1;
+        if (size == null || size < 1) size = 10;
+        
+        // 实现分页逻辑
+        int totalCount = allLogs != null ? allLogs.size() : 0;
+        int totalPages = (int) Math.ceil((double) totalCount / size);
+        
+        List<AdminLog> pagedLogs;
+        if (totalCount > 0) {
+            int fromIndex = (page - 1) * size;
+            int toIndex = Math.min(fromIndex + size, totalCount);
+            // 确保索引有效
+            fromIndex = Math.max(0, Math.min(fromIndex, totalCount));
+            toIndex = Math.max(fromIndex, Math.min(toIndex, totalCount));
+            pagedLogs = allLogs.subList(fromIndex, toIndex);
+        } else {
+            pagedLogs = new ArrayList<>();
+        }
+        
+        // 构造返回结果
+        Map<String, Object> result = new HashMap<>();
+        result.put("logs", pagedLogs);
+        result.put("currentPage", page);
+        result.put("totalPages", totalPages);
+        result.put("totalCount", totalCount);
+        result.put("pageSize", size);
+        
+        return ResponseDTO.success("获取成功", result);
     }
 
     /**
@@ -154,7 +185,7 @@ public class AdminController {
      */
     @GetMapping("/logs/target")
     public ResponseDTO getAdminLogsByTarget(@RequestParam String targetType,
-                                            @RequestParam(required = false) Integer targetId) {
+                                                           @RequestParam(required = false) Integer targetId) {
         List<AdminLog> logs = adminService.getAdminLogsByTarget(targetType, targetId);
         return ResponseDTO.success("获取成功", logs);
     }
@@ -193,7 +224,7 @@ public class AdminController {
      */
     @PostMapping("/log")
     public ResponseDTO addAdminLog(@RequestBody AdminLog adminLog,
-                                   @RequestAttribute Integer adminId) {
+                                                  @RequestAttribute Integer adminId) {
         adminLog.setAdminId(adminId);
         return adminService.addAdminLog(adminLog);
     }
@@ -210,7 +241,7 @@ public class AdminController {
 
             // 获取今日活跃用户数（今天有行为记录的用户数）
             LocalDate today = LocalDate.now();
-            List<Behavior> todaysBehaviors = behaviorService.getBehaviorRecordsByUserAndDate(null, today, today);
+            List<Behavior> todaysBehaviors = behaviorService.getBehaviorRecordsByDate(today, today);
             int activeToday = todaysBehaviors != null ? (int) todaysBehaviors.stream()
                     .map(Behavior::getUserId)
                     .distinct()
@@ -241,11 +272,24 @@ public class AdminController {
     @GetMapping("/stats/user-growth")
     public ResponseDTO getUserGrowthStats(@RequestParam(required = false, defaultValue = "6") Integer months) {
         try {
-            // 这里应该实现用户增长趋势的统计逻辑
-            // 暂时返回模拟数据，后续需要根据实际需求实现
+            // 获取最近几个月的用户增长数据
+            List<String> labels = new ArrayList<>();
+            List<Integer> data = new ArrayList<>();
+            
+            LocalDate currentDate = LocalDate.now();
+            for (int i = months - 1; i >= 0; i--) {
+                LocalDate targetDate = currentDate.minusMonths(i);
+                String monthLabel = targetDate.getMonthValue() + "月";
+                labels.add(monthLabel);
+                
+                // 统计该月注册的用户数
+                int userCount = userService.getUserCountByMonth(targetDate.getYear(), targetDate.getMonthValue());
+                data.add(userCount);
+            }
+            
             Map<String, Object> growthData = new HashMap<>();
-            growthData.put("labels", List.of("一月", "二月", "三月", "四月", "五月", "六月"));
-            growthData.put("data", List.of(120, 190, 130, 180, 210, 250));
+            growthData.put("labels", labels);
+            growthData.put("data", data);
             
             return ResponseDTO.success("获取成功", growthData);
         } catch (Exception e) {
@@ -262,17 +306,24 @@ public class AdminController {
             // 获取所有行为类型
             List<BehaviorType> behaviorTypes = behaviorService.getAllBehaviorTypes();
             
-            // 获取每种行为类型的记录数量（示例数据）
-            // 实际应用中应该根据具体时间段统计数据
-            LocalDate startDate = LocalDate.now().minusMonths(1); // 最近一个月
+            // 获取每种行为类型的记录数量（最近一个月）
             LocalDate endDate = LocalDate.now();
+            LocalDate startDate = endDate.minusMonths(1);
+            
+            List<String> labels = new ArrayList<>();
+            List<Integer> data = new ArrayList<>();
+            
+            for (BehaviorType type : behaviorTypes) {
+                labels.add(type.getTypeName());
+                
+                // 获取该类型的行为记录数量
+                int count = behaviorService.getBehaviorCountByTypeAndDate(type.getTypeId(), startDate, endDate);
+                data.add(count);
+            }
             
             Map<String, Object> distributionData = new HashMap<>();
-            distributionData.put("labels", behaviorTypes.stream().map(BehaviorType::getTypeName).toArray());
-            
-            // 示例数据，实际应从数据库统计得出
-            int[] exampleData = {45, 25, 20, 10};
-            distributionData.put("data", exampleData);
+            distributionData.put("labels", labels);
+            distributionData.put("data", data);
             
             return ResponseDTO.success("获取成功", distributionData);
         } catch (Exception e) {
@@ -287,12 +338,7 @@ public class AdminController {
     public ResponseDTO getRecentBehaviors(@RequestParam(required = false, defaultValue = "10") Integer limit) {
         try {
             // 获取最新的行为记录
-            List<Behavior> recentBehaviors = behaviorService.getBehaviorRecordsByUser(null); // 这里需要修改实现
-            
-            // 限制返回数量
-            if (recentBehaviors.size() > limit) {
-                recentBehaviors = recentBehaviors.subList(0, limit);
-            }
+            List<Behavior> recentBehaviors = behaviorService.getRecentBehaviors(limit);
             
             return ResponseDTO.success("获取成功", recentBehaviors);
         } catch (Exception e) {
@@ -300,6 +346,77 @@ public class AdminController {
         }
     }
 
+    /**
+     * 获取所有行为记录（供管理员使用）
+     */
+    @GetMapping("/behaviors")
+    public ResponseDTO getAllBehaviorRecords(
+            @RequestParam(required = false) Integer userId,
+            @RequestParam(required = false) Integer typeId,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+        try {
+            List<Behavior> records;
+            
+            // 如果提供了用户ID，则按用户筛选
+            if (userId != null) {
+                // 如果提供了日期范围，则按日期范围筛选
+                if (startDate != null && endDate != null) {
+                    records = behaviorService.getBehaviorRecordsByUserAndDate(userId, startDate, endDate);
+                } else {
+                    records = behaviorService.getBehaviorRecordsByUser(userId);
+                }
+                
+                // 如果指定了类型ID，则进行过滤
+                if (typeId != null) {
+                    records = records.stream()
+                            .filter(record -> typeId.equals(record.getTypeId()))
+                            .collect(Collectors.toList());
+                }
+            } 
+            // 如果没有提供用户ID但提供了其他筛选条件
+            else {
+                // 获取所有行为记录
+                records = behaviorService.getAllBehaviors();
+                
+                // 应用类型筛选
+                if (typeId != null) {
+                    records = records.stream()
+                            .filter(record -> typeId.equals(record.getTypeId()))
+                            .collect(Collectors.toList());
+                }
+                
+                // 应用日期范围筛选
+                if (startDate != null && endDate != null) {
+                    records = records.stream()
+                            .filter(record -> {
+                                LocalDate recordDate = record.getRecordDate();
+                                return recordDate != null && 
+                                       !recordDate.isBefore(startDate) && 
+                                       !recordDate.isAfter(endDate);
+                            })
+                            .collect(Collectors.toList());
+                }
+            }
+            
+            return ResponseDTO.success("获取成功", records);
+        } catch (Exception e) {
+            return ResponseDTO.error("获取行为记录失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 删除行为记录
+     */
+    @DeleteMapping("/behaviors/{recordId}")
+    public ResponseDTO deleteBehaviorRecord(@PathVariable Long recordId) {
+        try {
+            return behaviorService.deleteBehaviorRecord(recordId);
+        } catch (Exception e) {
+            return ResponseDTO.error("删除行为记录失败: " + e.getMessage());
+        }
+    }
+    
     /**
      * 获取所有行为类型
      */
@@ -350,16 +467,66 @@ public class AdminController {
      * 获取所有徽章
      */
     @GetMapping("/badges")
-    public ResponseDTO getAllBadges() {
-        List<Badge> badges = badgeService.getAllBadges();
-        return ResponseDTO.success("获取成功", badges);
+    public ResponseDTO getAllBadges(
+            @RequestParam(required = false) String badgeName,
+            @RequestParam(required = false) String badgeType) {
+        try {
+            List<Badge> badges;
+            
+            // 如果提供了筛选条件，则进行筛选
+            if (badgeName != null || badgeType != null) {
+                // 更复杂的筛选逻辑
+                badges = badgeService.getAllBadges().stream()
+                    .filter(badge -> {
+                        boolean nameMatch = badgeName == null || 
+                            (badge.getBadgeName() != null && badge.getBadgeName().contains(badgeName));
+                        boolean typeMatch = badgeType == null || 
+                            (badge.getBadgeType() != null && badge.getBadgeType().equals(badgeType));
+                        return nameMatch && typeMatch;
+                    })
+                    .collect(Collectors.toList());
+            } else {
+                badges = badgeService.getAllBadges();
+            }
+            
+            // 转换为BadgeDTO以便包含额外的字段
+            List<BadgeDTO> badgeDTOs = badges.stream().map(badge -> {
+                BadgeDTO dto = new BadgeDTO();
+                dto.setBadgeId(badge.getBadgeId());
+                dto.setBadgeName(badge.getBadgeName());
+                dto.setDescription(badge.getDescription());
+                dto.setIconUrl(badge.getIconUrl());
+                dto.setConditionType(badge.getConditionType());
+                dto.setConditionValue(badge.getConditionValue());
+                dto.setLevel(badge.getLevel());
+                dto.setRewardPoints(badge.getRewardPoints());
+                dto.setStatus(badge.getStatus());
+                dto.setBadgeType(badge.getBadgeType()); // 添加徽章类型
+
+                return dto;
+            }).collect(Collectors.toList());
+            
+            return ResponseDTO.success("获取成功", badgeDTOs);
+        } catch (Exception e) {
+            return ResponseDTO.error("获取徽章列表失败: " + e.getMessage());
+        }
     }
 
     /**
      * 添加徽章
      */
     @PostMapping("/badges")
-    public ResponseDTO addBadge(@RequestBody Badge badge) {
+    public ResponseDTO addBadge(@RequestBody BadgeDTO badgeDTO) {
+        Badge badge = new Badge();
+        badge.setBadgeName(badgeDTO.getBadgeName());
+        badge.setDescription(badgeDTO.getDescription());
+        badge.setIconUrl(badgeDTO.getIconUrl());
+        badge.setConditionType(badgeDTO.getConditionType());
+        badge.setConditionValue(badgeDTO.getConditionValue());
+        badge.setLevel(badgeDTO.getLevel());
+        badge.setRewardPoints(badgeDTO.getRewardPoints());
+        badge.setStatus(badgeDTO.getStatus());
+        badge.setBadgeType(badgeDTO.getBadgeType());
         return badgeService.addBadge(badge);
     }
 
@@ -367,7 +534,19 @@ public class AdminController {
      * 更新徽章
      */
     @PutMapping("/badges")
-    public ResponseDTO updateBadge(@RequestBody Badge badge) {
+    public ResponseDTO updateBadge(@RequestBody BadgeDTO badgeDTO) {
+        Badge badge = new Badge();
+        badge.setBadgeId(badgeDTO.getBadgeId());
+        badge.setBadgeName(badgeDTO.getBadgeName());
+        badge.setDescription(badgeDTO.getDescription());
+        badge.setIconUrl(badgeDTO.getIconUrl());
+        badge.setConditionType(badgeDTO.getConditionType());
+        badge.setConditionValue(badgeDTO.getConditionValue());
+        badge.setLevel(badgeDTO.getLevel());
+        badge.setRewardPoints(badgeDTO.getRewardPoints());
+        badge.setStatus(badgeDTO.getStatus());
+        badge.setBadgeType(badgeDTO.getBadgeType());
+
         return badgeService.updateBadge(badge);
     }
 
@@ -410,8 +589,8 @@ public class AdminController {
      */
     @GetMapping("/users/{userId}/activity-stats")
     public ResponseDTO getUserActivityStats(@PathVariable Integer userId,
-                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
-                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+                                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                           @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
         Map<String, Object> stats = userService.getUserActivityStats(userId, startDate, endDate);
         return ResponseDTO.success("获取成功", stats);
     }
@@ -426,6 +605,22 @@ public class AdminController {
     }
     
     /**
+     * 根据条件筛选用户
+     */
+    @GetMapping("/users/search")
+    public ResponseDTO searchUsers(
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) Integer status) {
+        try {
+            List<User> users = userService.searchUsers(username, email, status);
+            return ResponseDTO.success("获取成功", users);
+        } catch (Exception e) {
+            return ResponseDTO.error("获取用户列表失败: " + e.getMessage());
+        }
+    }
+    
+    /**
      * 获取用户详情
      */
     @GetMapping("/users/{userId}")
@@ -435,6 +630,44 @@ public class AdminController {
             return ResponseDTO.success("获取成功", user);
         } else {
             return ResponseDTO.error("用户不存在");
+        }
+    }
+    
+    /**
+     * 更新用户信息
+     */
+    @PutMapping("/users/{userId}")
+    public ResponseDTO updateUser(@PathVariable Integer userId, @RequestBody User user) {
+        try {
+            user.setUserId(userId);
+            return userService.updateUserInfo(user);
+        } catch (Exception e) {
+            return ResponseDTO.error("更新用户信息失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 更新用户状态
+     */
+    @PutMapping("/users/{userId}/status")
+    public ResponseDTO updateUserStatus(@PathVariable Integer userId, @RequestBody Map<String, Integer> payload) {
+        try {
+            Integer status = payload.get("status");
+            return userService.updateUserStatus(userId, status);
+        } catch (Exception e) {
+            return ResponseDTO.error("更新用户状态失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 删除用户
+     */
+    @DeleteMapping("/users/{userId}")
+    public ResponseDTO deleteUser(@PathVariable Integer userId) {
+        try {
+            return userService.deleteUser(userId);
+        } catch (Exception e) {
+            return ResponseDTO.error("删除用户失败: " + e.getMessage());
         }
     }
 }

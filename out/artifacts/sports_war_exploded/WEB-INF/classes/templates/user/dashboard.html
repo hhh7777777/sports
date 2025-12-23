@@ -3,153 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人中心 - 运动健康管理系统</title>
+    <title>健康仪表板 - 运动健康管理系统</title>
     <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
     <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
-    <script src="/libs/chartjs/chart.min.js"></script>
-    <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4cc9f0;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4ade80;
-            --warning-color: #facc15;
-            --danger-color: #f87171;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f5f7fb;
-        }
-        
-        .sidebar {
-            background: linear-gradient(180deg, #2c3e50, #1a2530);
-            min-height: calc(100vh - 56px);
-            box-shadow: 3px 0 10px rgba(0,0,0,0.1);
-        }
-        
-        .sidebar .nav-link {
-            color: #b8c7ce;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0;
-            border-left: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-        
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            color: #fff;
-            background: rgba(255,255,255,0.1);
-            border-left: 3px solid var(--primary-color);
-        }
-        
-        .sidebar .nav-link i {
-            margin-right: 10px;
-            width: 20px;
-            text-align: center;
-        }
-        
-        .navbar {
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .stat-card {
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border: none;
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-        }
-        
-        .border-left-primary { border-left: 4px solid var(--primary-color) !important; }
-        .border-left-success { border-left: 4px solid var(--success-color) !important; }
-        .border-left-info { border-left: 4px solid var(--accent-color) !important; }
-        .border-left-warning { border-left: 4px solid var(--warning-color) !important; }
-        
-        .card {
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border: none;
-        }
-        
-        .card-header {
-            background: white;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            font-weight: 600;
-            padding: 1rem 1.5rem;
-        }
-        
-        .table th {
-            font-weight: 600;
-            color: #495057;
-        }
-        
-        .table-hover tbody tr:hover {
-            background-color: rgba(67, 97, 238, 0.05);
-        }
-        
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 8px;
-        }
-        
-        .activity-badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-        
-        .running { background-color: rgba(40, 167, 69, 0.1); color: #28a745; }
-        .swimming { background-color: rgba(23, 162, 184, 0.1); color: #17a2b8; }
-        .cycling { background-color: rgba(255, 193, 7, 0.1); color: #ffc107; }
-        .yoga { background-color: rgba(111, 66, 193, 0.1); color: #6f42c1; }
-        
-        .progress {
-            border-radius: 10px;
-            height: 10px;
-        }
-        
-        .progress-bar {
-            border-radius: 10px;
-        }
-        
-        .dropdown-toggle::after {
-            vertical-align: middle;
-        }
-        
-        .user-dropdown img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 8px;
-        }
-    </style>
+    <link href="/css/main.css" rel="stylesheet">
 </head>
 <body>
 <!-- 导航栏 -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark common-navbar">
     <div class="container-fluid">
         <a class="navbar-brand" href="/dashboard">
             <i class="fas fa-running me-2"></i>运动健康
@@ -162,12 +23,12 @@
                 <span class="navbar-text me-3">
                     欢迎，<span id="userName">用户</span>
                 </span>
-                <div class="dropdown">
-                    <a class="nav-link dropdown-toggle user-dropdown" href="#" role="button" data-bs-toggle="dropdown">
-                        <img src="/images/avatar/avatar.png" alt="用户头像" class="user-avatar">
-                        <span class="d-none d-md-inline">用户</span>
+                <div class="dropdown user-dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle"></i>
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/"><i class="fas fa-home me-2"></i>返回首页</a></li>
                         <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>个人资料</a></li>
                         <li><a class="dropdown-item" href="/achievements"><i class="fas fa-trophy me-2"></i>我的成就</a></li>
                         <li><hr class="dropdown-divider"></li>
@@ -209,166 +70,184 @@
             </div>
         </nav>
 
-        <!-- 主内容区 -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <!-- 页面标题 -->
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-                <h1 class="h2 fw-bold text-dark">仪表板</h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-download me-1"></i>导出报告
-                        </button>
-                    </div>
-                </div>
+<!-- 主内容区 -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">健康仪表板</h1>
             </div>
-
-            <!-- 欢迎信息 -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="alert alert-primary">
-                        <h4 class="alert-heading">欢迎回来，<span id="welcomeUser">用户</span>!</h4>
-                        <p>今天也要坚持运动哦！</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 统计卡片 -->
-            <div class="row">
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-primary stat-card h-100">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        本周运动时长
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><span id="weeklyDuration">0</span> 分钟</div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="stat-icon bg-primary">
-                                        <i class="fas fa-clock"></i>
-                                    </div>
-                                </div>
+    
+    <!-- 统计卡片 -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2 stat-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                本周运动(分钟)
                             </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="weeklyDuration">0</div>
                         </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-success stat-card h-100">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        本周运动次数
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><span id="weeklyCount">0</span> 次</div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="stat-icon bg-success">
-                                        <i class="fas fa-running"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-info stat-card h-100">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                        本月运动时长
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><span id="monthlyDuration">0</span> 分钟</div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="stat-icon bg-info">
-                                        <i class="fas fa-chart-line"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="card border-left-warning stat-card h-100">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        成就徽章
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><span id="badgeCount">0</span> 个</div>
-                                </div>
-                                <div class="col-auto">
-                                    <div class="stat-icon bg-warning">
-                                        <i class="fas fa-trophy"></i>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- 图表区域 -->
-            <div class="row">
-                <div class="col-lg-8 mb-4">
-                    <div class="card shadow">
-                        <div class="card-header">
-                            <h6 class="m-0 font-weight-bold text-primary">本周运动统计</h6>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="weeklyChart" height="100"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 mb-4">
-                    <div class="card shadow">
-                        <div class="card-header">
-                            <h6 class="m-0 font-weight-bold text-primary">运动类型分布</h6>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="typeChart" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 最近活动 -->
-            <div class="row">
-                <div class="col-12">
-                    <div class="card shadow">
-                        <div class="card-header">
-                            <h6 class="m-0 font-weight-bold text-primary">最近运动记录</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-borderless table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>日期</th>
-                                            <th>运动类型</th>
-                                            <th>时长(分钟)</th>
-                                            <th>内容</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- 动态内容将在这里加载 -->
-                                    </tbody>
-                                </table>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2 stat-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                本周运动次数
                             </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="weeklyCount">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-running fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2 stat-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                本月运动(分钟)
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="monthlyDuration">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2 stat-card">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                获得徽章
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="badgeCount">0</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-trophy fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    
+    <!-- 图表区域 -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">本周运动统计</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="weeklyChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">运动类型分布</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="typeChart" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 最近活动 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-primary">最近活动</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="recentActivities">
+                            <thead>
+                                <tr>
+                                    <th>日期</th>
+                                    <th>类型</th>
+                                    <th>时长(分钟)</th>
+                                    <th>备注</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 活动记录将通过JavaScript动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</div>
 </div>
 
+<script src="/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
 <script src="/js/dashboard.js"></script>
+<script>
+    // 页面加载完成后初始化
+    $(document).ready(function() {
+        loadDashboardData();
+        
+        // 检查用户登录状态
+        checkLoginStatus();
+    });
+    
+    // 检查登录状态
+    function checkLoginStatus() {
+        $.ajax({
+            url: '/api/user/check-session',
+            method: 'GET',
+            success: function(response) {
+                if (response.code === 200) {
+                    $('#userName').text(response.data.username || '用户');
+                } else {
+                    window.location.href = '/login';
+                }
+            },
+            error: function() {
+                window.location.href = '/login';
+            }
+        });
+    }
+    
+    // 退出登录
+    $('#logoutBtn').click(function(e) {
+        e.preventDefault();
+        if (confirm('确定要退出登录吗？')) {
+            $.post('/api/user/logout', function(response) {
+                if (response.code === 200) {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.href = '/login';
+                } else {
+                    alert('退出登录失败：' + response.message);
+                }
+            });
+        }
+    });
+</script>
 </body>
 </html>

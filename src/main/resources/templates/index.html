@@ -1,403 +1,353 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>运动健康管理系统</title>
-    <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
-    <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --primary-color: #4af7f1;
-            --secondary-color: #4af7f1;
-            --accent-color: #4cc9f0;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4ade80;
-            --warning-color: #facc15;
-            --danger-color: #f87171;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f0f2f5;
-        }
-        
-        .hero-section {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            padding: 120px 0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .hero-section::before {
-            content: "";
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
-            transform: rotate(30deg);
-        }
-        
-        .hero-content {
-            position: relative;
-            z-index: 2;
-        }
-        
-        .feature-card {
-            transition: all 0.3s ease;
-            border: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            border-radius: 12px;
-            height: 100%;
-            background: white;
-        }
-        
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-        }
-        
-        .feature-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 28px;
-            color: white;
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-        }
-        
-        .nav-brand {
-            font-weight: 700;
-            font-size: 1.8rem;
-        }
-        
-        .navbar {
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .btn-custom {
-            border-radius: 30px;
-            padding: 10px 25px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary-custom {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-        }
-        
-        .btn-primary-custom:hover {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
-        }
-        
-        .btn-outline-custom {
-            border: 2px solid white;
-            color: white;
-            background: transparent;
-        }
-        
-        .btn-outline-custom:hover {
-            background: white;
-            color: var(--primary-color);
-        }
-        
-        .section-title {
-            position: relative;
-            padding-bottom: 15px;
-            margin-bottom: 40px;
-        }
-        
-        .section-title::after {
-            content: "";
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-            border-radius: 2px;
-        }
-        
-        .stats-card {
-            text-align: center;
-            padding: 30px 20px;
-            border-radius: 12px;
-            background: white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
-        }
-        
-        .stats-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        
-        .stats-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 24px;
-            color: white;
-        }
-        
-        .footer {
-            background: var(--dark-color);
-            color: white;
-            padding: 50px 0 20px;
-        }
-        
-        .footer-link {
-            color: #adb5bd;
-            text-decoration: none;
-            transition: color 0.3s ease;
-        }
-        
-        .footer-link:hover {
-            color: white;
-        }
-        
-        .social-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.1);
-            color: white;
-            margin-right: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .social-icon:hover {
-            background: var(--primary-color);
-            transform: translateY(-3px);
-        }
-    </style>
+    <title>健康星球 - 你的运动成就世界</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/css/main.css" rel="stylesheet">
+    <link href="/css/christmas.css" rel="stylesheet">
 </head>
-<body>
-<!-- 导航栏 -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-        <a class="navbar-brand nav-brand" href="/">
-            <i class="fas fa-running me-2"></i>运动记录徽章系统
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="/login">登录</a>
-                <a class="nav-link" href="/register">注册</a>
-                <a class="nav-link" href="/admin/login">管理员入口</a>
+<body class="christmas-theme">
+    <!-- 顶部用户状态栏 -->
+    <div class="user-navbar d-none" id="userNavbar">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="user-info d-flex align-items-center">
+                    <img src="/images/avatar/avatar.png" alt="用户头像" class="user-avatar" id="userAvatar">
+                    <span class="text-white" id="userName">用户</span>
+                </div>
+                <div>
+                    <a href="/" class="btn btn-sm btn-outline-light me-2">
+                        <i class="fas fa-home me-1"></i>首页
+                    </a>
+                    <a href="/dashboard" class="btn btn-sm btn-outline-light me-2">
+                        <i class="fas fa-chart-line me-1"></i>我的仪表板
+                    </a>
+                    <a href="/profile" class="btn btn-sm btn-outline-light me-2">
+                        <i class="fas fa-user me-1"></i>个人资料
+                    </a>
+                    <a href="/achievements" class="btn btn-sm btn-outline-light me-2">
+                        <i class="fas fa-trophy me-1"></i>我的成就
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt me-1"></i>退出
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</nav>
-
-<!-- 主内容区 -->
-<main>
-    <!-- 英雄区域 -->
-    <section class="hero-section">
-        <div class="container hero-content">
+    
+    <!-- 主题切换器 -->
+    <div class="theme-switcher">
+        <button class="theme-toggle-btn" id="themeToggle">
+            <i class="fas fa-snowflake"></i>
+            <span class="theme-badge" id="themeBadge">圣诞</span>
+        </button>
+    </div>
+    
+    <!-- 圣诞活动横幅 -->
+    <div class="christmas-event-banner d-none" id="christmasEventBanner" onclick="window.location.href='/christmas-event'">
+        <i class="fas fa-gift me-2"></i>圣诞活动进行中，点击查看活动详情！
+    </div>
+    
+    <!-- 雪花容器 -->
+    <div id="snowflakes"></div>
+    
+    <!-- 首页主体 -->
+    <section class="hero-section bg-dark text-white py-5">
+        <div class="container">
             <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <h1 class="display-3 fw-bold mb-3">健康星球</h1>
+                    <p class="lead mb-4">记录每一次运动，积累健康足迹，解锁独特徽章，与好友一起打造健康生活！</p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="/login" class="btn btn-light btn-lg" id="loginBtn">
+                            <i class="fas fa-sign-in-alt me-2"></i>用户登录
+                        </a>
+                        <a href="/register" class="btn btn-outline-light btn-lg" id="registerBtn">
+                            <i class="fas fa-user-plus me-2"></i>注册账号
+                        </a>
+                        <a href="/admin/login" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-lock me-2"></i>管理员
+                        </a>
+                    </div>
+                </div>
                 <div class="col-lg-6">
-                    <h1 class="display-4 fw-bold mb-4">开启健康生活之旅</h1>
-                    <p class="lead mb-4">记录运动行为，获取成就徽章，保持健康生活方式。加入我们，一起变得更健康！</p>
-                    <div class="cta-buttons">
-                        <a href="/register" class="btn btn-custom btn-primary-custom me-3 mb-3">立即开始</a>
-                        <a href="/login" class="btn btn-custom btn-outline-custom mb-3">登录账户</a>
-                    </div>
-                </div>
-                <div class="col-lg-6 d-none d-lg-block text-center">
-                    <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80" 
-                         alt="运动" class="img-fluid rounded-circle" style="max-width: 80%; border: 5px solid rgba(255,255,255,0.2);">
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- 统计数据 -->
-    <section class="py-5 bg-white">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="stats-card">
-                        <div class="stats-icon" style="background: linear-gradient(135deg, #4361ee, #3a0ca3);">
-                            <i class="fas fa-users"></i>
+                    <!-- 标签页 -->
+                    <div class="hero-tabs bg-dark p-2 rounded mb-3" style="background: rgba(0, 0, 0, 0.3);">
+                        <div class="d-flex flex-wrap">
+                            <button class="hero-tab active" data-tab="achievements">成就系统</button>
+                            <button class="hero-tab" data-tab="christmas">圣诞活动</button>
+                            <button class="hero-tab" data-tab="stats">数据统计</button>
                         </div>
-                        <h3 class="mb-0">10,000+</h3>
-                        <p class="text-muted mb-0">活跃用户</p>
                     </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="stats-card">
-                        <div class="stats-icon" style="background: linear-gradient(135deg, #4cc9f0, #4895ef);">
-                            <i class="fas fa-running"></i>
+                    
+                    <div class="mt-4">
+                        <!-- 成就系统标签内容 -->
+                        <div class="hero-tab-content active" id="achievements-tab">
+                            <div class="bg-dark p-4 rounded" style="background: rgba(0, 0, 0, 0.5);">
+                                <h3><i class="fas fa-trophy me-2"></i>成就系统</h3>
+                                <p class="mb-3">完成挑战解锁丰富徽章，展示你的运动成果</p>
+                                <a href="/achievements" class="btn btn-warning">查看徽章</a>
+                            </div>
                         </div>
-                        <h3 class="mb-0">100,000+</h3>
-                        <p class="text-muted mb-0">运动记录</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="stats-card">
-                        <div class="stats-icon" style="background: linear-gradient(135deg, #f72585, #b5179e);">
-                            <i class="fas fa-trophy"></i>
+                        
+                        <!-- 圣诞活动标签内容 -->
+                        <div class="hero-tab-content" id="christmas-tab">
+                            <div class="bg-dark p-4 rounded" style="background: rgba(0, 0, 0, 0.5);">
+                                <h3><i class="fas fa-gift me-2"></i>圣诞特别活动</h3>
+                                <p class="mb-3">参与圣诞活动，赢取限量版徽章和丰厚奖励</p>
+                                <a href="/christmas-event" class="btn btn-warning">立即参与</a>
+                            </div>
                         </div>
-                        <h3 class="mb-0">50+</h3>
-                        <p class="text-muted mb-0">成就徽章</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="stats-card">
-                        <div class="stats-icon" style="background: linear-gradient(135deg, #ff9e00, #ff5400);">
-                            <i class="fas fa-calendar-check"></i>
+                        
+                        <!-- 数据统计标签内容 -->
+                        <div class="hero-tab-content" id="stats-tab">
+                            <div class="bg-dark p-4 rounded" style="background: rgba(0, 0, 0, 0.5);">
+                                <h3><i class="fas fa-chart-line me-2"></i>数据统计</h3>
+                                <p class="mb-3">可视化展示运动数据，追踪进步轨迹</p>
+                                <a href="/dashboard" class="btn btn-warning">查看详情</a>
+                            </div>
                         </div>
-                        <h3 class="mb-0">95%</h3>
-                        <p class="text-muted mb-0">用户满意度</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-
-    <!-- 功能特性 -->
-    <section class="py-5">
+    
+    <!-- 徽章库区域 -->
+    <section id="badgeLibrary" class="py-5 bg-light">
         <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-12">
-                    <h2 class="section-title">核心功能</h2>
-                    <p class="text-muted">全面记录您的运动健康数据</p>
+            <h3 class="text-center mb-4">🌟 我的徽章库</h3>
+            <div class="badge-collection p-4 rounded" style="background: rgba(255, 255, 255, 0.1);">
+                <div class="row" id="badgeCollection">
+                    <!-- 徽章将通过JavaScript动态加载 -->
                 </div>
             </div>
+        </div>
+    </section>
+    
+    <!-- 功能区域 -->
+    <section class="feature-section bg-dark py-5">
+        <div class="container">
+            <h3 class="text-center mb-5 text-white">🚀 快速开始</h3>
             <div class="row g-4">
                 <div class="col-md-4">
-                    <div class="card feature-card h-100">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon">
-                                <i class="fas fa-heartbeat"></i>
-                            </div>
-                            <h5 class="card-title">运动记录</h5>
-                            <p class="card-text">详细记录每次运动的时间、类型和强度，生成可视化图表分析您的运动习惯。</p>
+                    <div class="feature-card text-center p-4 rounded" style="background: rgba(0, 0, 0, 0.2); border: 2px solid transparent; transition: all 0.3s ease; height: 100%;">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-running fa-3x text-success"></i>
                         </div>
+                        <h4 class="text-white">记录运动</h4>
+                        <p class="text-muted">记录每一次运动，积累健康足迹</p>
+                        <a href="/behavior" class="btn btn-outline-success mt-3">
+                            <i class="fas fa-plus me-2"></i>开始记录
+                        </a>
                     </div>
                 </div>
+                
                 <div class="col-md-4">
-                    <div class="card feature-card h-100">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon">
-                                <i class="fas fa-trophy"></i>
-                            </div>
-                            <h5 class="card-title">成就系统</h5>
-                            <p class="card-text">解锁各种成就徽章，激励持续运动，与朋友分享您的运动成果。</p>
+                    <div class="feature-card text-center p-4 rounded" style="background: rgba(0, 0, 0, 0.2); border: 2px solid transparent; transition: all 0.3s ease; height: 100%;">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-trophy fa-3x text-warning"></i>
                         </div>
+                        <h4 class="text-white">挑战任务</h4>
+                        <p class="text-muted">完成特别挑战，解锁稀有徽章</p>
+                        <a href="/christmas-event" class="btn btn-outline-warning mt-3">
+                            <i class="fas fa-flag me-2"></i>查看挑战
+                        </a>
                     </div>
                 </div>
+                
                 <div class="col-md-4">
-                    <div class="card feature-card h-100">
-                        <div class="card-body text-center p-4">
-                            <div class="feature-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <h5 class="card-title">数据统计</h5>
-                            <p class="card-text">可视化分析运动数据，了解进步情况，设定个性化目标并追踪达成进度。</p>
+                    <div class="feature-card text-center p-4 rounded" style="background: rgba(0, 0, 0, 0.2); border: 2px solid transparent; transition: all 0.3s ease; height: 100%;">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-users fa-3x text-info"></i>
                         </div>
+                        <h4 class="text-white">社区动态</h4>
+                        <p class="text-muted">看看朋友们的成就和进度</p>
+                        <!-- "加入社区"按钮应链接到登录页面 -->
+                        <a href="/login" class="btn btn-outline-info mt-3">
+                            <i class="fas fa-share-alt me-2"></i>加入社区
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-
-    <!-- 应用截图 -->
-    <section class="py-5 bg-light">
+    
+    <!-- 页脚 -->
+    <footer class="footer text-center py-5" style="background: rgba(0, 0, 0, 0.3);">
         <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-12">
-                    <h2 class="section-title">应用预览</h2>
-                    <p class="text-muted">直观易用的操作界面</p>
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="text-white"><i class="fas fa-tree me-2 text-success"></i>健康星球</h5>
+                    <p class="text-muted">让运动变得有趣，让健康成为习惯</p>
                 </div>
-            </div>
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="card border-0 shadow">
-                        <div class="card-body p-0">
-                            <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80" 
-                                 alt="应用界面" class="img-fluid rounded" style="width: 100%; height: auto;">
-                        </div>
+                <div class="col-lg-4 mb-4">
+                    <h5 class="text-white">快速链接</h5>
+                    <div class="d-flex justify-content-center flex-wrap">
+                        <a href="#badgeLibrary" class="text-decoration-none text-muted me-3">徽章库</a>
+                        <a href="/dashboard" class="text-decoration-none text-muted me-3">数据统计</a>
+                        <a href="/achievements" class="text-decoration-none text-muted">成就系统</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5 class="text-white">联系我们</h5>
+                    <div class="social-links d-flex justify-content-center">
+                        <a href="#" class="text-warning me-3"><i class="fab fa-weixin fa-2x"></i></a>
+                        <a href="#" class="text-warning me-3"><i class="fab fa-weibo fa-2x"></i></a>
+                        <a href="#" class="text-warning"><i class="fas fa-envelope fa-2x"></i></a>
                     </div>
                 </div>
             </div>
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+            <p class="text-muted">&copy; 2025 健康星球. 保留所有权利.</p>
         </div>
-    </section>
-</main>
-
-<!-- 页脚 -->
-<footer class="footer bg-dark text-light">
-    <div class="container py-5">
-        <div class="row">
-            <div class="col-lg-4 col-md-6 mb-4 mb-md-0">
-                <h5 class="text-uppercase mb-4">关于我们</h5>
-                <p>运动记录徽章系统是一个全面的健康管理平台，帮助您追踪运动数据、获得成就徽章，并与朋友分享您的健身成果。</p>
-            </div>
-            <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
-                <h5 class="text-uppercase mb-4">产品</h5>
-                <ul class="list-unstyled">
-                    <li class="mb-2"><a href="#" class="footer-link">功能特性</a></li>
-                    <li class="mb-2"><a href="#" class="footer-link">价格</a></li>
-                    <li class="mb-2"><a href="#" class="footer-link">下载</a></li>
-                    <li class="mb-2"><a href="#" class="footer-link">更新日志</a></li>
-                </ul>
-            </div>
-            <div class="col-lg-2 col-md-6 mb-4 mb-md-0">
-                <h5 class="text-uppercase mb-4">支持</h5>
-                <ul class="list-unstyled">
-                    <li class="mb-2"><a href="#" class="footer-link">帮助中心</a></li>
-                    <li class="mb-2"><a href="#" class="footer-link">联系我们</a></li>
-                    <li class="mb-2"><a href="#" class="footer-link">社区</a></li>
-                    <li class="mb-2"><a href="#" class="footer-link">反馈</a></li>
-                </ul>
-            </div>
-            <div class="col-lg-4 col-md-6 mb-4 mb-md-0">
-                <h5 class="text-uppercase mb-4">订阅资讯</h5>
-                <p>订阅我们的 newsletter，获取最新的产品资讯和健康建议。</p>
-                <div class="input-group mb-3">
-                    <input type="email" class="form-control" placeholder="您的邮箱">
-                    <button class="btn btn-primary" type="button">订阅</button>
-                </div>
-            </div>
-        </div>
-        <hr class="my-4" style="background-color: rgba(255,255,255,0.1);">
-        <div class="row align-items-center">
-            <div class="col-md-6 text-center text-md-start">
-                <p class="mb-0">&copy; 2025 运动记录徽章系统. 保留所有权利。</p>
-            </div>
-            <div class="col-md-6 text-center text-md-end">
-                <ul class="list-inline mb-0">
-                    <li class="list-inline-item"><a href="#" class="footer-link">隐私政策</a></li>
-                    <li class="list-inline-item"><a href="#" class="footer-link">服务条款</a></li>
-                    <li class="list-inline-item"><a href="#" class="footer-link">Cookie 政策</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</footer>
-
-<script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
+    </footer>
+    
+    <!-- 返回顶部按钮 -->
+    <button class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/christmas.js"></script>
+    <script>
+        // 页面加载完成后初始化应用
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化主页应用
+            if (typeof HealthPlanetApp !== 'undefined') {
+                window.app = new HealthPlanetApp();
+            }
+            
+            // 检查并显示圣诞活动横幅
+            checkChristmasBanner();
+            
+            // 标签页切换功能
+            const tabs = document.querySelectorAll('.hero-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // 移除所有激活状态
+                    tabs.forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.hero-tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // 激活当前标签
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+                });
+            });
+            
+            // 检查用户登录状态
+            checkUserAuth();
+            
+            // 绑定返回顶部按钮事件
+            const backToTopButton = document.getElementById('backToTop');
+            if (backToTopButton) {
+                // 滚动时检查是否显示返回顶部按钮
+                window.addEventListener('scroll', function() {
+                    if (window.scrollY > 300) {
+                        backToTopButton.classList.add('visible');
+                    } else {
+                        backToTopButton.classList.remove('visible');
+                    }
+                });
+                
+                // 点击返回顶部
+                backToTopButton.addEventListener('click', function() {
+                    window.scrollTo({
+                        top: 0,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+        });
+        
+        // 检查用户认证状态
+        async function checkUserAuth() {
+            try {
+                const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+                if (!token) {
+                    return;
+                }
+                
+                const response = await fetch('/api/user/validate-token', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.code === 200) {
+                        // 显示用户状态栏
+                        const userNavbar = document.getElementById('userNavbar');
+                        const loginBtn = document.getElementById('loginBtn');
+                        const registerBtn = document.getElementById('registerBtn');
+                        
+                        if (userNavbar) userNavbar.classList.remove('d-none');
+                        if (loginBtn) loginBtn.classList.add('d-none');
+                        if (registerBtn) registerBtn.classList.add('d-none');
+                        
+                        // 设置用户信息
+                        if (result.data && result.data.username) {
+                            // 显示用户昵称或用户名
+                            document.getElementById('userName').textContent = result.data.nickname || result.data.username;
+                            
+                            // 更新用户头像
+                            const userAvatarElements = document.querySelectorAll('.user-avatar');
+                            if (result.data.avatar) {
+                                userAvatarElements.forEach(el => {
+                                    el.src = result.data.avatar;
+                                });
+                            } else {
+                                userAvatarElements.forEach(el => {
+                                    el.src = '/images/avatar/avatar.png';
+                                });
+                            }
+                        }
+                        
+                        // 绑定退出按钮事件
+                        const logoutBtn = document.getElementById('logoutBtn');
+                        if (logoutBtn) {
+                            logoutBtn.addEventListener('click', function() {
+                                logout();
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('检查用户认证状态时出错:', error);
+            }
+        }
+        
+        // 用户退出
+        async function logout() {
+            try {
+                const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+                if (token) {
+                    await fetch('/api/user/logout', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('退出时出错:', error);
+            } finally {
+                // 清除本地存储的令牌
+                localStorage.removeItem('accessToken');
+                sessionStorage.removeItem('accessToken');
+                // 刷新页面
+                window.location.reload();
+            }
+        }
+    </script>
 </body>
 </html>

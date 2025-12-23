@@ -5,7 +5,7 @@ class AuthManager {
     }
 
     async checkAuth() {
-        this.token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        this.token = CommonUtils.storage.get('accessToken');
 
         if (!this.token) {
             return false;
@@ -25,12 +25,15 @@ class AuthManager {
                     return true;
                 }
             }
+            // 如果响应不成功或者返回码不是200，清除认证信息
+            this.clearAuth();
+            return false;
         } catch (error) {
             console.error('Auth validation error:', error);
+            // 出现错误时清除认证信息
+            this.clearAuth();
+            return false;
         }
-
-        this.clearAuth();
-        return false;
     }
 
     async login(credentials) {
@@ -50,18 +53,18 @@ class AuthManager {
                 this.currentUser = result.data.user;
 
                 if (credentials.rememberMe) {
-                    localStorage.setItem('accessToken', this.token);
+                    CommonUtils.storage.set('accessToken', this.token);
                 } else {
                     sessionStorage.setItem('accessToken', this.token);
                 }
 
-                Utils.showAlert('登录成功！', 'success');
+                CommonUtils.showAlert('登录成功！', 'success');
                 return { success: true, data: result.data };
             } else {
                 throw new Error(result.message || '登录失败');
             }
         } catch (error) {
-            Utils.showAlert(error.message, 'error');
+            CommonUtils.showAlert(error.message, 'error');
             return { success: false, error: error.message };
         }
     }
@@ -79,13 +82,13 @@ class AuthManager {
             const result = await response.json();
 
             if (response.ok && result.code === 200) {
-                Utils.showAlert('注册成功！', 'success');
+                CommonUtils.showAlert('注册成功！', 'success');
                 return { success: true };
             } else {
                 throw new Error(result.message || '注册失败');
             }
         } catch (error) {
-            Utils.showAlert(error.message, 'error');
+            CommonUtils.showAlert(error.message, 'error');
             return { success: false, error: error.message };
         }
     }
@@ -104,7 +107,7 @@ class AuthManager {
             console.error('Logout error:', error);
         } finally {
             this.clearAuth();
-            Utils.showAlert('已退出登录', 'info');
+            CommonUtils.showAlert('已退出登录', 'info');
             window.location.href = '/';
         }
     }
@@ -112,7 +115,7 @@ class AuthManager {
     clearAuth() {
         this.currentUser = null;
         this.token = null;
-        localStorage.removeItem('accessToken');
+        CommonUtils.storage.remove('accessToken');
         sessionStorage.removeItem('accessToken');
     }
 
@@ -122,4 +125,8 @@ class AuthManager {
 }
 
 // 全局认证管理器实例
-window.authManager = new AuthManager();
+try {
+    window.authManager = new AuthManager();
+} catch (error) {
+    console.error('Failed to initialize AuthManager:', error);
+}
