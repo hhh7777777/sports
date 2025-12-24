@@ -1,15 +1,18 @@
 package com.hongyuting.sports.service;
 
 import com.hongyuting.sports.entity.User;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.concurrent.TimeUnit;
 
 /**
  * Token服务类
  */
+@Slf4j
 @Service
 public class TokenService {
 
@@ -84,5 +87,74 @@ public class TokenService {
 
     private String buildUserIdKey(Integer userId) {
         return "user:id:" + userId;
+    }
+    
+    /**
+     * 存储管理员信息到Redis
+     */
+    public void storeAdminInfo(String token, Object admin) {
+        // 存储管理员信息，过期时间与token一致
+        redisTemplate.opsForValue().set(buildAdminTokenKey(token), admin, TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
+        // 存储token与管理员ID的映射
+        if (admin != null && admin instanceof com.hongyuting.sports.entity.Admin) {
+            com.hongyuting.sports.entity.Admin adminObj = (com.hongyuting.sports.entity.Admin) admin;
+            redisTemplate.opsForValue().set(buildAdminIdKey(adminObj.getId()), token, TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    /**
+     * 从Redis获取管理员信息
+     */
+    public Object getAdminInfo(String token) {
+        return redisTemplate.opsForValue().get(buildAdminTokenKey(token));
+    }
+
+    /**
+     * 删除管理员token和信息
+     */
+    public void deleteAdminToken(String token) {
+        Object admin = getAdminInfo(token);
+        if (admin != null && admin instanceof com.hongyuting.sports.entity.Admin) {
+            com.hongyuting.sports.entity.Admin adminObj = (com.hongyuting.sports.entity.Admin) admin;
+            redisTemplate.delete(buildAdminTokenKey(token));
+            redisTemplate.delete(buildAdminIdKey(adminObj.getId()));
+        }
+    }
+
+    /**
+     * 根据管理员ID删除token
+     */
+    public void deleteAdminTokenByUserId(Integer adminId) {
+        String token = (String) redisTemplate.opsForValue().get(buildAdminIdKey(adminId));
+        if (token != null) {
+            deleteAdminToken(token);
+        }
+    }
+
+    /**
+     * 刷新管理员token过期时间
+     */
+    public void refreshAdminToken(String token) {
+        Object admin = getAdminInfo(token);
+        if (admin != null && admin instanceof com.hongyuting.sports.entity.Admin) {
+            com.hongyuting.sports.entity.Admin adminObj = (com.hongyuting.sports.entity.Admin) admin;
+            redisTemplate.expire(buildAdminTokenKey(token), TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
+            redisTemplate.expire(buildAdminIdKey(adminObj.getId()), TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    /**
+     * 检查管理员token是否存在
+     */
+    public boolean existsAdminToken(String token) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey(buildAdminTokenKey(token)));
+    }
+
+    private String buildAdminTokenKey(String token) {
+        return "admin:token:" + token;
+    }
+
+    private String buildAdminIdKey(Integer adminId) {
+        return "admin:id:" + adminId;
     }
 }

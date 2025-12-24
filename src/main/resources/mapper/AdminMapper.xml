@@ -32,6 +32,11 @@
         VALUES (#{username}, #{password}, #{salt}, #{email}, #{roleLevel}, #{department}, #{status}, #{createdAt},#{lastLoginTime})
     </insert>
 
+    <insert id="insertAdmin" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO admin (username, password, salt, email, role_level, department, status, created_at, last_login_time)
+        VALUES (#{username}, #{password}, #{salt}, #{email}, #{roleLevel}, #{department}, #{status}, #{createTime}, #{lastLoginTime})
+    </insert>
+
     <update id="updateLastLoginTime">
         UPDATE admin SET last_login_time = #{lastLoginTime} WHERE id = #{id}
     </update>

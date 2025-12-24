@@ -73,7 +73,8 @@ public class BadgeController {
      */
     @GetMapping("/my-achievements")
     public ResponseDTO getMyAchievements(@RequestAttribute Integer userId) {
-        List<UserBadge> achievements = badgeService.getUserAchievements(userId);
+        List<Badge> achievements = badgeService.getUserAchievements(userId);
+        // 将Badge转换为UserBadge格式的DTO，这里我们直接返回Badge信息
         return ResponseDTO.success("获取成功", achievements);
     }
 
@@ -92,7 +93,8 @@ public class BadgeController {
     @GetMapping("/recent-achievements")
     public ResponseDTO getRecentAchievements(@RequestAttribute Integer userId,
                                                             @RequestParam(defaultValue = "5") Integer limit) {
-        List<UserBadge> achievements = badgeService.getRecentlyAchievedBadges(userId, limit);
+        List<Badge> achievements = badgeService.getRecentlyAchievedBadges(userId, limit);
+        // 将Badge转换为UserBadge格式的DTO，这里我们直接返回Badge信息
         return ResponseDTO.success("获取成功", achievements);
     }
 
@@ -209,7 +211,7 @@ public class BadgeController {
      */
     @GetMapping("/admin/user-achievements")
     public ResponseDTO getUserAchievements(@RequestParam Integer userId) {
-        List<UserBadge> achievements = badgeService.getUserAchievements(userId);
+        List<Badge> achievements = badgeService.getUserAchievements(userId);
         return ResponseDTO.success("获取成功", achievements);
     }
 

@@ -15,7 +15,7 @@ public interface AdminMapper {
 
     Admin findById(Integer id);
 
-    int insert(Admin admin);
+    int insertAdmin(Admin admin);
 
     void updateLastLoginTime(Integer id, LocalDateTime lastLoginTime);
 

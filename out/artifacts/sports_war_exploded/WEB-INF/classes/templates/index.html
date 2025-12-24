@@ -6,7 +6,7 @@
     <title>健康星球 - 你的运动成就世界</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="/css/christmas.css" rel="stylesheet">
+    <link href="/css/index.css" rel="stylesheet">
     <style>
         /* 主页特定样式 */
         .hero-section {
@@ -85,22 +85,6 @@
         .theme-badge {
             margin-left: 8px;
             font-weight: bold;
-        }
-        
-        /* 圣诞活动横幅 */
-        .christmas-event-banner {
-            background: linear-gradient(45deg, #c41e3a, #0a5c36);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            z-index: 1040;
-        }
-        
-        .christmas-event-banner:hover {
-            background: linear-gradient(45deg, #d42e4a, #1a6c46);
         }
         
         /* 登录注册区域 */
@@ -370,7 +354,7 @@
         }
     </style>
 </head>
-<body class="christmas-theme">
+<body class="normal-theme">
     <!-- 顶部用户状态栏 -->
     <div class="user-navbar d-none" id="userNavbar">
         <div class="container">
@@ -403,14 +387,9 @@
     <!-- 主题切换器 -->
     <div class="theme-switcher">
         <button class="theme-toggle-btn" id="themeToggle">
-            <i class="fas fa-snowflake"></i>
-            <span class="theme-badge" id="themeBadge">圣诞</span>
+            <i class="fas fa-sun"></i>
+            <span class="theme-badge" id="themeBadge">普通</span>
         </button>
-    </div>
-    
-    <!-- 圣诞活动横幅 -->
-    <div class="christmas-event-banner d-none" id="christmasEventBanner" onclick="window.location.href='/christmas-event'">
-        <i class="fas fa-gift me-2"></i>圣诞活动进行中，点击查看活动详情！
     </div>
     
     <!-- 雪花容器 -->
@@ -440,8 +419,8 @@
                     <div class="hero-tabs">
                         <div class="d-flex">
                             <button class="hero-tab active" data-tab="achievements">成就系统</button>
-                            <button class="hero-tab" data-tab="christmas">圣诞活动</button>
                             <button class="hero-tab" data-tab="stats">数据统计</button>
+                            <button class="hero-tab" data-tab="challenges">挑战活动</button>
                         </div>
                     </div>
                     
@@ -455,21 +434,21 @@
                             </div>
                         </div>
                         
-                        <!-- 圣诞活动标签内容 -->
-                        <div class="hero-tab-content" id="christmas-tab">
-                            <div class="bg-dark p-4 rounded" style="background: rgba(0, 0, 0, 0.5);">
-                                <h3><i class="fas fa-gift me-2"></i>圣诞特别活动</h3>
-                                <p class="mb-3">参与圣诞活动，赢取限量版徽章和丰厚奖励</p>
-                                <a href="/christmas-event" class="btn btn-warning">立即参与</a>
-                            </div>
-                        </div>
-                        
                         <!-- 数据统计标签内容 -->
                         <div class="hero-tab-content" id="stats-tab">
                             <div class="bg-dark p-4 rounded" style="background: rgba(0, 0, 0, 0.5);">
                                 <h3><i class="fas fa-chart-line me-2"></i>数据统计</h3>
                                 <p class="mb-3">可视化展示运动数据，追踪进步轨迹</p>
                                 <a href="/dashboard" class="btn btn-warning">查看详情</a>
+                            </div>
+                        </div>
+                        
+                        <!-- 挑战活动标签内容 -->
+                        <div class="hero-tab-content" id="challenges-tab">
+                            <div class="bg-dark p-4 rounded" style="background: rgba(0, 0, 0, 0.5);">
+                                <h3><i class="fas fa-flag me-2"></i>挑战活动</h3>
+                                <p class="mb-3">参与特别活动，赢取限定奖励</p>
+                                <a href="/newyear" class="btn btn-warning">立即参与</a>
                             </div>
                         </div>
                     </div>
@@ -516,7 +495,7 @@
                         </div>
                         <h4>挑战任务</h4>
                         <p class="text-muted">完成特别挑战，解锁稀有徽章</p>
-                        <a href="/christmas-event" class="btn btn-outline-warning mt-3">
+                        <a href="/newyear" class="btn btn-outline-warning mt-3">
                             <i class="fas fa-flag me-2"></i>查看挑战
                         </a>
                     </div>
@@ -576,7 +555,6 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/main.js"></script>
-    <script src="/js/christmas.js"></script>
     <script>
         // 页面加载完成后初始化应用
         document.addEventListener('DOMContentLoaded', function() {
@@ -584,9 +562,6 @@
             if (typeof HealthPlanetApp !== 'undefined') {
                 window.app = new HealthPlanetApp();
             }
-            
-            // 检查并显示圣诞活动横幅
-            checkChristmasBanner();
             
             // 标签页切换功能
             const tabs = document.querySelectorAll('.hero-tab');
@@ -626,6 +601,21 @@
                         top: 0,
                         behavior: 'smooth'
                     });
+                });
+            }
+            
+            // 主题切换功能
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', function() {
+                    document.body.classList.toggle('christmas-theme');
+                    document.body.classList.toggle('normal-theme');
+                    
+                    if (document.body.classList.contains('christmas-theme')) {
+                        this.innerHTML = '<i class="fas fa-snowflake"></i><span class="theme-badge">圣诞</span>';
+                    } else {
+                        this.innerHTML = '<i class="fas fa-sun"></i><span class="theme-badge">普通</span>';
+                    }
                 });
             }
         });

@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 /**
  * 管理员服务实现类
  */
@@ -34,6 +33,22 @@ public class AdminServiceImpl implements AdminService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final SaltUtil saltUtil;
     private final JwtUtil jwtUtil;
+    private final TokenService tokenService;
+
+    public AdminServiceImpl(AdminMapper adminMapper, RedisTemplate<String, Object> redisTemplate, 
+            SaltUtil saltUtil, JwtUtil jwtUtil, TokenService tokenService) {
+        this.adminMapper = adminMapper;
+        this.redisTemplate = redisTemplate;
+        this.saltUtil = saltUtil;
+        this.jwtUtil = jwtUtil;
+        this.tokenService = tokenService;
+    }
+
+    private final AdminMapper adminMapper;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final SaltUtil saltUtil;
+    private final JwtUtil jwtUtil;
+    private final TokenService tokenService;
 
     @Override
     public ResponseDTO login(AdminLoginDTO loginDTO, String clientIP) {
@@ -104,16 +119,8 @@ public class AdminServiceImpl implements AdminService {
             String token = jwtUtil.generateToken(admin.getId());
             String refreshToken = jwtUtil.generateRefreshToken(admin.getId());
 
-            // 7. 将Token存储到Redis，以Token为key，用户名为value
-            String tokenKey = "admin:token:" + token;
-            String refreshTokenKey = "admin:refresh_token:" + refreshToken;
-            
-            // 同时存储管理员ID到token的映射，便于后续查找和删除
-            String adminTokenKey = "admin:id:token:" + admin.getId();
-
-            redisTemplate.opsForValue().set(tokenKey, admin.getUsername(), 24, TimeUnit.HOURS); // Token 24小时
-            redisTemplate.opsForValue().set(refreshTokenKey, admin.getUsername(), 30, TimeUnit.DAYS); // 刷新Token 30天
-            redisTemplate.opsForValue().set(adminTokenKey, token, 24, TimeUnit.HOURS); // 管理员ID到token的映射
+            // 7. 将管理员信息存储到Redis
+            tokenService.storeAdminInfo(token, admin);
 
             // 8. 更新最后登录时间
             admin.setLastLoginTime(LocalDateTime.now());
@@ -159,12 +166,7 @@ public class AdminServiceImpl implements AdminService {
             }
 
             // 从Redis中删除Token
-            String tokenKey = "admin:token:" + token;
-            String adminTokenKey = "admin:id:token:" + adminId;
-            
-            // 删除token本身和管理员ID到token的映射
-            redisTemplate.delete(tokenKey);
-            redisTemplate.delete(adminTokenKey);
+            tokenService.deleteAdminToken(token);
             
             log.info("管理员退出登录成功：管理员ID={}", adminId);
             return ResponseDTO.success("退出成功");
@@ -234,11 +236,8 @@ public class AdminServiceImpl implements AdminService {
                 return false;
             }
 
-            // 验证Token是否在Redis中
-            String tokenKey = "admin:token:" + token;
-            String storedUsername = (String) redisTemplate.opsForValue().get(tokenKey);
-
-            return storedUsername != null;
+            // 验证管理员Token是否存在
+            return tokenService.existsAdminToken(token);
         } catch (Exception e) {
             log.error("验证管理员Token异常：", e);
             return false;
@@ -252,21 +251,8 @@ public class AdminServiceImpl implements AdminService {
                 return;
             }
 
-            // 验证Token是否在Redis中
-            String tokenKey = "admin:token:" + token;
-            String storedUsername = (String) redisTemplate.opsForValue().get(tokenKey);
-
-            if (storedUsername != null) {
-                // 延长Token过期时间
-                redisTemplate.expire(tokenKey, 24, TimeUnit.HOURS);
-                
-                // 同时延长管理员ID到token映射的过期时间
-                Integer adminId = jwtUtil.getUserIdFromToken(token);
-                if (adminId != null) {
-                    String adminTokenKey = "admin:id:token:" + adminId;
-                    redisTemplate.expire(adminTokenKey, 24, TimeUnit.HOURS);
-                }
-            }
+            // 刷新管理员token过期时间
+            tokenService.refreshAdminToken(token);
         } catch (Exception e) {
             log.error("刷新管理员Token异常：", e);
         }
@@ -282,61 +268,6 @@ public class AdminServiceImpl implements AdminService {
         } catch (Exception e) {
             log.error("获取管理员信息异常：管理员ID={}", adminId, e);
             return null;
-        }
-    }
-
-    @Override
-    @Transactional
-    public ResponseDTO createAdmin(Admin admin) {
-        try {
-            // 参数校验
-            if (admin == null) {
-                return ResponseDTO.error("管理员信息不能为空");
-            }
-            
-            if (!StringUtils.hasText(admin.getUsername())) {
-                return ResponseDTO.error("用户名不能为空");
-            }
-            
-            if (!StringUtils.hasText(admin.getPassword())) {
-                return ResponseDTO.error("密码不能为空");
-            }
-            
-            if (admin.getPassword().length() < 6) {
-                return ResponseDTO.error("密码长度不能少于6位");
-            }
-
-            // 检查用户名是否已存在
-            if (adminMapper.findByUsername(admin.getUsername()) != null) {
-                return ResponseDTO.error("用户名已存在");
-            }
-
-            // 生成盐值
-            String salt = saltUtil.generateSalt();
-            admin.setSalt(salt);
-
-            // 加密密码
-            String encryptedPassword = saltUtil.encryptPassword(admin.getPassword(), salt);
-            admin.setPassword(encryptedPassword);
-
-            // 设置默认状态
-            if (admin.getStatus() == null) {
-                admin.setStatus(1);
-            }
-
-            admin.setCreatedAt(LocalDateTime.now());
-
-            int result = adminMapper.insert(admin);
-            if (result > 0) {
-                log.info("管理员创建成功：管理员ID={}", admin.getId());
-                return ResponseDTO.success("管理员创建成功");
-            } else {
-                log.warn("管理员创建失败：用户名={}", admin.getUsername());
-                return ResponseDTO.error("管理员创建失败");
-            }
-        } catch (Exception e) {
-            log.error("管理员创建异常：", e);
-            return ResponseDTO.error("管理员创建异常: " + e.getMessage());
         }
     }
 
@@ -389,17 +320,7 @@ public class AdminServiceImpl implements AdminService {
             if (result > 0) {
                 // 清除Redis中的Token
                 // 删除与该管理员相关的token
-                String adminTokenKey = "admin:id:token:" + adminId;
-                String token = (String) redisTemplate.opsForValue().get(adminTokenKey);
-                
-                if (token != null) {
-                    // 删除token本身
-                    String tokenKey = "admin:token:" + token;
-                    redisTemplate.delete(tokenKey);
-                }
-                
-                // 删除管理员ID到token的映射
-                redisTemplate.delete(adminTokenKey);
+                tokenService.deleteAdminTokenByUserId(adminId);
                 
                 log.info("管理员密码修改成功：管理员ID={}", adminId);
                 return ResponseDTO.success("密码修改成功，请重新登录");
@@ -508,14 +429,75 @@ public class AdminServiceImpl implements AdminService {
         }
         
         // 从Redis中获取管理员ID到token的映射
-        String adminTokenKey = "admin:id:token:" + adminId;
-        String token = (String) redisTemplate.opsForValue().get(adminTokenKey);
+        String token = (String) redisTemplate.opsForValue().get("admin:id:" + adminId);
         
         if (token != null) {
             return List.of(token);
         }
         
         return List.of();
+    }
+
+    @Override
+    public ResponseDTO createAdmin(Admin admin) {
+        try {
+            // 参数校验
+            if (admin == null) {
+                return ResponseDTO.error("管理员信息不能为空");
+            }
+            
+            if (!StringUtils.hasText(admin.getUsername())) {
+                return ResponseDTO.error("用户名不能为空");
+            }
+            
+            if (!StringUtils.hasText(admin.getPassword())) {
+                return ResponseDTO.error("密码不能为空");
+            }
+            
+            if (admin.getPassword().length() < 6) {
+                return ResponseDTO.error("密码长度不能少于6位");
+            }
+
+            // 检查用户名是否已存在
+            Admin existingAdmin = adminMapper.findByUsername(admin.getUsername());
+            if (existingAdmin != null) {
+                return ResponseDTO.error("用户名已存在");
+            }
+
+            // 生成盐值并加密密码
+            String salt = saltUtil.generateSalt();
+            String encryptedPassword = saltUtil.encryptPassword(admin.getPassword(), salt);
+            
+            // 设置默认值
+            admin.setPassword(encryptedPassword);
+            admin.setSalt(salt);
+            admin.setStatus(1); // 默认启用
+            admin.setRoleLevel(2); // 默认普通管理员，1为超级管理员
+            admin.setCreatedAt(LocalDateTime.now());
+            admin.setLastLoginTime(null);
+
+            // 插入管理员
+            int result = adminMapper.insertAdmin(admin);
+            if (result > 0) {
+                log.info("创建管理员成功：管理员ID={}", admin.getId());
+                
+                // 返回创建的管理员信息（不包含密码和盐值）
+                Admin createdAdmin = new Admin();
+                createdAdmin.setId(admin.getId());
+                createdAdmin.setUsername(admin.getUsername());
+                createdAdmin.setStatus(admin.getStatus());
+                createdAdmin.setRoleLevel(admin.getRoleLevel());
+                createdAdmin.setCreatedAt(admin.getCreatedAt());
+                
+                return ResponseDTO.success("创建管理员成功", createdAdmin);
+            } else {
+                log.warn("创建管理员失败：用户名={}", admin.getUsername());
+                return ResponseDTO.error("创建管理员失败");
+            }
+        } catch (Exception e) {
+            log.error("创建管理员异常：", e);
+            return ResponseDTO.error("创建管理员异常: " + e.getMessage());
+        }
     }
 
     @Override
