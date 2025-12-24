@@ -1,0 +1,164 @@
+/* 通用导航栏样式 */
+
+/* 用户端通用导航栏样式 */
+.navbar.common-navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.navbar.common-navbar .navbar-brand {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.navbar.common-navbar .navbar-brand i {
+    margin-right: 0.5rem;
+}
+
+.navbar.common-navbar .nav-link {
+    color: rgba(255, 255, 255, 0.85);
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+}
+
+.navbar.common-navbar .nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.user-dropdown {
+    position: relative;
+}
+
+.user-dropdown .dropdown-menu {
+    right: 0;
+    left: auto;
+    min-width: 150px;
+    z-index: 1050;
+}
+
+.user-dropdown .dropdown-toggle {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.user-dropdown .dropdown-toggle i {
+    font-size: 1.2rem;
+}
+
+/* 管理员端导航栏样式 */
+.navbar.admin-nav {
+    background: linear-gradient(90deg, #2c3e50, #4a6491) !important;
+}
+
+/* 侧边栏样式 */
+.sidebar {
+    background: linear-gradient(180deg, #2c3e50, #1a2530);
+    min-height: calc(100vh - 56px);
+    box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar .nav-link {
+    color: #b8c7ce;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0;
+    border-left: 3px solid transparent;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar .nav-link:hover, .sidebar .nav-link.active {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+    border-left: 3px solid var(--primary-color);
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* 统一卡片样式 */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background: white;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-weight: 600;
+    padding: 1rem 1.5rem;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+/* 统计卡片样式 */
+.stat-card {
+    transition: transform 0.2s;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+/* 按钮样式 */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* 表格样式 */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    background-color: rgba(0,0,0,0.02);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .sidebar {
+        min-height: auto;
+        position: relative;
+    }
+    
+    .sidebar .nav-link {
+        padding: 0.75rem 1rem;
+    }
+    
+    .navbar-nav {
+        flex-direction: row;
+        align-items: center;
+    }
+    
+    .navbar-collapse {
+        background: rgba(0,0,0,0.9);
+        padding: 1rem;
+        border-radius: 5px;
+        margin-top: 0.5rem;
+    }
+}
