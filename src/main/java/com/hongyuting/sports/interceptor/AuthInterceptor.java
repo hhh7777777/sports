@@ -74,7 +74,7 @@ public class AuthInterceptor implements HandlerInterceptor {
 
             // 刷新Token过期时间（如果快过期）
             if (jwtUtil.isTokenExpiringSoon(token, 30)) { // 30分钟内过期
-                adminService.refreshAccessToken(token);
+                adminService.refreshToken(token);
             }
             
             return true;

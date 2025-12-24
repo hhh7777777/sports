@@ -6,6 +6,7 @@ import com.hongyuting.sports.entity.Admin;
 import com.hongyuting.sports.entity.AdminLog;
 import com.hongyuting.sports.mapper.AdminMapper;
 import com.hongyuting.sports.service.AdminService;
+import com.hongyuting.sports.service.TokenService;
 import com.hongyuting.sports.util.JwtUtil;
 import com.hongyuting.sports.util.SaltUtil;
 import lombok.RequiredArgsConstructor;
@@ -24,25 +25,11 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 /**
  * 管理员服务实现类
  */
 public class AdminServiceImpl implements AdminService {
-
-    private final AdminMapper adminMapper;
-    private final RedisTemplate<String, Object> redisTemplate;
-    private final SaltUtil saltUtil;
-    private final JwtUtil jwtUtil;
-    private final TokenService tokenService;
-
-    public AdminServiceImpl(AdminMapper adminMapper, RedisTemplate<String, Object> redisTemplate, 
-            SaltUtil saltUtil, JwtUtil jwtUtil, TokenService tokenService) {
-        this.adminMapper = adminMapper;
-        this.redisTemplate = redisTemplate;
-        this.saltUtil = saltUtil;
-        this.jwtUtil = jwtUtil;
-        this.tokenService = tokenService;
-    }
 
     private final AdminMapper adminMapper;
     private final RedisTemplate<String, Object> redisTemplate;
@@ -204,17 +191,17 @@ public class AdminServiceImpl implements AdminService {
             // 生成新的Token
             String newToken = jwtUtil.generateToken(adminId);
             String newRefreshToken = jwtUtil.generateRefreshToken(adminId);
-            String tokenKey = "admin:token:" + newToken;
-            String newRefreshTokenKey = "admin:refresh_token:" + newRefreshToken;
-            String adminTokenKey = "admin:id:token:" + adminId;
 
-            // 从Redis中删除旧的token
-            redisTemplate.delete("admin:refresh_token:" + refreshToken);
+            // 删除旧的管理员信息
+            tokenService.deleteAdminToken(refreshToken);
             
-            // 更新Redis中的Token，以Token为key，用户名为value
-            redisTemplate.opsForValue().set(tokenKey, storedUsername, 24, TimeUnit.HOURS);
-            redisTemplate.opsForValue().set(newRefreshTokenKey, storedUsername, 30, TimeUnit.DAYS);
-            redisTemplate.opsForValue().set(adminTokenKey, newToken, 24, TimeUnit.HOURS); // 更新管理员ID到token的映射
+            // 创建新的管理员信息
+            Admin admin = adminMapper.findById(adminId);
+            if (admin != null) {
+                admin.setPassword(null); // 不存储密码信息
+                admin.setSalt(null); // 不存储盐值
+                tokenService.storeAdminInfo(newToken, admin);
+            }
 
             // 构造返回结果
             Map<String, String> result = new HashMap<>();

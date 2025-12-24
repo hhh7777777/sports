@@ -42,6 +42,10 @@ public class JwtUtil {
      * 生成Token
      */
     public String generateToken(Integer userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("用户ID不能为null");
+        }
+        
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24小时
 

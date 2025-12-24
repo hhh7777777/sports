@@ -15,22 +15,6 @@
     --border-color: #e3e6f0;
 }
 
-[data-theme="newyear"] { /* 改为新年主题 */
-    --primary-color: #d32f2f; /* 新年红色 */
-    --secondary-color: #858796;
-    --success-color: #1cc88a;
-    --info-color: #36b9cc;
-    --warning-color: #f6c23e;
-    --danger-color: #e74a3b;
-    --light-color: #f8f9fc;
-    --dark-color: #d1d3e2;
-    --body-bg: linear-gradient(135deg, #d32f2f 0%, #f57c00 50%, #ffca28 100%); /* 新年渐变背景 */
-    --card-bg: rgba(255, 255, 255, 0.95);
-    --text-color: #333;
-    --header-bg: rgba(211, 47, 47, 0.95); /* 新年红色背景 */
-    --border-color: rgba(211, 47, 47, 0.2);
-}
-
 [data-theme="dark"] {
     --primary-color: #4e73df;
     --secondary-color: #858796;

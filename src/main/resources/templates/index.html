@@ -134,7 +134,7 @@
         
         .feature-card:hover {
             transform: translateY(-10px);
-            border-color: #96c93d; /* 使用绿色作为默认悬停颜色 */
+            border-color: var(--christmas-gold);
             box-shadow: 0 15px 30px rgba(0,0,0,0.2);
         }
         
@@ -199,8 +199,8 @@
             transform: translateY(-3px);
         }
         
-        /* 圣诞树样式 - 保留但重命名为活动树样式 */
-        .activity-tree-container {
+        /* 圣诞树样式 */
+        .christmas-tree-container {
             height: 600px;
             position: relative;
             overflow: visible;
@@ -215,7 +215,7 @@
         
         .tree-layer {
             position: absolute;
-            background: var(--activity-green, #28a745);
+            background: var(--christmas-green);
             border-radius: 50%;
             left: 50%;
             transform: translateX(-50%);
@@ -260,7 +260,7 @@
             left: 50%;
             transform: translateX(-50%);
             font-size: 2.5rem;
-            color: var(--activity-gold, #ffd700);
+            color: var(--christmas-gold);
             animation: twinkle 2s infinite alternate;
             filter: drop-shadow(0 0 10px gold);
         }
@@ -271,7 +271,7 @@
             height: 20px;
             border-radius: 50%;
             background: rgba(255, 215, 0, 0.3);
-            border: 2px dashed var(--activity-gold, #ffd700);
+            border: 2px dashed var(--christmas-gold);
             cursor: pointer;
             transition: all 0.3s ease;
             animation: glow 2s infinite alternate;
@@ -312,7 +312,7 @@
         }
         
         .badge-card.owned {
-            border-color: var(--activity-gold, #ffd700);
+            border-color: var(--christmas-gold);
         }
         
         .badge-icon {
@@ -340,7 +340,7 @@
         
         /* 响应式调整 */
         @media (max-width: 768px) {
-            .activity-tree {
+            .christmas-tree {
                 transform: scale(0.8);
             }
             
@@ -392,8 +392,8 @@
         </button>
     </div>
     
-    <!-- 雪花容器 -->
-    <div id="snowflakes"></div>
+    <!-- 烟花容器 -->
+    <div id="fireflakes"></div>
     
     <!-- 首页主体 -->
     <section class="hero-section">
@@ -612,7 +612,7 @@
                     document.body.classList.toggle('normal-theme');
                     
                     if (document.body.classList.contains('christmas-theme')) {
-                        this.innerHTML = '<i class="fas fa-snowflake"></i><span class="theme-badge">圣诞</span>';
+                        this.innerHTML = '<i class="fas fa-snowflake"></i><span class="theme-badge">新年</span>';
                     } else {
                         this.innerHTML = '<i class="fas fa-sun"></i><span class="theme-badge">普通</span>';
                     }
