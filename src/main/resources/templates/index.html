@@ -17,8 +17,40 @@
             overflow: hidden;
         }
         
+        .normal-theme {
+            --primary-color: #00b09b;
+            --secondary-color: #96c93d;
+            --accent-color: #4cc9f0;
+        }
+        
         .normal-theme .hero-section {
-            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+        
+        .normal-theme .feature-section {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        }
+        
+        .normal-theme .feature-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid var(--secondary-color);
+        }
+        
+        .normal-theme .user-navbar {
+            background: rgba(0, 176, 155, 0.85);
+        }
+        
+        .normal-theme .footer {
+            background: rgba(0, 176, 155, 0.85);
+        }
+        
+        .normal-theme .badge-collection {
+            background: rgba(150, 201, 61, 0.15);
+        }
+        
+        .normal-theme .theme-toggle-btn {
+            background: rgba(0, 176, 155, 0.8);
+            border-color: #fff;
         }
         
         .hero-tabs {
@@ -134,12 +166,16 @@
         
         .feature-card:hover {
             transform: translateY(-10px);
-            border-color: var(--christmas-gold);
+            border-color: var(--accent-color);
             box-shadow: 0 15px 30px rgba(0,0,0,0.2);
         }
         
         .normal-theme .feature-card:hover {
             border-color: #96c93d;
+        }
+        
+        .newyear-theme .feature-card:hover {
+            border-color: var(--newyear-gold);
         }
         
         /* 页脚样式 */
@@ -352,6 +388,97 @@
                 transform: rotate(calc(var(--rotation) * -1)) scale(1.1);
             }
         }
+        
+        /* 轮播图样式 */
+        .carousel-item {
+            height: 500px;
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .new-year-slide {
+          background: linear-gradient(135deg, #ff6b6b 0%, #feca57 50%, #ff9ff3 100%);
+        }
+        
+        .newyear-theme {
+            --newyear-red: #d32f2f;
+            --newyear-orange: #f57c00;
+            --newyear-yellow: #ffca28;
+            --newyear-gold: #ffd700;
+            --newyear-pink: #ff9ff3;
+            --primary-color: var(--newyear-red);
+            --secondary-color: var(--newyear-pink);
+            --accent-color: var(--newyear-gold);
+        }
+        
+        .newyear-theme .hero-section {
+            background: linear-gradient(135deg, var(--newyear-red), var(--newyear-pink));
+        }
+        
+        .newyear-theme .feature-section {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+        }
+        
+        .newyear-theme .feature-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid var(--newyear-red);
+        }
+        
+        .newyear-theme .user-navbar {
+            background: rgba(211, 47, 47, 0.85);
+        }
+        
+        .newyear-theme .footer {
+            background: rgba(211, 47, 47, 0.85);
+        }
+        
+        .newyear-theme .badge-collection {
+            background: rgba(255, 202, 40, 0.15);
+        }
+        
+        .newyear-theme .theme-toggle-btn {
+            background: rgba(211, 47, 47, 0.8);
+            border-color: #fff;
+        }
+        
+        .countdown-timer {
+          display: flex;
+          justify-content: center;
+          gap: 1rem;
+          margin: 1.5rem 0;
+        }
+        
+        .countdown-item {
+          text-align: center;
+          background: rgba(255,255,255,0.2);
+          padding: 0.5rem;
+          border-radius: 0.5rem;
+          min-width: 60px;
+        }
+        
+        .countdown-value {
+          font-size: 1.5rem;
+          font-weight: bold;
+        }
+        
+        .countdown-label {
+          font-size: 0.8rem;
+          opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+          .carousel-item {
+            height: 400px;
+          }
+          
+          .countdown-item {
+            min-width: 50px;
+          }
+          
+          .countdown-value {
+            font-size: 1.2rem;
+          }
+        }
     </style>
 </head>
 <body class="normal-theme">
@@ -387,8 +514,8 @@
     <!-- 主题切换器 -->
     <div class="theme-switcher">
         <button class="theme-toggle-btn" id="themeToggle">
-            <i class="fas fa-sun"></i>
-            <span class="theme-badge" id="themeBadge">普通</span>
+            <i class="fas fa-leaf"></i>
+            <span class="theme-badge" id="themeBadge">绿色</span>
         </button>
     </div>
     
@@ -415,42 +542,104 @@
                     </div>
                 </div>
                 <div class="col-lg-6">
-                    <!-- 使用标签页替代轮播图 -->
-                    <div class="hero-tabs">
-                        <div class="d-flex">
-                            <button class="hero-tab active" data-tab="achievements">成就系统</button>
-                            <button class="hero-tab" data-tab="stats">数据统计</button>
-                            <button class="hero-tab" data-tab="challenges">挑战活动</button>
+                    <!-- 轮播图部分 -->
+                    <div id="mainCarousel" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-indicators">
+                            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="0" class="active"></button>
+                            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="1"></button>
+                            <button type="button" data-bs-target="#mainCarousel" data-bs-slide-to="2"></button>
                         </div>
-                    </div>
-                    
-                    <div class="mt-4">
-                        <!-- 成就系统标签内容 -->
-                        <div class="hero-tab-content active" id="achievements-tab">
-                            <div class="bg-dark p-4 rounded" style="background: rgba(0, 0, 0, 0.5);">
-                                <h3><i class="fas fa-trophy me-2"></i>成就系统</h3>
-                                <p class="mb-3">完成挑战解锁丰富徽章，展示你的运动成果</p>
-                                <a href="/achievements" class="btn btn-warning">查看徽章</a>
+                        <div class="carousel-inner">
+                          <!-- 幻灯片1: 欢迎页 -->
+                          <div class="carousel-item active">
+                            <div class="d-flex align-items-center justify-content-center h-100" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('images/welcome-bg.jpg') center/cover;">
+                              <div class="text-center text-white p-4">
+                                <h1 class="display-3 fw-bold mb-3">欢迎来到健康星球</h1>
+                                <p class="lead mb-4">收集徽章，点亮你的健康新年树！开启专属健康之旅</p>
+                                <a href="#newyearTree" class="btn btn-lg btn-warning px-5 py-3">
+                                  <i class="fas fa-gift me-2"></i>开启健康之旅
+                                </a>
+                              </div>
                             </div>
-                        </div>
-                        
-                        <!-- 数据统计标签内容 -->
-                        <div class="hero-tab-content" id="stats-tab">
-                            <div class="bg-dark p-4 rounded" style="background: rgba(0, 0, 0, 0.5);">
-                                <h3><i class="fas fa-chart-line me-2"></i>数据统计</h3>
-                                <p class="mb-3">可视化展示运动数据，追踪进步轨迹</p>
-                                <a href="/dashboard" class="btn btn-warning">查看详情</a>
+                          </div>
+                          
+                          <!-- 幻灯片2: 成就展示 -->
+                          <div class="carousel-item">
+                            <div class="d-flex align-items-center justify-content-center h-100" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('images/achievement-bg.jpg') center/cover;">
+                              <div class="container">
+                                <div class="row align-items-center">
+                                  <div class="col-md-6">
+                                    <h2 class="display-4 fw-bold mb-4">点亮你的成就徽章</h2>
+                                    <p class="lead mb-4">每完成一个健康目标，就为你的新年树挂上一枚闪亮的徽章！</p>
+                                    <div class="achievement-stats">
+                                      <div class="row text-center">
+                                        <div class="col-4">
+                                          <h3 class="text-warning">12</h3>
+                                          <p>徽章类型</p>
+                                        </div>
+                                        <div class="col-4">
+                                          <h3 class="text-warning">356+</h3>
+                                          <p>已点亮徽章</p>
+                                        </div>
+                                        <div class="col-4">
+                                          <h3 class="text-warning">24/7</h3>
+                                          <p>全天记录</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div class="col-md-6">
+                                    <div class="badge-preview d-flex justify-content-center flex-wrap">
+                                      <div class="badge-icon m-2" style="background: var(--newyear-gold);">
+                                        <i class="fas fa-running fa-2x"></i>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                        </div>
-                        
-                        <!-- 挑战活动标签内容 -->
-                        <div class="hero-tab-content" id="challenges-tab">
-                            <div class="bg-dark p-4 rounded" style="background: rgba(0, 0, 0, 0.5);">
-                                <h3><i class="fas fa-flag me-2"></i>挑战活动</h3>
-                                <p class="mb-3">参与特别活动，赢取限定奖励</p>
-                                <a href="/newyear" class="btn btn-warning">立即参与</a>
+                          </div>
+                          
+                          <!-- 幻灯片3: 新年活动 -->
+                          <div class="carousel-item new-year-slide">
+                            <div class="d-flex align-items-center justify-content-center h-100 text-white">
+                              <div class="text-center">
+                                <h2 class="display-4 fw-bold mb-4"> 2025新年健康挑战 </h2>
+                                <p class="lead mb-4">加入我们的新年特别活动，开启健康新篇章！</p>
+                                
+                                <div class="countdown-timer">
+                                  <div class="countdown-item">
+                                    <div class="countdown-value" id="days">12</div>
+                                    <div class="countdown-label">天</div>
+                                  </div>
+                                  <div class="countdown-item">
+                                    <div class="countdown-value" id="hours">06</div>
+                                    <div class="countdown-label">时</div>
+                                  </div>
+                                  <div class="countdown-item">
+                                    <div class="countdown-value" id="minutes">45</div>
+                                    <div class="countdown-label">分</div>
+                                  </div>
+                                  <div class="countdown-item">
+                                    <div class="countdown-value" id="seconds">30</div>
+                                    <div class="countdown-label">秒</div>
+                                  </div>
+                                </div>
+                                
+                                <a href="/newyear" class="btn btn-light btn-lg px-5 py-3">
+                                  <i class="fas fa-play me-2"></i>立即参与
+                                </a>
+                              </div>
                             </div>
+                          </div>
                         </div>
+
+                        <button class="carousel-control-prev" type="button" data-bs-target="#mainCarousel" data-bs-slide="prev">
+                          <span class="carousel-control-prev-icon"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#mainCarousel" data-bs-slide="next">
+                          <span class="carousel-control-next-icon"></span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -554,7 +743,14 @@
     </button>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/js/main.js"></script>
+    
+    <!-- 模块化JS文件 -->
+    <script src="/js/modules/config-manager.js"></script>
+    <script src="/js/modules/api-service.js"></script>
+    <script src="/js/modules/theme-manager.js"></script>
+    <script src="/js/modules/ui-components.js"></script>
+    <script src="/js/modules/main-app.js"></script>
+    
     <script>
         // 页面加载完成后初始化应用
         document.addEventListener('DOMContentLoaded', function() {
@@ -562,23 +758,6 @@
             if (typeof HealthPlanetApp !== 'undefined') {
                 window.app = new HealthPlanetApp();
             }
-            
-            // 标签页切换功能
-            const tabs = document.querySelectorAll('.hero-tab');
-            tabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    // 移除所有激活状态
-                    tabs.forEach(t => t.classList.remove('active'));
-                    document.querySelectorAll('.hero-tab-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    
-                    // 激活当前标签
-                    this.classList.add('active');
-                    const tabId = this.getAttribute('data-tab');
-                    document.getElementById(`${tabId}-tab`).classList.add('active');
-                });
-            });
             
             // 检查用户登录状态
             checkUserAuth();
@@ -604,19 +783,27 @@
                 });
             }
             
-            // 主题切换功能
-            const themeToggle = document.getElementById('themeToggle');
-            if (themeToggle) {
-                themeToggle.addEventListener('click', function() {
-                    document.body.classList.toggle('christmas-theme');
-                    document.body.classList.toggle('normal-theme');
+            // 初始化主题切换功能 - 确保与HealthPlanetApp类同步
+            if (window.app && window.app.themeManager) {
+                // 如果HealthPlanetApp已初始化，使用其主题管理器
+                window.app.themeManager.updateThemeUI();
+            } else {
+                // 否则，手动初始化主题显示
+                const themeToggle = document.getElementById('themeToggle');
+                if (themeToggle) {
+                    // 初始化主题显示（从本地存储或默认）
+                    const savedTheme = localStorage.getItem('healthPlanetTheme') || 'normal';
                     
-                    if (document.body.classList.contains('christmas-theme')) {
-                        this.innerHTML = '<i class="fas fa-snowflake"></i><span class="theme-badge">新年</span>';
+                    // 确保主题类正确应用
+                    document.body.classList.remove('normal-theme', 'newyear-theme');
+                    if (savedTheme === 'newyear') {
+                        document.body.classList.add('newyear-theme');
+                        themeToggle.innerHTML = '<i class="fas fa-fire"></i><span class="theme-badge">新年</span>';
                     } else {
-                        this.innerHTML = '<i class="fas fa-sun"></i><span class="theme-badge">普通</span>';
+                        document.body.classList.add('normal-theme');
+                        themeToggle.innerHTML = '<i class="fas fa-leaf"></i><span class="theme-badge">绿色</span>';
                     }
-                });
+                }
             }
         });
         
@@ -701,6 +888,74 @@
                 window.location.reload();
             }
         }
+        
+        // 倒计时功能
+        function updateCountdown() {
+            const endDate = new Date('2025-01-01T00:00:00');
+            const now = new Date();
+            const diff = endDate - now;
+            if (diff <= 0) {
+                document.getElementById('days').textContent = '00';
+                document.getElementById('hours').textContent = '00';
+                document.getElementById('minutes').textContent = '00';
+                document.getElementById('seconds').textContent = '00';
+                return;
+            }
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            document.getElementById('days').textContent = days.toString().padStart(2, '0');
+            document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+            document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+            document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+        }
+        
+        // 初始化倒计时
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+        
+        // 轮播图初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            const carouselElement = document.getElementById('mainCarousel');
+            if (carouselElement) {
+                const carousel = new bootstrap.Carousel(carouselElement, {
+                    interval: 5000,
+                    ride: 'carousel',
+                    wrap: true,
+                    touch: true
+                });
+                
+                // 键盘控制
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'ArrowLeft') {
+                        carousel.prev();
+                    } else if (e.key === 'ArrowRight') {
+                        carousel.next();
+                    }
+                });
+                
+                // 触摸滑动支持
+                let touchStartX = 0;
+                let touchEndX = 0;
+                carouselElement.addEventListener('touchstart', function(e) {
+                    touchStartX = e.changedTouches[0].screenX;
+                }, false);
+                carouselElement.addEventListener('touchend', function(e) {
+                    touchEndX = e.changedTouches[0].screenX;
+                    handleSwipe();
+                }, false);
+                
+                function handleSwipe() {
+                    if (touchEndX < touchStartX - 50) {
+                        carousel.next();
+                    }
+                    if (touchEndX > touchStartX + 50) {
+                        carousel.prev();
+                    }
+                }
+            }
+        });
     </script>
 </body>
 </html>

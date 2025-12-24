@@ -1,7 +1,7 @@
 // 健康星球主应用程序逻辑
 class HealthPlanetApp {
     constructor() {
-        this.currentTheme = 'christmas';
+        this.currentTheme = 'normal';
         this.userData = {};
         this.badges = [];
         this.carousel = null;
@@ -20,22 +20,8 @@ class HealthPlanetApp {
         // 检查并显示新年活动横幅
         checkNewYearBanner();
         
-        // 标签页切换功能
-        const tabs = document.querySelectorAll('.hero-tab');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                // 移除所有激活状态
-                tabs.forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.hero-tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                
-                // 激活当前标签
-                this.classList.add('active');
-                const tabId = this.getAttribute('data-tab');
-                document.getElementById(`${tabId}-tab`).classList.add('active');
-            });
-        });
+        // 确保应用启动时正确应用主题
+        this.initTheme();
     }
 
     loadUserData() {
@@ -45,7 +31,7 @@ class HealthPlanetApp {
             totalBadges: 15,
             streakDays: 7,
             totalDuration: 1260,
-            theme: 'christmas',
+            theme: 'normal',
             lastLogin: new Date().toISOString(),
             level: 3,
             points: 450
@@ -167,9 +153,9 @@ class HealthPlanetApp {
             },
             {
                 id: 6,
-                name: "圣诞老人",
-                description: "圣诞期间完成特别挑战",
-                icon: "fas fa-sleigh",
+                name: "新年使者",
+                description: "新年期间完成特别挑战",
+                icon: "fas fa-gift",
                 color: "#FF0000",
                 level: 5,
                 position: 3,
@@ -284,30 +270,38 @@ class HealthPlanetApp {
     }
 
     initTheme() {
-        const savedTheme = localStorage.getItem('healthPlanetTheme') || 'christmas';
+        const savedTheme = localStorage.getItem('healthPlanetTheme') || 'normal';
         this.switchTheme(savedTheme);
     }
 
     switchTheme(theme) {
         this.currentTheme = theme;
-        document.body.className = theme + '-theme';
+        // 移除所有主题类
+        document.body.classList.remove('normal-theme', 'newyear-theme');
+        
+        if (theme === 'newyear') {
+            document.body.classList.add('newyear-theme');
+        } else {
+            document.body.classList.add('normal-theme');
+        }
+        
         localStorage.setItem('healthPlanetTheme', theme);
 
         this.updateThemeIndicator();
 
-        if (theme === 'christmas') {
+        if (theme === 'newyear') {
             this.initSnowEffect();
-            const banner = document.getElementById('christmasEventBanner');
+            const banner = document.getElementById('newyearEventBanner');
             if (banner) {
                 banner.classList.remove('d-none');
             }
         } else {
-            // 非圣诞主题不显示雪花效果
+            // 非新年主题不显示雪花效果
             const snowflakes = document.getElementById('snowflakes');
             if (snowflakes) {
                 snowflakes.innerHTML = '';
             }
-            const banner = document.getElementById('christmasEventBanner');
+            const banner = document.getElementById('newyearEventBanner');
             if (banner) {
                 banner.classList.add('d-none');
             }
@@ -324,13 +318,13 @@ class HealthPlanetApp {
         const toggleBtn = document.getElementById('themeToggle');
 
         if (badge) {
-            badge.textContent = this.currentTheme === 'newyear' ? '新年' : '普通';
+            badge.textContent = this.currentTheme === 'newyear' ? '新年' : '绿色';
         }
 
         if (toggleBtn) {
             const icon = toggleBtn.querySelector('i');
             if (icon) {
-                icon.className = this.currentTheme === 'newyear' ? 'fas fa-fire' : 'fas fa-sun';
+                icon.className = this.currentTheme === 'newyear' ? 'fas fa-fire' : 'fas fa-leaf';
             }
         }
     }
@@ -370,10 +364,10 @@ class HealthPlanetApp {
         document.addEventListener('keydown', (e) => {
             switch(e.key) {
                 case '1':
-                    this.switchTheme('christmas');
+                    this.switchTheme('normal');
                     break;
                 case '2':
-                    this.switchTheme('normal');
+                    this.switchTheme('newyear');
                     break;
                 case 'Escape':
                     this.closeAllModals();
@@ -383,9 +377,17 @@ class HealthPlanetApp {
     }
 
     toggleTheme() {
-        const newTheme = this.currentTheme === 'newyear' ? 'normal' : 'newyear';
+        let newTheme;
+        if (this.currentTheme === 'normal') {
+            newTheme = 'newyear';
+        } else if (this.currentTheme === 'newyear') {
+            newTheme = 'normal';
+        } else {
+            newTheme = 'newyear';
+        }
+        
         this.switchTheme(newTheme);
-        this.showNotification(`已切换到${newTheme === 'newyear' ? '新年' : '普通'}主题`);
+        this.showNotification(`已切换到${newTheme === 'newyear' ? '新年' : '绿色'}主题`);
     }
 
     initSnowEffect() {
@@ -492,7 +494,7 @@ class HealthPlanetApp {
     displayBadgesNewYearTheme(container) {
         // 创建新年树挂徽章的布局
         let newyearHTML = `
-            <div class="christmas-tree-container">
+            <div class="newyear-tree-container">
                 <div class="tree">
                     <div class="tree-layer layer-5"></div>
                     <div class="tree-layer layer-4"></div>
@@ -747,7 +749,18 @@ class HealthPlanetApp {
     }
 }
 
-// 全局函数
+// 兼容性包装器 - 为了向后兼容旧代码
+// 所有新功能应使用 /js/modules/ 目录下的模块
+
+// 如果模块已加载，则创建别名以保持向后兼容
+if (window.HealthPlanetApp) {
+    // 确保旧的全局变量仍然可用
+    if (typeof HealthPlanetApp !== 'undefined') {
+        window.HealthPlanetApp = HealthPlanetApp;
+    }
+}
+
+// 全局函数兼容性
 function joinNewYearChallenge() {
     if (window.app) {
         app.startNewYearChallenge();
@@ -772,74 +785,12 @@ function startNewRecord() {
     }
 }
 
-// 页面加载完成后初始化应用
-document.addEventListener('DOMContentLoaded', function() {
-    // 初始化主页应用
-    if (typeof HealthPlanetApp !== 'undefined') {
-        window.app = new HealthPlanetApp();
-    }
-    
-    // 检查并显示新年活动横幅
-    checkNewYearBanner();
-    
-    // 标签页切换功能
-    const tabs = document.querySelectorAll('.hero-tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            // 移除所有激活状态
-            tabs.forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.hero-tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            
-            // 激活当前标签
-            this.classList.add('active');
-            const tabId = this.getAttribute('data-tab');
-            document.getElementById(`${tabId}-tab`).classList.add('active');
-            
-            // 如果点击的是新年活动标签，则加载新年活动数据
-            if (tabId === 'newyear') {
-                loadNewYearEventDataInTab();
-            }
-        });
-    });
-    
-    // 检查用户登录状态
-    checkUserAuth();
-    
-    // 绑定返回顶部按钮事件
-    const backToTopButton = document.getElementById('backToTop');
-    if (backToTopButton) {
-        // 滚动时检查是否显示返回顶部按钮
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 300) {
-                backToTopButton.classList.add('visible');
-            } else {
-                backToTopButton.classList.remove('visible');
-            }
-        });
-        
-        // 点击返回顶部
-        backToTopButton.addEventListener('click', function() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
-    }
-});
-
+// 检查并显示新年活动横幅
 function checkNewYearBanner() {
-    const today = new Date();
-    const month = today.getMonth() + 1; // 月份从0开始，所以需要+1
-    const day = today.getDate();
-    
-    // 在1月1日到1月15日期间显示新年活动横幅
-    if (month === 1 && day >= 1 && day <= 15) {
-        const banner = document.getElementById('newyearEventBanner');
-        if (banner) {
-            banner.classList.remove('d-none');
-        }
+    // 总是显示新年活动横幅（根据实际需求可以添加日期判断）
+    const banner = document.getElementById('newyearEventBanner');
+    if (banner) {
+        banner.classList.remove('d-none');
     }
 }
 
@@ -1064,11 +1015,73 @@ function showNewYearEventModal(activities, badges) {
     });
 }
 
-// 检查并显示新年活动横幅
+// 页面加载完成后初始化应用
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化主页应用
+    if (typeof HealthPlanetApp !== 'undefined') {
+        window.app = new HealthPlanetApp();
+    }
+    
+    // 检查并显示新年活动横幅
+    checkNewYearBanner();
+    
+    // 标签页切换功能
+    const tabs = document.querySelectorAll('.hero-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // 移除所有激活状态
+            tabs.forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.hero-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 激活当前标签
+            this.classList.add('active');
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+            
+            // 如果点击的是新年活动标签，则加载新年活动数据
+            if (tabId === 'newyear') {
+                loadNewYearEventDataInTab();
+            }
+        });
+    });
+    
+    // 检查用户登录状态
+    checkUserAuth();
+    
+    // 绑定返回顶部按钮事件
+    const backToTopButton = document.getElementById('backToTop');
+    if (backToTopButton) {
+        // 滚动时检查是否显示返回顶部按钮
+        window.addEventListener('scroll', function() {
+            if (window.scrollY > 300) {
+                backToTopButton.classList.add('visible');
+            } else {
+                backToTopButton.classList.remove('visible');
+            }
+        });
+        
+        // 点击返回顶部
+        backToTopButton.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    }
+});
+
 function checkNewYearBanner() {
-    // 总是显示新年活动横幅（根据实际需求可以添加日期判断）
-    const banner = document.getElementById('newyearEventBanner');
-    if (banner) {
-        banner.classList.remove('d-none');
+    const today = new Date();
+    const month = today.getMonth() + 1; // 月份从0开始，所以需要+1
+    const day = today.getDate();
+    
+    // 在1月1日到1月15日期间显示新年活动横幅
+    if (month === 1 && day >= 1 && day <= 15) {
+        const banner = document.getElementById('newyearEventBanner');
+        if (banner) {
+            banner.classList.remove('d-none');
+        }
     }
 }
