@@ -44,7 +44,9 @@ public class AdminController {
     private final JwtUtil jwtUtil;
     
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminController.class);
-    
+    /**
+     * 使用验证码工具类
+     */
     @Autowired
     private com.hongyuting.sports.util.CaptchaUtil captchaUtil;
     

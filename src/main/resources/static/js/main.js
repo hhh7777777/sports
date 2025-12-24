@@ -17,8 +17,8 @@ class HealthPlanetApp {
         this.updateStats();
         this.initCarousel();
         
-        // 检查并显示圣诞活动横幅
-        checkChristmasBanner();
+        // 检查并显示新年活动横幅
+        checkNewYearBanner();
         
         // 标签页切换功能
         const tabs = document.querySelectorAll('.hero-tab');
@@ -324,25 +324,25 @@ class HealthPlanetApp {
         const toggleBtn = document.getElementById('themeToggle');
 
         if (badge) {
-            badge.textContent = this.currentTheme === 'christmas' ? '圣诞' : '普通';
+            badge.textContent = this.currentTheme === 'newyear' ? '新年' : '普通';
         }
 
         if (toggleBtn) {
             const icon = toggleBtn.querySelector('i');
             if (icon) {
-                icon.className = this.currentTheme === 'christmas' ? 'fas fa-snowflake' : 'fas fa-sun';
+                icon.className = this.currentTheme === 'newyear' ? 'fas fa-fire' : 'fas fa-sun';
             }
         }
     }
 
-    checkChristmasBanner() {
+    checkNewYearBanner() {
         const today = new Date();
         const month = today.getMonth() + 1; // 月份从0开始，所以需要+1
         const day = today.getDate();
         
-        // 在12月1日到12月25日期间显示圣诞活动横幅
-        if (month === 12 && day >= 1 && day <= 25) {
-            const banner = document.getElementById('christmasEventBanner');
+        // 在1月1日到1月15日期间显示新年活动横幅
+        if (month === 1 && day >= 1 && day <= 15) {
+            const banner = document.getElementById('newyearEventBanner');
             if (banner) {
                 banner.classList.remove('d-none');
             }
@@ -358,11 +358,11 @@ class HealthPlanetApp {
             });
         }
 
-        // 圣诞活动横幅
-        const christmasEventBanner = document.getElementById('christmasEventBanner');
-        if (christmasEventBanner) {
-            christmasEventBanner.addEventListener('click', () => {
-                this.enterChristmasEvent();
+        // 新年活动横幅
+        const newyearEventBanner = document.getElementById('newyearEventBanner');
+        if (newyearEventBanner) {
+            newyearEventBanner.addEventListener('click', () => {
+                this.enterNewYearEvent();
             });
         }
 
@@ -383,14 +383,14 @@ class HealthPlanetApp {
     }
 
     toggleTheme() {
-        const newTheme = this.currentTheme === 'christmas' ? 'normal' : 'christmas';
+        const newTheme = this.currentTheme === 'newyear' ? 'normal' : 'newyear';
         this.switchTheme(newTheme);
-        this.showNotification(`已切换到${newTheme === 'christmas' ? '圣诞' : '普通'}主题`);
+        this.showNotification(`已切换到${newTheme === 'newyear' ? '新年' : '普通'}主题`);
     }
 
     initSnowEffect() {
-        // 只在圣诞主题下显示雪花效果
-        if (this.currentTheme !== 'christmas') return;
+        // 只在新年主题下显示雪花效果
+        if (this.currentTheme !== 'newyear') return;
 
         const container = document.getElementById('snowflakes');
         if (!container) return;
@@ -480,18 +480,18 @@ class HealthPlanetApp {
         this.userData.collectedBadges = earnedBadges.length;
 
         // 根据当前主题显示不同样式的徽章库
-        if (this.currentTheme === 'christmas') {
-            // 圣诞主题：圣诞树挂徽章形式
-            this.displayBadgesChristmasTheme(container);
+        if (this.currentTheme === 'newyear') {
+            // 新年主题：新年树挂徽章形式
+            this.displayBadgesNewYearTheme(container);
         } else {
             // 正常主题：网格布局形式
             this.displayBadgesNormalTheme(container);
         }
     }
 
-    displayBadgesChristmasTheme(container) {
-        // 创建圣诞树挂徽章的布局
-        let christmasHTML = `
+    displayBadgesNewYearTheme(container) {
+        // 创建新年树挂徽章的布局
+        let newyearHTML = `
             <div class="christmas-tree-container">
                 <div class="tree">
                     <div class="tree-layer layer-5"></div>
@@ -515,7 +515,7 @@ class HealthPlanetApp {
                 `<img src="${badge.iconUrl}" alt="${badge.name}" class="badge-img">` :
                 `<i class="${badge.icon} fa-2x"></i>`;
             
-            christmasHTML += `
+            newyearHTML += `
                 <div class="badge-hanger" data-level="${level}" data-position="${position}">
                     <div class="badge-card ${badge.earned ? 'owned' : 'locked'}" onclick="app.showBadgeDetails(${badge.id})">
                         <div class="badge-icon" style="background: ${badge.color};">
@@ -527,12 +527,12 @@ class HealthPlanetApp {
             `;
         });
 
-        christmasHTML += `
+        newyearHTML += `
                 </div>
             </div>
         `;
 
-        container.innerHTML = christmasHTML;
+        container.innerHTML = newyearHTML;
     }
 
     displayBadgesNormalTheme(container) {
@@ -612,7 +612,7 @@ class HealthPlanetApp {
         const modalHtml = `
             <div class="modal fade" id="badgeDetailModal" tabindex="-1">
                 <div class="modal-dialog modal-sm">
-                    <div class="modal-content christmas-modal">
+                    <div class="modal-content newyear-modal">
                         <div class="modal-header border-0 pb-0">
                             <h5 class="modal-title">徽章详情</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -658,19 +658,19 @@ class HealthPlanetApp {
         if (modal) modal.hide();
     }
 
-    enterChristmasEvent() {
-        window.location.href = '/christmas-event';
+    enterNewYearEvent() {
+        window.location.href = '/newyear-event';
     }
 
-    startChristmasChallenge() {
-        this.showNotification('🎅 圣诞挑战开始！连续7天运动赢取特别徽章', 'success');
+    startNewYearChallenge() {
+        this.showNotification('🎉 新年挑战开始！连续7天运动赢取特别徽章', 'success');
         // 这里可以添加更复杂的挑战开始逻辑
     }
 
     shareTree() {
         if (navigator.share) {
             navigator.share({
-                title: '我的健康圣诞树',
+                title: '我的健康新年树',
                 text: `来看看我的运动成就！已收集 ${this.userData.collectedBadges} 枚徽章，连续运动 ${this.userData.streakDays} 天！`,
                 url: window.location.href
             });
@@ -748,15 +748,15 @@ class HealthPlanetApp {
 }
 
 // 全局函数
-function joinChristmasChallenge() {
+function joinNewYearChallenge() {
     if (window.app) {
-        app.startChristmasChallenge();
+        app.startNewYearChallenge();
     }
 }
 
-function enterChristmasEvent() {
+function enterNewYearEvent() {
     if (window.app) {
-        app.enterChristmasEvent();
+        app.enterNewYearEvent();
     }
 }
 
@@ -779,8 +779,8 @@ document.addEventListener('DOMContentLoaded', function() {
         window.app = new HealthPlanetApp();
     }
     
-    // 检查并显示圣诞活动横幅
-    checkChristmasBanner();
+    // 检查并显示新年活动横幅
+    checkNewYearBanner();
     
     // 标签页切换功能
     const tabs = document.querySelectorAll('.hero-tab');
@@ -797,9 +797,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const tabId = this.getAttribute('data-tab');
             document.getElementById(`${tabId}-tab`).classList.add('active');
             
-            // 如果点击的是圣诞活动标签，则加载圣诞活动数据
-            if (tabId === 'christmas') {
-                loadChristmasEventDataInTab();
+            // 如果点击的是新年活动标签，则加载新年活动数据
+            if (tabId === 'newyear') {
+                loadNewYearEventDataInTab();
             }
         });
     });
@@ -829,24 +829,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function checkChristmasBanner() {
+function checkNewYearBanner() {
     const today = new Date();
     const month = today.getMonth() + 1; // 月份从0开始，所以需要+1
     const day = today.getDate();
     
-    // 在12月1日到12月25日期间显示圣诞活动横幅
-    if (month === 12 && day >= 1 && day <= 25) {
-        const banner = document.getElementById('christmasEventBanner');
+    // 在1月1日到1月15日期间显示新年活动横幅
+    if (month === 1 && day >= 1 && day <= 15) {
+        const banner = document.getElementById('newyearEventBanner');
         if (banner) {
             banner.classList.remove('d-none');
         }
     }
 }
 
-// 在圣诞标签页中加载数据
-async function loadChristmasEventDataInTab() {
+// 在新年标签页中加载数据
+async function loadNewYearEventDataInTab() {
     // 检查是否已经加载过数据
-    const container = document.getElementById('christmas-tab');
+    const container = document.getElementById('newyear-tab');
     if (container && container.getAttribute('data-loaded') === 'true') {
         return;
     }
@@ -856,9 +856,9 @@ async function loadChristmasEventDataInTab() {
         const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
         if (!token) {
             // 如果未登录，显示提示信息
-            document.querySelector('#christmas-tab .bg-dark').innerHTML = `
-                <h3><i class="fas fa-gift me-2"></i>圣诞特别活动</h3>
-                <p class="mb-3">登录后参与圣诞活动，赢取限量版徽章和丰厚奖励</p>
+            document.querySelector('#newyear-tab .bg-dark').innerHTML = `
+                <h3><i class="fas fa-fire me-2"></i>新年特别活动</h3>
+                <p class="mb-3">登录后参与新年活动，赢取限量版徽章和丰厚奖励</p>
                 <a href="/login" class="btn btn-warning">立即登录</a>
             `;
             return;
@@ -870,7 +870,7 @@ async function loadChristmasEventDataInTab() {
         }
         
         // 加载活动数据
-        const response = await fetch('/api/christmas/activities', {
+        const response = await fetch('/api/newyear/activities', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -880,20 +880,20 @@ async function loadChristmasEventDataInTab() {
             const result = await response.json();
             if (result.code === 200) {
                 // 更新标签内容
-                document.querySelector('#christmas-tab .bg-dark').innerHTML = `
-                    <h3><i class="fas fa-gift me-2"></i>圣诞特别活动</h3>
-                    <p class="mb-3">参与圣诞活动，赢取限量版徽章和丰厚奖励</p>
-                    <a href="/christmas-event" class="btn btn-warning">立即参与</a>
+                document.querySelector('#newyear-tab .bg-dark').innerHTML = `
+                    <h3><i class="fas fa-fire me-2"></i>新年特别活动</h3>
+                    <p class="mb-3">参与新年活动，赢取限量版徽章和丰厚奖励</p>
+                    <a href="/newyear-event" class="btn btn-warning">立即参与</a>
                 `;
             }
         }
     } catch (error) {
-        console.error('加载圣诞活动数据失败:', error);
+        console.error('加载新年活动数据失败:', error);
     }
 }
 
-// 加载圣诞活动详情
-async function loadChristmasEventDetails() {
+// 加载新年活动详情
+async function loadNewYearEventDetails() {
     try {
         // 显示加载指示器
         showLoadingIndicator();
@@ -908,12 +908,12 @@ async function loadChristmasEventDetails() {
         
         // 并行加载活动和徽章数据
         const [activitiesResponse, badgesResponse] = await Promise.all([
-            fetch('/api/christmas/activities', {
+            fetch('/api/newyear/activities', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             }),
-            fetch('/api/christmas/badges', {
+            fetch('/api/newyear/badges', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -926,7 +926,7 @@ async function loadChristmasEventDetails() {
             
             if (activitiesResult.code === 200 && badgesResult.code === 200) {
                 // 显示活动详情模态框
-                showChristmasEventModal(activitiesResult.data, badgesResult.data);
+                showNewYearEventModal(activitiesResult.data, badgesResult.data);
             } else {
                 hideLoadingIndicator();
                 alert('获取活动数据失败');
@@ -937,7 +937,7 @@ async function loadChristmasEventDetails() {
         }
     } catch (error) {
         hideLoadingIndicator();
-        console.error('加载圣诞活动详情失败:', error);
+        console.error('加载新年活动详情失败:', error);
         alert('加载失败，请检查网络连接');
     }
 }
@@ -971,24 +971,24 @@ function hideLoadingIndicator() {
     }
 }
 
-// 显示圣诞活动详情模态框
-function showChristmasEventModal(activities, badges) {
+// 显示新年活动详情模态框
+function showNewYearEventModal(activities, badges) {
     hideLoadingIndicator();
     
     // 构造模态框HTML
     const modalHtml = `
-        <div class="modal fade" id="christmasEventModal" tabindex="-1" aria-hidden="true">
+        <div class="modal fade" id="newyearEventModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-xl">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title"><i class="fas fa-gift me-2"></i>圣诞特别活动</h5>
+                        <h5 class="modal-title"><i class="fas fa-fire me-2"></i>新年特别活动</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div class="container-fluid">
                             <div class="row">
                                 <div class="col-12">
-                                    <h4>🎄 活动任务</h4>
+                                    <h4>🎉 活动任务</h4>
                                     <div class="row" id="activitiesContainer">
                                         ${activities.map(activity => `
                                             <div class="col-md-6 col-lg-4 mb-3">
@@ -1015,7 +1015,7 @@ function showChristmasEventModal(activities, badges) {
                                 </div>
                                 
                                 <div class="col-12 mt-4">
-                                    <h4>🏅 圣诞徽章</h4>
+                                    <h4>🏅 新年徽章</h4>
                                     <div class="row" id="badgesContainer">
                                         ${badges.map(badge => `
                                             <div class="col-md-6 col-lg-3 mb-3">
@@ -1045,7 +1045,7 @@ function showChristmasEventModal(activities, badges) {
     `;
     
     // 添加到页面
-    let modalElement = document.getElementById('christmasEventModal');
+    let modalElement = document.getElementById('newyearEventModal');
     if (modalElement) {
         modalElement.remove();
     }
@@ -1055,19 +1055,19 @@ function showChristmasEventModal(activities, badges) {
     document.body.appendChild(modalContainer);
     
     // 显示模态框
-    const modal = new bootstrap.Modal(document.getElementById('christmasEventModal'));
+    const modal = new bootstrap.Modal(document.getElementById('newyearEventModal'));
     modal.show();
     
     // 模态框关闭时清理
-    document.getElementById('christmasEventModal').addEventListener('hidden.bs.modal', function () {
+    document.getElementById('newyearEventModal').addEventListener('hidden.bs.modal', function () {
         this.remove();
     });
 }
 
-// 检查并显示圣诞活动横幅
-function checkChristmasBanner() {
-    // 总是显示圣诞活动横幅（根据实际需求可以添加日期判断）
-    const banner = document.getElementById('christmasEventBanner');
+// 检查并显示新年活动横幅
+function checkNewYearBanner() {
+    // 总是显示新年活动横幅（根据实际需求可以添加日期判断）
+    const banner = document.getElementById('newyearEventBanner');
     if (banner) {
         banner.classList.remove('d-none');
     }
