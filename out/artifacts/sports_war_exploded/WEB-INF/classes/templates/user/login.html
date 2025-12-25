@@ -3,174 +3,132 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>用户登录 - 运动健康管理系统</title>
+  <title>健康登录 - 运动健康管理系统</title>
   <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
   <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
   <style>
     :root {
-      --primary-color: #4361ee;
-      --secondary-color: #3f37c9;
-      --accent-color: #4cc9f0;
-      --light-color: #f8f9fa;
-      --dark-color: #212529;
+      --health-green:#4caf50;
+      --deep-green: #00b09b;
+      --white: #ffffff;
     }
-    
+
+    /* ===== 你的背景图 + 薄荷绿渐变兜底 ===== */
     body {
-      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #4af7f1 0%, #ffffff 100%);
       min-height: 100vh;
+      margin: 0;
       display: flex;
       align-items: center;
-      padding: 20px 0;
+      background:
+              url('/static/images/loginimage/lvseone.jpg') center/cover no-repeat, /* 换成你的图片路径 */
+              linear-gradient(135deg, var(--health-green) 0%, var(--deep-green) 100%);
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
     }
-    
+
+    /* 登录卡片：纯白不透 */
     .login-container {
       width: 100%;
       max-width: 450px;
       margin: 0 auto;
     }
-    
     .login-card {
-      border-radius: 15px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-      border: none;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+      border: 2px solid var(--health-green);
       overflow: hidden;
+      background: var(--white); /* 纯白 */
     }
-    
+
+    /* 头部：薄荷绿底 + 白字 */
     .login-header {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
+      background: var(--health-green); /* 与按钮同色 */
+      color: var(--white);
       padding: 30px;
       text-align: center;
+      letter-spacing: 2px;
     }
-    
+    .login-header h2 { font-weight: 700; margin-top: 8px; }
+
+    /* 身体：纯白 */
     .login-body {
+      background: var(--white);
       padding: 30px;
-      background: white;
     }
-    
-    .form-control {
+
+    /* 输入框：薄荷绿边框 */
+    .form-control, .input-group-text {
       border-radius: 8px;
-      padding: 12px 15px;
-      border: 1px solid #e1e5eb;
-      transition: all 0.3s ease;
+      border: 1px solid var(--health-green);
+      background: var(--white);
     }
-    
     .form-control:focus {
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+      border-color: var(--deep-green);
+      box-shadow: 0 0 0 .2rem rgba(0,176,155,.25);
     }
-    
-    .input-group-text {
-      background: #f8f9fa;
-      border-color: #e1e5eb;
-      border-radius: 8px 0 0 8px;
-    }
-    
+
+    /* 按钮：薄荷绿 */
     .btn-login {
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      background: var(--health-green);
+      color: #fff;
       border: none;
       border-radius: 8px;
       padding: 12px;
-      font-weight: 600;
-      transition: all 0.3s ease;
+      font-weight: 700;
+      transition: all .3s ease;
     }
-    
     .btn-login:hover {
-      background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+      background: var(--deep-green);
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+      box-shadow: 0 5px 15px rgba(0,176,155,.4);
     }
-    
-    .captcha-group {
-      display: flex;
-      gap: 10px;
-    }
-    
-    .captcha-group img {
-      border-radius: 8px;
-      cursor: pointer;
-      border: 1px solid #e1e5eb;
-      transition: transform 0.2s ease;
-    }
-    
-    .captcha-group img:hover {
-      transform: scale(1.05);
-    }
-    
-    .alert {
-      border-radius: 8px;
-    }
-    
-    .form-check-input:checked {
-      background-color: var(--primary-color);
-      border-color: var(--primary-color);
-    }
-    
-    .links {
-      text-align: center;
-      margin-top: 20px;
-    }
-    
-    .links a {
-      color: var(--primary-color);
-      text-decoration: none;
-      font-weight: 500;
-      transition: color 0.3s ease;
-    }
-    
-    .links a:hover {
-      color: var(--secondary-color);
-      text-decoration: underline;
-    }
+
+    /* 链接：薄荷绿 */
+    .links a { color: var(--health-green); font-weight: 500; }
+    .links a:hover { color: var(--deep-green); }
+
+    /* 验证码图片圆角 */
+    #captchaImg { border-radius: 8px; cursor: pointer; }
   </style>
 </head>
 <body>
-<div id="alert-container" class="position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
-
 <div class="login-container">
   <div class="login-card">
     <div class="login-header">
-      <h2><i class="fas fa-user me-2"></i>用户登录</h2>
+      <!-- 小人图标放在标题上方 -->
+      <i class="fas fa-user fa-2x mb-2"></i>
+      <h2>用户登录</h2>
       <p class="mb-0">欢迎回来，请登录您的账户</p>
     </div>
     <div class="login-body">
       <form id="loginForm">
-        <div class="mb-4">
+        <div class="mb-3">
           <label for="username" class="form-label">用户名</label>
           <div class="input-group">
             <span class="input-group-text"><i class="fas fa-user"></i></span>
-            <input type="text" class="form-control" id="username" name="username" required autocomplete="username" placeholder="请输入用户名">
+            <input type="text" class="form-control" id="username" name="username" required placeholder="请输入用户名">
           </div>
         </div>
-        
-        <div class="mb-4">
+        <div class="mb-3">
           <label for="password" class="form-label">密码</label>
           <div class="input-group">
             <span class="input-group-text"><i class="fas fa-lock"></i></span>
-            <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password" placeholder="请输入密码">
+            <input type="password" class="form-control" id="password" name="password" required placeholder="请输入密码">
           </div>
         </div>
-        
-        <div class="mb-4">
+        <div class="mb-3">
           <label for="captcha" class="form-label">验证码</label>
-          <div class="captcha-group">
+          <div class="input-group">
             <input type="text" class="form-control" id="captcha" name="captcha" required placeholder="请输入验证码">
-            <img id="captchaImg" alt="验证码" title="点击刷新验证码" style="height: 40px;">
+            <img src="/api/common/captcha" id="captchaImg" class="input-group-text" style="height: 40px;" title="点击刷新">
           </div>
         </div>
-        
-        <div class="mb-4 form-check">
+        <div class="mb-3 form-check">
           <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
           <label class="form-check-label" for="rememberMe">记住我</label>
         </div>
-        
-        <button type="submit" class="btn btn-login w-100">
-          <i class="fas fa-sign-in-alt me-2"></i>登录
-        </button>
+        <button type="submit" class="btn btn-login w-100">登录</button>
       </form>
-      
-      <div class="links">
+      <div class="links text-center mt-3">
         <p class="mb-2">还没有账户？<a href="/register">立即注册</a></p>
         <p class="mb-0"><a href="/">返回首页</a></p>
       </div>
@@ -181,79 +139,28 @@
 <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
 <script src="/js/common.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
+  document.addEventListener('DOMContentLoaded', () => {
     const captchaImg = document.getElementById('captchaImg');
+    captchaImg.addEventListener('click', () => captchaImg.src = '/api/common/captcha?t=' + Date.now());
 
-    // 初始化验证码
-    refreshCaptcha();
-
-    // 验证码点击刷新
-    if (captchaImg) {
-      captchaImg.addEventListener('click', refreshCaptcha);
-    }
-
-    // 表单提交处理
-    if (loginForm) {
-      loginForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const captcha = document.getElementById('captcha').value;
-        const rememberMe = document.getElementById('rememberMe').checked;
-
-        // 简单前端验证
-        if (!username || !password || !captcha) {
-          CommonUtils.showAlert('请填写完整信息', 'error');
-          return;
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      if(!data.username || !data.password || !data.captcha) return CommonUtils.showAlert('请填写完整信息','error');
+      try{
+        const res = await fetch('/api/user/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+        const json = await res.json();
+        if(json.code===200){
+          (data.rememberMe? localStorage : sessionStorage).setItem('accessToken',json.data.token);
+          location.href='/';
+        }else{
+          CommonUtils.showAlert(json.message||'登录失败','error');
+          captchaImg.click();
         }
-
-        try {
-          const response = await fetch('/api/user/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              username,
-              password,
-              captcha
-            })
-          });
-
-          const result = await response.json();
-
-          if (result.code === 200) {
-            // 存储token
-            if (result.data && result.data.token) {
-              if (rememberMe) {
-                CommonUtils.storage.set('accessToken', result.data.token);
-              } else {
-                sessionStorage.setItem('accessToken', result.data.token);
-              }
-            }
-
-            // 登录成功后跳转到首页而不是仪表板
-            window.location.href = '/';
-          } else {
-            CommonUtils.showAlert(result.message || '登录失败', 'error');
-            refreshCaptcha();
-          }
-        } catch (error) {
-          console.error('登录错误:', error);
-          CommonUtils.showAlert('网络错误，请稍后重试', 'error');
-        }
-      });
-    }
-
-    //刷新验证码
-    function refreshCaptcha() {
-      const captchaImage = document.getElementById('captchaImg');
-      if (captchaImage) {
-        captchaImage.src = '/api/common/captcha?t=' + new Date().getTime();
+      }catch(err){
+        CommonUtils.showAlert('网络错误','error');
       }
-    }
+    });
   });
 </script>
 </body>

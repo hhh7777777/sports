@@ -318,6 +318,11 @@ public class BadgeServiceImpl implements BadgeService {
     }
 
     @Override
+    public List<Badge> getChristmasBadges() {
+        return List.of();
+    }
+
+    @Override
     public ResponseDTO addBadge(BadgeDTO badgeDTO) {
         try {
             // 参数校验

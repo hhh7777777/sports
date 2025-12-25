@@ -106,9 +106,7 @@ public interface BadgeService {
      */
     ResponseDTO autoGrantBadgesBasedOnBehavior(Integer userId);
     
-    // 根据徽章类型获取徽章
-    List<Badge> getBadgesByType(String badgeType);
-    
+
     // 获取圣诞限定徽章
     List<Badge> getChristmasBadges();
 }

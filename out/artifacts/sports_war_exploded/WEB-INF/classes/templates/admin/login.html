@@ -7,75 +7,125 @@
     <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
     <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
     <style>
-        .admin-login-container {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        :root {
+            --health-green:#4caf50;
+            --deep-green: #00b09b;
+            --white: #ffffff;
+        }
+
+        body {
             min-height: 100vh;
+            margin: 0;
             display: flex;
             align-items: center;
+            background: linear-gradient(135deg, var(--health-green) 0%, var(--deep-green) 100%);
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
         }
-        .admin-login-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+        /* 登录卡片 */
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
         }
-        .admin-login-header {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-            border-radius: 10px 10px 0 0;
-            padding: 1.5rem;
+        .login-card {
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.25);
+            border: 2px solid var(--health-green);
+            overflow: hidden;
+            background: var(--white); /* 纯白 */
         }
+
+
+        .login-header {
+            background: var(--health-green); /* 与按钮同色 */
+            color: var(--white);
+            padding: 30px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+        .login-header h2 { font-weight: 700; margin-top: 8px; }
+
+        /* 登录表单 */
+        .login-body {
+            background: var(--white);
+            padding: 30px;
+        }
+
+        /* 输入框：薄荷绿边框 */
+        .form-control, .input-group-text {
+            border-radius: 8px;
+            border: 1px solid var(--health-green);
+            background: var(--white);
+        }
+        .form-control:focus {
+            border-color: var(--deep-green);
+            box-shadow: 0 0 0 .2rem rgba(0,176,155,.25);
+        }
+
+        /* 按钮：薄荷绿 */
+        .btn-login {
+            background: var(--health-green);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 700;
+            transition: all .3s ease;
+        }
+        .btn-login:hover {
+            background: var(--deep-green);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,176,155,.4);
+        }
+
+        /* 链接：薄荷绿 */
+        .links a { color: var(--health-green); font-weight: 500; }
+        .links a:hover { color: var(--deep-green); }
+
+        /* 验证码图片圆角 */
+        #adminCaptchaImg { border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
-<div class="admin-login-container">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-5">
-                <div class="admin-login-card">
-                    <div class="admin-login-header text-center">
-                        <h3><i class="fas fa-user-shield me-2"></i>管理员登录</h3>
-                        <p class="mb-0">请使用管理员账号登录</p>
-                    </div>
-                    <div class="card-body p-4">
-                        <form id="adminLoginForm">
-                            <div class="mb-3">
-                                <label for="adminUsername" class="form-label">管理员账号</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
-                                    <input type="text" class="form-control" id="adminUsername" required autocomplete="username">
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="adminPassword" class="form-label">密码</label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                    <input type="password" class="form-control" id="adminPassword" required autocomplete="current-password">
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="adminCaptcha" class="form-label">验证码</label>
-                                <div class="row g-2">
-                                    <div class="col-8">
-                                        <input type="text" class="form-control" id="adminCaptcha" required>
-                                    </div>
-                                    <div class="col-4">
-                                        <img src="/api/common/captcha" id="adminCaptchaImg" class="img-fluid rounded" style="cursor: pointer;">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="adminRememberMe">
-                                <label class="form-check-label" for="adminRememberMe">记住我</label>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100 py-2">
-                                <i class="fas fa-sign-in-alt me-2"></i>登录
-                            </button>
-                        </form>
-                        <div class="text-center mt-3">
-                            <a href="/login" class="text-decoration-none">返回用户登录</a>
-                        </div>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <i class="fas fa-user-shield fa-2x mb-2"></i>
+            <h2>管理员登录</h2>
+            <p class="mb-0">请使用管理员账号登录</p>
+        </div>
+        <div class="login-body">
+            <form id="adminLoginForm">
+                <div class="mb-3">
+                    <label for="adminUsername" class="form-label">管理员账号</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-user-tie"></i></span>
+                        <input type="text" class="form-control" id="adminUsername" required placeholder="请输入管理员账号">
                     </div>
                 </div>
+                <div class="mb-3">
+                    <label for="adminPassword" class="form-label">密码</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        <input type="password" class="form-control" id="adminPassword" required placeholder="请输入密码">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="adminCaptcha" class="form-label">验证码</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="adminCaptcha" required placeholder="请输入验证码">
+                        <img src="/api/common/captcha" id="adminCaptchaImg" class="input-group-text" style="height: 40px;" title="点击刷新">
+                    </div>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="adminRememberMe">
+                    <label class="form-check-label" for="adminRememberMe">记住我</label>
+                </div>
+                <button type="submit" class="btn btn-login w-100">登录</button>
+            </form>
+            <div class="links text-center mt-3">
+                <p class="mb-2"><a href="/login">返回用户登录</a></p>
             </div>
         </div>
     </div>

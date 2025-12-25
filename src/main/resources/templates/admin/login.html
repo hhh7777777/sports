@@ -13,15 +13,15 @@
             --white: #ffffff;
         }
 
-        /* ===== 你的背景图 + 薄荷绿渐变兜底 ===== */
+        /* ===== 使用指定的背景图片 + 薄荷绿渐变兜底 ===== */
         body {
             min-height: 100vh;
             margin: 0;
             display: flex;
             align-items: center;
-            background:
-                    url('/static/images/loginimage/lvseone.jpg') center/cover no-repeat, /* 换成你的图片路径 */
-                    linear-gradient(135deg, var(--health-green) 0%, var(--deep-green) 100%);
+            background: 
+                url('/static/images/loginimage/lvseone.jpg') center/cover no-repeat, /* 指定的背景图片 */
+                linear-gradient(135deg, var(--health-green) 0%, var(--deep-green) 100%);
             font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
         }
 
@@ -87,7 +87,7 @@
         .links a:hover { color: var(--deep-green); }
 
         /* 验证码图片圆角 */
-        #captchaImg { border-radius: 8px; cursor: pointer; }
+        #adminCaptchaImg { border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -129,7 +129,7 @@
                 <button type="submit" class="btn btn-login w-100">登录</button>
             </form>
             <div class="links text-center mt-3">
-                <p class="mb-2"><a href="/login">返回用户登录</a></</p>
+                <p class="mb-2"><a href="/login">返回用户登录</a></p>
             </div>
         </div>
     </div>
