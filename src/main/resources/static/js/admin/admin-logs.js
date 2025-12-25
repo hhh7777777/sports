@@ -120,7 +120,7 @@ function renderLogs(data) {
     
     logs.forEach(log => {
         const row = document.createElement('tr');
-        // 注意：AdminLog实体类中没有logLevel和module字段，需要使用对应的字段
+        // AdminLog实体类中的字段
         row.innerHTML = `
             <td>${log.operationTime ? new Date(log.operationTime).toLocaleString() : ''}</td>
             <td>${getLogLevelBadge(log.operation)}</td>
@@ -137,7 +137,7 @@ function renderLogs(data) {
 
 function getLogLevelBadge(operation) {
     // 根据操作类型简单判断日志级别
-    if (operation) {
+    if (operation && typeof operation === 'string') {
         if (operation.includes('删除') || operation.includes('错误') || operation.includes('失败')) {
             return '<span class="log-level-error">ERROR</span>';
         } else if (operation.includes('警告') || operation.includes('注意')) {

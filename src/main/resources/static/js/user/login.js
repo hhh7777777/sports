@@ -51,8 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
 
-                    // 跳转到首页
-                    window.location.href = '/dashboard';
+                    // 根据项目规范，登录成功后应返回首页而不是仪表板
+                    window.location.href = '/';
                 } else {
                     showAlert(result.message || '登录失败', 'danger');
                     refreshCaptcha();

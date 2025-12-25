@@ -6,15 +6,16 @@ import com.hongyuting.sports.entity.Badge;
 import com.hongyuting.sports.entity.UserBadge;
 import com.hongyuting.sports.service.BadgeService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/badge")
 @RequiredArgsConstructor
+@Slf4j
 public class BadgeController {
     /**
      * 徽章服务
@@ -73,9 +74,44 @@ public class BadgeController {
      */
     @GetMapping("/my-achievements")
     public ResponseDTO getMyAchievements(@RequestAttribute Integer userId) {
-        List<Badge> achievements = badgeService.getUserAchievements(userId);
-        // 将Badge转换为UserBadge格式的DTO，这里我们直接返回Badge信息
-        return ResponseDTO.success("获取成功", achievements);
+        try {
+            // 获取用户已获得的徽章
+            List<Badge> userBadges = badgeService.getUserAchievements(userId);
+            
+            // 获取所有徽章
+            List<Badge> allBadges = badgeService.getAllBadges();
+            
+            // 创建一个映射，便于查找用户获得的徽章
+            Set<Integer> userBadgeIds = userBadges.stream()
+                    .map(Badge::getBadgeId)
+                    .collect(Collectors.toSet());
+            
+            // 构建徽章列表，标记哪些是用户已获得的
+            List<Map<String, Object>> badgeList = new ArrayList<>();
+            for (Badge badge : allBadges) {
+                Map<String, Object> badgeInfo = new HashMap<>();
+                badgeInfo.put("badgeId", badge.getBadgeId());
+                badgeInfo.put("badgeName", badge.getBadgeName());
+                badgeInfo.put("description", badge.getDescription());
+                badgeInfo.put("iconUrl", badge.getIconUrl());
+                badgeInfo.put("level", badge.getLevel());
+                badgeInfo.put("rewardPoints", badge.getRewardPoints());
+                badgeInfo.put("status", badge.getStatus());
+                badgeInfo.put("badgeType", badge.getBadgeType());
+                
+                // 判断用户是否已获得该徽章
+                boolean achieved = userBadgeIds.contains(badge.getBadgeId());
+                badgeInfo.put("achieved", achieved);
+                badgeInfo.put("progress", achieved ? 100 : 0); // 如果已获得则进度为100，否则为0
+                
+                badgeList.add(badgeInfo);
+            }
+            
+            return ResponseDTO.success("获取成功", badgeList);
+        } catch (Exception e) {
+            log.error("获取用户成就异常，用户ID: {}", userId, e);
+            return ResponseDTO.error("获取用户成就异常: " + e.getMessage());
+        }
     }
 
     /**

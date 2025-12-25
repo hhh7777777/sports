@@ -287,7 +287,7 @@ public class UserController {
             List<Badge> allBadges = badgeService.getAllBadges();
             
             // 创建一个映射，便于查找用户获得的徽章
-            Map<Integer, UserAchievement> userBadgeMap = userAchievements.stream()
+            Map<Integer, UserAchievement> userAchievementMap = userAchievements.stream()
                     .collect(Collectors.toMap(UserAchievement::getBadgeId, Function.identity()));
             
             // 构建徽章列表，标记哪些是用户已获得的
@@ -304,7 +304,7 @@ public class UserController {
                 badgeInfo.put("badgeType", badge.getBadgeType());
                 
                 // 判断用户是否已获得该徽章
-                UserAchievement userAchievement = userBadgeMap.get(badge.getBadgeId());
+                UserAchievement userAchievement = userAchievementMap.get(badge.getBadgeId());
                 if (userAchievement != null) {
                     badgeInfo.put("achieved", true);
                     badgeInfo.put("progress", userAchievement.getProgress());

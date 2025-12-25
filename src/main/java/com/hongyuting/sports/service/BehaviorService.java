@@ -115,4 +115,24 @@ public interface BehaviorService {
      * 获取所有行为记录
      */
     List<Behavior> getAllBehaviors();
+    
+    /**
+     * 根据类型ID获取行为记录
+     */
+    List<Behavior> getBehaviorRecordsByType(Integer typeId);
+    
+    /**
+     * 根据用户ID和类型ID获取行为记录
+     */
+    List<Behavior> getBehaviorRecordsByUserAndType(Integer userId, Integer typeId);
+    
+    /**
+     * 根据类型ID和日期范围获取行为记录
+     */
+    List<Behavior> getBehaviorRecordsByTypeAndDate(Integer typeId, LocalDate startDate, LocalDate endDate);
+    
+    /**
+     * 根据用户ID、类型ID和日期范围获取行为记录
+     */
+    List<Behavior> getBehaviorRecordsByUserTypeAndDate(Integer userId, Integer typeId, LocalDate startDate, LocalDate endDate);
 }

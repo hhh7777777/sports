@@ -95,4 +95,29 @@ public interface BehaviorMapper {
      * 删除行为类型
      */
     int deleteBehaviorType(@Param("typeId") Integer typeId);
+    
+    /**
+     * 根据类型ID查询行为记录
+     */
+    List<Behavior> selectBehaviorRecordsByTypeId(@Param("typeId") Integer typeId);
+    
+    /**
+     * 根据用户ID和类型ID查询行为记录
+     */
+    List<Behavior> selectBehaviorRecordsByUserAndTypeId(@Param("userId") Integer userId, @Param("typeId") Integer typeId);
+    
+    /**
+     * 根据类型ID和日期查询行为记录
+     */
+    List<Behavior> selectBehaviorRecordsByTypeAndDate(@Param("typeId") Integer typeId,
+                                                     @Param("startDate") LocalDate startDate,
+                                                     @Param("endDate") LocalDate endDate);
+    
+    /**
+     * 根据用户ID、类型ID和日期查询行为记录
+     */
+    List<Behavior> selectBehaviorRecordsByUserTypeAndDate(@Param("userId") Integer userId,
+                                                         @Param("typeId") Integer typeId,
+                                                         @Param("startDate") LocalDate startDate,
+                                                         @Param("endDate") LocalDate endDate);
 }

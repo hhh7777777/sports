@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // 检查用户是否已登录
-    AuthUtils.checkAuth();
+    CommonUtils.checkUserAuth();
     
     // 绑定表单提交事件
     const profileForm = document.getElementById('profileForm');
@@ -124,7 +124,7 @@ async function loadUserProfile() {
         }
         
         // 获取真实统计数据
-        const userId = getUserIdFromToken(token);
+        const userId = CommonUtils.getUserIdFromToken(token);
         
         // 获取本月运动统计
         const startDate = new Date();

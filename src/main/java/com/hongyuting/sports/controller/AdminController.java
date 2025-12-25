@@ -24,10 +24,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.LocalDateTime;import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.util.StringUtils;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -172,10 +175,46 @@ public class AdminController {
             @RequestParam(required = false) Integer adminId,
             @RequestParam(required = false) String operation,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
 
-        List<AdminLog> logs = adminService.getAdminLogs(adminId, operation, startTime, endTime);
-        return ResponseDTO.success("获取成功", logs);
+        List<AdminLog> allLogs = adminService.getAdminLogs(adminId, operation, startTime, endTime);
+        
+        if (allLogs == null) {
+            allLogs = new ArrayList<>();
+        }
+        
+        // 计算总记录数
+        int totalCount = allLogs.size();
+        
+        // 计算总页数
+        int totalPages = (int) Math.ceil((double) totalCount / size);
+        
+        // 计算起始索引
+        int startIndex = (page - 1) * size;
+        if (startIndex >= totalCount) {
+            startIndex = 0;
+            page = 1;
+        }
+        
+        // 计算结束索引
+        int endIndex = Math.min(startIndex + size, totalCount);
+        
+        // 获取当前页数据
+        List<AdminLog> pagedLogs = new ArrayList<>();
+        if (startIndex < endIndex) {
+            pagedLogs = allLogs.subList(startIndex, endIndex);
+        }
+        
+        // 构造分页结果
+        Map<String, Object> result = new HashMap<>();
+        result.put("logs", pagedLogs);
+        result.put("currentPage", page);
+        result.put("totalPages", totalPages);
+        result.put("totalCount", totalCount);
+        
+        return ResponseDTO.success("获取成功", result);
     }
 
     /**
@@ -330,6 +369,60 @@ public class AdminController {
     }
 
     /**
+     * 根据条件获取行为记录
+     */
+    @GetMapping("/behaviors")
+    public ResponseDTO getBehaviorsByCondition(@RequestParam(required = false) Integer userId,
+                                             @RequestParam(required = false) Integer typeId,
+                                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        try {
+            List<Behavior> behaviors = List.of();
+            
+            // 根据不同条件组合查询数据
+            if (startDate != null && endDate != null) {
+                if (userId != null && typeId != null) {
+                    // 按用户ID、类型ID和日期范围查询
+                    behaviors = behaviorService.getBehaviorRecordsByUserTypeAndDate(userId, typeId, startDate, endDate);
+                } else if (userId != null) {
+                    // 按用户ID和日期范围查询
+                    behaviors = behaviorService.getBehaviorRecordsByUserAndDate(userId, startDate, endDate);
+                } else if (typeId != null) {
+                    // 按类型ID和日期范围查询
+                    behaviors = behaviorService.getBehaviorRecordsByTypeAndDate(typeId, startDate, endDate);
+                } else {
+                    // 按日期范围查询
+                    behaviors = behaviorService.getBehaviorRecordsByDate(startDate, endDate);
+                }
+            } else if (userId != null && typeId != null) {
+                // 按用户ID和类型ID查询
+                behaviors = behaviorService.getBehaviorRecordsByUserAndType(userId, typeId);
+            } else if (userId != null) {
+                // 按用户ID查询
+                behaviors = behaviorService.getBehaviorRecordsByUser(userId);
+            } else if (typeId != null) {
+                // 按类型ID查询
+                behaviors = behaviorService.getBehaviorRecordsByType(typeId);
+            } else {
+                // 获取所有行为记录
+                behaviors = behaviorService.getAllBehaviors();
+            }
+            
+            return ResponseDTO.success("获取成功", behaviors);
+        } catch (Exception e) {
+            return ResponseDTO.error("获取行为记录失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 删除行为记录
+     */
+    @DeleteMapping("/behaviors/{recordId}")
+    public ResponseDTO deleteBehavior(@PathVariable Long recordId) {
+        return behaviorService.deleteBehaviorRecord(recordId);
+    }
+    
+    /**
      * 获取所有行为类型
      */
     @GetMapping("/behavior-types")
@@ -379,9 +472,46 @@ public class AdminController {
      * 获取所有徽章
      */
     @GetMapping("/badges")
-    public ResponseDTO getAllBadges() {
-        List<Badge> badges = badgeService.getAllBadges();
-        return ResponseDTO.success("获取成功", badges);
+    public ResponseDTO getAllBadges(@RequestParam(required = false) String badgeName,
+                                   @RequestParam(required = false) String badgeType) {
+        try {
+            List<Badge> badges;
+            if (StringUtils.hasText(badgeName) || StringUtils.hasText(badgeType)) {
+                // 如果提供了搜索条件，执行搜索
+                badges = searchBadges(badgeName, badgeType);
+            } else {
+                // 否则获取所有徽章
+                badges = badgeService.getAllBadges();
+            }
+            return ResponseDTO.success("获取成功", badges);
+        } catch (Exception e) {
+            return ResponseDTO.error("获取徽章失败: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * 根据条件搜索徽章
+     */
+    private List<Badge> searchBadges(String badgeName, String badgeType) {
+        List<Badge> result = new ArrayList<>();
+        
+        if (StringUtils.hasText(badgeName) && StringUtils.hasText(badgeType)) {
+            // 同时按名称和类型搜索
+            List<Badge> badgesByName = badgeService.getBadgesByName(badgeName);
+            if (badgesByName != null) {
+                result = badgesByName.stream()
+                        .filter(badge -> badgeType.equals(badge.getBadgeType()))
+                        .collect(Collectors.toList());
+            }
+        } else if (StringUtils.hasText(badgeName)) {
+            // 按名称搜索
+            result = badgeService.getBadgesByName(badgeName);
+        } else if (StringUtils.hasText(badgeType)) {
+            // 按类型搜索
+            result = badgeService.getBadgesByType(badgeType);
+        }
+        
+        return result != null ? result : new ArrayList<>();
     }
 
     /**
@@ -449,8 +579,17 @@ public class AdminController {
      * 获取所有用户列表
      */
     @GetMapping("/users")
-    public ResponseDTO getAllUsers() {
-        List<User> users = userService.getAllUsers();
+    public ResponseDTO getAllUsers(@RequestParam(required = false) String username,
+                                  @RequestParam(required = false) String email,
+                                  @RequestParam(required = false) Integer status) {
+        List<User> users;
+        if (StringUtils.hasText(username) || StringUtils.hasText(email) || status != null) {
+            // 如果提供了搜索条件，执行搜索
+            users = userService.searchUsers(username, email, status);
+        } else {
+            // 否则获取所有用户
+            users = userService.getAllUsers();
+        }
         return ResponseDTO.success("获取成功", users);
     }
     
@@ -465,5 +604,18 @@ public class AdminController {
         } else {
             return ResponseDTO.error("用户不存在");
         }
+    }
+    
+    /**
+     * 更新用户信息
+     */
+    @PutMapping("/users/{userId}")
+    public ResponseDTO updateUser(@PathVariable Integer userId, @RequestBody User user) {
+        if (userId == null || user.getUserId() == null || !userId.equals(user.getUserId())) {
+            return ResponseDTO.error("用户ID不匹配");
+        }
+        
+        user.setUserId(userId);
+        return userService.updateUserInfo(user);
     }
 }

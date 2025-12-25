@@ -434,4 +434,56 @@ public class BehaviorServiceImpl implements BehaviorService {
             return List.of();
         }
     }
+    
+    @Override
+    public List<Behavior> getBehaviorRecordsByType(Integer typeId) {
+        try {
+            if (typeId == null) {
+                return List.of();
+            }
+            return behaviorMapper.selectBehaviorRecordsByTypeId(typeId);
+        } catch (Exception e) {
+            log.error("根据类型ID获取行为记录异常: typeId={}", typeId, e);
+            return List.of();
+        }
+    }
+    
+    @Override
+    public List<Behavior> getBehaviorRecordsByUserAndType(Integer userId, Integer typeId) {
+        try {
+            if (userId == null || typeId == null) {
+                return List.of();
+            }
+            return behaviorMapper.selectBehaviorRecordsByUserAndTypeId(userId, typeId);
+        } catch (Exception e) {
+            log.error("根据用户ID和类型ID获取行为记录异常: userId={}, typeId={}", userId, typeId, e);
+            return List.of();
+        }
+    }
+    
+    @Override
+    public List<Behavior> getBehaviorRecordsByTypeAndDate(Integer typeId, LocalDate startDate, LocalDate endDate) {
+        try {
+            if (typeId == null || startDate == null || endDate == null) {
+                return List.of();
+            }
+            return behaviorMapper.selectBehaviorRecordsByTypeAndDate(typeId, startDate, endDate);
+        } catch (Exception e) {
+            log.error("根据类型ID和日期范围获取行为记录异常: typeId={}, startDate={}, endDate={}", typeId, startDate, endDate, e);
+            return List.of();
+        }
+    }
+    
+    @Override
+    public List<Behavior> getBehaviorRecordsByUserTypeAndDate(Integer userId, Integer typeId, LocalDate startDate, LocalDate endDate) {
+        try {
+            if (userId == null || typeId == null || startDate == null || endDate == null) {
+                return List.of();
+            }
+            return behaviorMapper.selectBehaviorRecordsByUserTypeAndDate(userId, typeId, startDate, endDate);
+        } catch (Exception e) {
+            log.error("根据用户ID、类型ID和日期范围获取行为记录异常: userId={}, typeId={}, startDate={}, endDate={}", userId, typeId, startDate, endDate, e);
+            return List.of();
+        }
+    }
 }
