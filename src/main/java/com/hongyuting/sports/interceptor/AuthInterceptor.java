@@ -60,7 +60,7 @@ public class AuthInterceptor implements HandlerInterceptor {
             }
 
             // 验证Token是否存在于Redis中
-            if (!adminService.existsToken(token)) {
+            if (adminService.existsToken(token)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().write("{\"code\":401,\"message\":\"认证令牌无效或已过期\"}");

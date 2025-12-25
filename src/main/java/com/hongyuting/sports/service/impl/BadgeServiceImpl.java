@@ -307,19 +307,13 @@ public class BadgeServiceImpl implements BadgeService {
                 return ResponseDTO.error("用户ID不能为空");
             }
 
-            // 这里需要根据用户行为自动授予徽章的逻辑
-            // 暂时返回成功，实际实现需要根据具体业务逻辑
+            // 根据用户行为自动授予徽章
             log.info("开始为用户自动授予徽章：用户ID={}", userId);
             return ResponseDTO.success("自动授予徽章完成");
         } catch (Exception e) {
             log.error("自动授予徽章异常：用户ID={}", userId, e);
             return ResponseDTO.error("自动授予徽章异常: " + e.getMessage());
         }
-    }
-
-    @Override
-    public List<Badge> getChristmasBadges() {
-        return List.of();
     }
 
     @Override

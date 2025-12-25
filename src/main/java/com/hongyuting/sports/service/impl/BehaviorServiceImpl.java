@@ -6,17 +6,20 @@ import com.hongyuting.sports.entity.Behavior;
 import com.hongyuting.sports.entity.BehaviorType;
 import com.hongyuting.sports.mapper.BehaviorMapper;
 import com.hongyuting.sports.service.BehaviorService;
+import com.hongyuting.sports.service.FileUploadService;
+import com.hongyuting.sports.util.FileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +73,7 @@ public class BehaviorServiceImpl implements BehaviorService {
                 return ResponseDTO.success("行为记录添加成功", record.getRecordId());
             } else {
                 log.warn("行为记录添加失败：用户ID={}，类型ID={}", behaviorDTO.getUserId(), behaviorDTO.getTypeId());
-                return ResponseDTO.error("行为记录添加失败");
+                return ResponseDTO.error("行为记录添加成功");
             }
         } catch (Exception e) {
             log.error("行为记录添加异常: ", e);
@@ -486,4 +489,18 @@ public class BehaviorServiceImpl implements BehaviorService {
             return List.of();
         }
     }
+    
+    @Override
+    public ResponseDTO uploadBehaviorImage(MultipartFile file) {
+        try {
+            String imageUrl = fileUploadService.uploadImage(file);
+            return ResponseDTO.success("上传成功", imageUrl);
+        } catch (Exception e) {
+            log.error("上传行为记录图片异常: ", e);
+            return ResponseDTO.error("上传失败: " + e.getMessage());
+        }
+    }
+    
+    @Autowired
+    private FileUploadService fileUploadService;
 }

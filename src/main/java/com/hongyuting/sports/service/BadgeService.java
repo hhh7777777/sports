@@ -105,8 +105,5 @@ public interface BadgeService {
      * 根据用户行为自动授予徽章
      */
     ResponseDTO autoGrantBadgesBasedOnBehavior(Integer userId);
-    
 
-    // 获取圣诞限定徽章
-    List<Badge> getChristmasBadges();
 }

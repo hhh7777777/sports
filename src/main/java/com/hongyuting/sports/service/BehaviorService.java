@@ -4,6 +4,7 @@ import com.hongyuting.sports.dto.BehaviorDTO;
 import com.hongyuting.sports.dto.ResponseDTO;
 import com.hongyuting.sports.entity.Behavior;
 import com.hongyuting.sports.entity.BehaviorType;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -38,12 +39,6 @@ public interface BehaviorService {
      * 根据用户ID获取行为记录
      */
     List<Behavior> getBehaviorRecordsByUser(Integer userId);
-
-    /**
-     * 根据用户ID和日期范围获取行为记录
-     */
-    List<Behavior> getBehaviorRecordsByUserAndDate(Integer userId, LocalDate startDate, LocalDate endDate);
-
     /**
      * 获取用户今日行为记录
      */
@@ -89,9 +84,7 @@ public interface BehaviorService {
      */
     int getTotalBehaviorRecords();
 
-    /**
-     * 根据类型和日期范围获取行为记录数量
-     */
+
     int getBehaviorCountByTypeAndDate(Integer typeId, LocalDate startDate, LocalDate endDate);
 
     /**
@@ -130,9 +123,18 @@ public interface BehaviorService {
      * 根据类型ID和日期范围获取行为记录
      */
     List<Behavior> getBehaviorRecordsByTypeAndDate(Integer typeId, LocalDate startDate, LocalDate endDate);
-    
+    /**
+     * 根据用户ID和日期范围获取行为记录数量
+     */
+    List<Behavior> getBehaviorRecordsByUserAndDate(Integer userId, LocalDate startDate, LocalDate endDate);
+
     /**
      * 根据用户ID、类型ID和日期范围获取行为记录
      */
     List<Behavior> getBehaviorRecordsByUserTypeAndDate(Integer userId, Integer typeId, LocalDate startDate, LocalDate endDate);
+    
+    /**
+     * 上传行为记录图片
+     */
+    ResponseDTO uploadBehaviorImage(MultipartFile file);
 }

@@ -1,0 +1,6 @@
+# OSS配置
+oss:
+  endpoint: ""
+  accessKeyId: ""
+  accessKeySecret: ""
+  bucketName: ""

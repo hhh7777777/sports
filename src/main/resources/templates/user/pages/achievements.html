@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的成就 - 运动健康管理系统</title>
+    <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
+    <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
+    <link href="/css/common/main.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4af7f1;
+            --secondary-color: #4af7f1;
+            --accent-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4ade80;
+            --warning-color: #facc15;
+            --danger-color: #f87171;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fb;
+        }
+        
+        .sidebar {
+            background: linear-gradient(180deg, #2c3e50, #1a2530);
+            min-height: calc(100vh - 56px);
+            box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar .nav-link {
+            color: #b8c7ce;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0;
+            border-left: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .badge-card {
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: none;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .badge-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .badge-icon {
+            font-size: 3rem;
+            margin: 1.5rem auto;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #f5f7fa, #e4e7f1);
+            overflow: hidden;
+        }
+        
+        .badge-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .badge-locked {
+            filter: grayscale(100%);
+            opacity: 0.6;
+        }
+        
+        .badge-locked .badge-icon {
+            background: linear-gradient(135deg, #e9ecef, #ced4da);
+        }
+        
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+        }
+        
+        .progress-bar {
+            border-radius: 5px;
+        }
+        
+        .nav-tabs .nav-link {
+            border: none;
+            color: #6c757d;
+            font-weight: 500;
+            padding: 12px 20px;
+            border-radius: 0;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            background: transparent;
+        }
+        
+        .nav-tabs {
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .user-dropdown img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 8px;
+        }
+        
+        .card-header {
+            background: white;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+        }
+        
+        /* 添加一些额外的响应式样式 */
+        @media (max-width: 768px) {
+            .sidebar {
+                min-height: auto;
+            }
+            
+            .badge-icon {
+                width: 80px;
+                height: 80px;
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 导航栏 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="fas fa-running me-2"></i>运动健康
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3">
+                    欢迎，<span id="userName">用户</span>
+                </span>
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle user-dropdown" href="#" role="button" data-bs-toggle="dropdown">
+                        <img src="/images/avatar.png" alt="用户头像" class="user-avatar">
+                        <span class="d-none d-md-inline">用户</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>个人资料</a></li>
+                        <li><a class="dropdown-item" href="/achievements"><i class="fas fa-trophy me-2"></i>我的成就</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- 侧边栏 -->
+        <nav class="col-md-3 col-lg-2 d-md-block sidebar">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="fas fa-tachometer-alt"></i>仪表板
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/behavior">
+                            <i class="fas fa-running"></i>运动记录
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/achievements">
+                            <i class="fas fa-trophy"></i>成就徽章
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">
+                            <i class="fas fa-user"></i>个人资料
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- 主内容区 -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+                <h1 class="h2 fw-bold text-dark">我的成就</h1>
+            </div>
+
+            <!-- 成就分类 -->
+            <ul class="nav nav-tabs mb-4" id="achievementTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
+                        全部成就
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="earned-tab" data-bs-toggle="tab" data-bs-target="#earned" type="button" role="tab">
+                        已获得
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="progress-tab" data-bs-toggle="tab" data-bs-target="#progress" type="button" role="tab">
+                        进行中
+                    </button>
+                </li>
+            </ul>
+
+            <!-- 成就内容 -->
+            <div class="tab-content" id="achievementTabContent">
+                <div class="tab-pane fade show active" id="all" role="tabpanel">
+                    <div class="row" id="allBadges">
+                        <!-- 动态内容将在这里加载 -->
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="earned" role="tabpanel">
+                    <div class="row" id="earnedBadges">
+                        <!-- 动态内容将在这里加载 -->
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="progress" role="tabpanel">
+                    <div class="row" id="progressBadges">
+                        <!-- 动态内容将在这里加载 -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
+<script src="/js/user/achievements.js"></script>
+</body>
+</html>

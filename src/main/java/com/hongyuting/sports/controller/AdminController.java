@@ -121,7 +121,7 @@ public class AdminController {
         }
 
         // 验证Token是否存在于Redis中
-        if (!adminService.existsToken(token)) {
+        if (adminService.existsToken(token)) {
             return ResponseDTO.error("认证令牌无效或已过期");
         }
 
