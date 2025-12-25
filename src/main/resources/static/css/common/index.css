@@ -56,7 +56,7 @@ body {
     margin-bottom: 1.5rem;
     transition: all 0.3s ease;
 }
-
+/* 卡片悬停样式 */
 .card:hover {
     transform: translateY(-5px);
     box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
@@ -71,24 +71,37 @@ body {
     cursor: pointer;
     height: 100%;
 }
-
+/* 徽章悬停样式 */
 .badge-card:hover {
-    transform: scale(1.05);
+    transform: translateY(-5px);
 }
-
+/* 徽章图标样式 */
 .badge-icon {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 1rem;
-    font-size: 2rem;
+    font-size: 1.2rem;
     color: white;
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
+/* 徽章图片样式 */
+.badge-img {
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    display: block !important;
+    margin: 0 auto !important;
+}
+/* 徽章锁定样式 */
 .badge-locked {
     filter: grayscale(1);
     opacity: 0.6;
@@ -114,7 +127,7 @@ body {
     width: 0;
     height: 0;
 }
-
+/* 滑块样式 */
 .slider {
     position: absolute;
     cursor: pointer;
@@ -158,8 +171,8 @@ input:checked + .slider:before {
     }
 
     .badge-icon {
-        width: 60px;
-        height: 60px;
-        font-size: 1.5rem;
+        width: 50px;
+        height: 50px;
+        font-size: 1rem;
     }
 }

@@ -48,8 +48,12 @@ function initializeAdminBadges() {
             });
         }
         
-        // 页面加载时获取徽章列表
-        loadBadges();
+        // 检查页面是否已由服务器渲染
+        const badgesContainer = document.getElementById('badgesContainer');
+        if (badgesContainer && badgesContainer.children.length === 0) {
+            // 如果容器为空，说明需要动态加载数据
+            loadBadges();
+        }
     } catch (error) {
         console.error('初始化管理员徽章管理功能时出错:', error);
         showAlert('初始化失败: ' + error.message, 'error');

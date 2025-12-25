@@ -1,5 +1,5 @@
 /**
- * 工具类，扩展CommonUtils的功能
+ * 工具类
  */
 class Utils extends CommonUtils {
     // 可以在这里添加项目特定的工具方法

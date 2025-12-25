@@ -125,22 +125,16 @@ async function loadAchievements(tabId) {
             userBadges = userBadgesResult.data || [];
         }
 
-        // 将用户徽章转换为便于查找的映射
-        const userBadgesMap = {};
-        userBadges.forEach(userBadge => {
-            userBadgesMap[userBadge.badgeId] = userBadge;
-        });
-
         // 合并徽章数据和用户进度数据
         const achievements = allBadges.map(badge => {
-            const userBadge = userBadgesMap[badge.badgeId];
+            const userBadge = userBadges.find(ub => ub.badgeId === badge.badgeId);
             return {
                 id: badge.badgeId,
                 name: badge.badgeName,
                 description: badge.description,
                 icon: badge.iconUrl || 'fa-medal',
                 color: getColorByLevel(badge.level),
-                earned: userBadge && userBadge.progress >= 100,
+                earned: userBadge && userBadge.achieved,
                 progress: userBadge ? userBadge.progress : 0,
                 earnedDate: userBadge && userBadge.achieveTime ? new Date(userBadge.achieveTime).toLocaleDateString() : null
             };

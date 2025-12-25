@@ -67,7 +67,7 @@
                     <i class="fas fa-user-circle"></i>
                 </a>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>个人资料</a></li>
+                    <li><a class="dropdown-item" href="/index"><i class="fas fa-home me-2"></i>回到首页</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="#" id="adminLogoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
                 </ul>
@@ -123,13 +123,24 @@
                     <form id="filterForm">
                         <div class="row">
                             <div class="col-md-3 mb-3">
-                                <label for="logLevel" class="form-label">日志级别</label>
-                                <select class="form-select" id="logLevel">
-                                    <option value="">全部</option>
-                                    <option value="error">错误</option>
-                                    <option value="warn">警告</option>
-                                    <option value="info">信息</option>
-                                    <option value="debug">调试</option>
+                                <label for="userType" class="form-label">用户类型</label>
+                                <select class="form-select" id="userType">
+                                    <option value="">全部用户类型</option>
+                                    <option value="ADMIN">管理员</option>
+                                    <option value="USER">普通用户</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="operationType" class="form-label">操作类型</label>
+                                <select class="form-select" id="operationType">
+                                    <option value="">全部操作类型</option>
+                                    <option value="LOGIN">登录</option>
+                                    <option value="CREATE">创建</option>
+                                    <option value="UPDATE">更新</option>
+                                    <option value="DELETE">删除</option>
+                                    <option value="READ">查看</option>
+                                    <option value="AUTH">认证</option>
+                                    <option value="OTHER">其他</option>
                                 </select>
                             </div>
                             <div class="col-md-3 mb-3">
@@ -140,9 +151,12 @@
                                 <label for="endDate" class="form-label">结束日期</label>
                                 <input type="text" class="form-control" id="endDate" placeholder="选择日期">
                             </div>
-                            <div class="col-md-3 mb-3 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary w-100">
+                            <div class="col-md-12 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
                                     <i class="fas fa-search me-1"></i>搜索
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="resetFilters()">
+                                    <i class="fas fa-redo me-1"></i>重置
                                 </button>
                             </div>
                         </div>
@@ -158,9 +172,10 @@
                             <thead>
                             <tr>
                                 <th>时间</th>
-                                <th>级别</th>
-                                <th>模块</th>
-                                <th>消息</th>
+                                <th>用户类型</th>
+                                <th>操作类型</th>
+                                <th>操作</th>
+                                <th>详情</th>
                                 <th>IP地址</th>
                             </tr>
                             </thead>
@@ -184,5 +199,17 @@
 <script src="/libs/flatpickr/flatpickr.min.js"></script>
 <script src="/libs/flatpickr/zh.js"></script>
 <script src="/js/admin/admin-logs.js"></script>
+
+<script>
+function resetFilters() {
+    document.getElementById('userType').value = '';
+    document.getElementById('operationType').value = '';
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    flatpickr("#startDate").clear();
+    flatpickr("#endDate").clear();
+    loadLogs(1); // 重置后重新加载第一页
+}
+</script>
 </body>
 </html>

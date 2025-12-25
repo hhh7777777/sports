@@ -1,167 +1,279 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>健康登录 - 运动健康管理系统</title>
-  <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
-  <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
-  <style>
-    :root {
-      --health-green:#4caf50;
-      --deep-green: #00b09b;
-      --white: #ffffff;
-    }
-
-    /* ===== 你的背景图 + 薄荷绿渐变兜底 ===== */
-    body {
-      min-height: 100vh;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      background:
-              url('/static/images/loginimage/liveone.jpg') center/cover no-repeat, /* 换成你的图片路径 */
-              linear-gradient(135deg, var(--health-green) 0%, var(--deep-green) 100%);
-      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
-    }
-
-    /* 登录卡片：纯白不透 */
-    .login-container {
-      width: 100%;
-      max-width: 450px;
-      margin: 0 auto;
-    }
-    .login-card {
-      border-radius: 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-      border: 2px solid var(--health-green);
-      overflow: hidden;
-      background: var(--white); /* 纯白 */
-    }
-
-    /* 头部：薄荷绿底 + 白字 */
-    .login-header {
-      background: var(--health-green); /* 与按钮同色 */
-      color: var(--white);
-      padding: 30px;
-      text-align: center;
-      letter-spacing: 2px;
-    }
-    .login-header h2 { font-weight: 700; margin-top: 8px; }
-
-    /* 身体：纯白 */
-    .login-body {
-      background: var(--white);
-      padding: 30px;
-    }
-
-    /* 输入框：薄荷绿边框 */
-    .form-control, .input-group-text {
-      border-radius: 8px;
-      border: 1px solid var(--health-green);
-      background: var(--white);
-    }
-    .form-control:focus {
-      border-color: var(--deep-green);
-      box-shadow: 0 0 0 .2rem rgba(0,176,155,.25);
-    }
-
-    /* 按钮：薄荷绿 */
-    .btn-login {
-      background: var(--health-green);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 12px;
-      font-weight: 700;
-      transition: all .3s ease;
-    }
-    .btn-login:hover {
-      background: var(--deep-green);
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,176,155,.4);
-    }
-
-    /* 链接：薄荷绿 */
-    .links a { color: var(--health-green); font-weight: 500; }
-    .links a:hover { color: var(--deep-green); }
-
-    /* 验证码图片圆角 */
-    #captchaImg { border-radius: 8px; cursor: pointer; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录 - 健康星球</title>
+    <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
+    <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00b09b;
+            --secondary-color: #96c93d;
+            --accent-color: #4af7f1;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4ade80;
+            --warning-color: #facc15;
+            --danger-color: #f87171;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            width: 100%;
+            max-width: 1000px;
+        }
+        
+        .login-left {
+            background: url('/static/images/loginimage/liveone.jpg') center/cover;
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .login-right {
+            padding: 40px;
+        }
+        
+        .login-logo {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .login-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .login-subtitle {
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-list i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .form-control {
+            border: 1px solid #e1e5eb;
+            border-radius: 8px;
+            padding: 12px 15px;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(0, 176, 155, 0.25);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        .alert {
+            border-radius: 8px;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e1e5eb;
+        }
+        
+        .divider span {
+            padding: 0 10px;
+            color: #6c757d;
+        }
+        
+        .captcha-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .captcha-input {
+            flex: 1;
+        }
+        
+        .captcha-image {
+            width: 100px;
+            height: 40px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-<div class="login-container">
-  <div class="login-card">
-    <div class="login-header">
-      <!-- 小人图标放在标题上方 -->
-      <i class="fas fa-user fa-2x mb-2"></i>
-      <h2>用户登录</h2>
-      <p class="mb-0">欢迎回来，请登录您的账户</p>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="login-container">
+                    <div class="row g-0">
+                        <div class="col-md-6 d-none d-md-block login-left">
+                            <div class="login-content">
+                                <div class="login-logo">
+                                    <i class="fas fa-running"></i>
+                                </div>
+                                <h2 class="login-title">健康星球</h2>
+                                <p class="login-subtitle">开启您的健康生活之旅</p>
+                                
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check-circle"></i> 记录您的运动数据</li>
+                                    <li><i class="fas fa-check-circle"></i> 获得专属成就徽章</li>
+                                    <li><i class="fas fa-check-circle"></i> 与朋友分享健康成果</li>
+                                    <li><i class="fas fa-check-circle"></i> 跟踪您的健康趋势</li>
+                                </ul>
+                                
+                                <div class="mt-4">
+                                    <p>还没有账号？ <a href="/register" class="text-white fw-bold">立即注册</a></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="login-right">
+                                <div class="text-center mb-5">
+                                    <div class="login-logo text-primary mb-3">
+                                        <i class="fas fa-user-lock fa-2x"></i>
+                                    </div>
+                                    <h3 class="fw-bold">用户登录</h3>
+                                    <p class="text-muted">请输入您的账户信息</p>
+                                </div>
+                                
+                                <form id="loginForm">
+                                    <div class="mb-3">
+                                        <label for="username" class="form-label">用户名</label>
+                                        <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label">密码</label>
+                                        <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="captcha" class="form-label">验证码</label>
+                                        <div class="captcha-container">
+                                            <input type="text" class="form-control captcha-input" id="captcha" name="captcha" placeholder="请输入验证码" required>
+                                            <img id="captchaImage" class="captcha-image" src="/api/common/captcha" alt="验证码" onclick="this.src='/api/common/captcha?d='+Math.random()">
+                                        </div>
+                                        <div class="form-text">点击图片刷新验证码</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="rememberMe">
+                                        <label class="form-check-label" for="rememberMe">记住我</label>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary w-100 mb-3">
+                                        <i class="fas fa-sign-in-alt me-2"></i>登录
+                                    </button>
+                                    
+                                    <div class="divider">
+                                        <span>或</span>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <button type="button" class="btn btn-outline-secondary">
+                                            <i class="fab fa-weixin me-2"></i>微信登录
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary">
+                                            <i class="fab fa-qq me-2"></i>QQ登录
+                                        </button>
+                                    </div>
+                                </form>
+                                
+                                <div class="text-center mt-4">
+                                    <p class="mb-2">忘记密码？ <a href="#" class="text-decoration-none">找回密码</a></p>
+                                    <p class="mb-0">还没有账号？ <a href="/register" class="text-decoration-none fw-bold">立即注册</a></p>
+                                </div>
+                                
+                                <!-- 消息提示区域 -->
+                                <div id="messageArea" class="mt-3" style="display: none;">
+                                    <div class="alert alert-success" id="successMessage" role="alert" style="display: none;">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span id="successText"></span>
+                                    </div>
+                                    <div class="alert alert-danger" id="errorMessage" role="alert" style="display: none;">
+                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                        <span id="errorText"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="login-body">
-      <form id="loginForm">
-        <div class="mb-3">
-          <label for="username" class="form-label">用户名</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="fas fa-user"></i></span>
-            <input type="text" class="form-control" id="username" name="username" required placeholder="请输入用户名">
-          </div>
-        </div>
-        <div class="mb-3">
-          <label for="password" class="form-label">密码</label>
-          <div class="input-group">
-            <span class="input-group-text"><i class="fas fa-lock"></i></span>
-            <input type="password" class="form-control" id="password" name="password" required placeholder="请输入密码">
-          </div>
-        </div>
-        <div class="mb-3">
-          <label for="captcha" class="form-label">验证码</label>
-          <div class="input-group">
-            <input type="text" class="form-control" id="captcha" name="captcha" required placeholder="请输入验证码">
-            <img src="/api/common/captcha" id="captchaImg" class="input-group-text" style="height: 40px;" title="点击刷新">
-          </div>
-        </div>
-        <div class="mb-3 form-check">
-          <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe">
-          <label class="form-check-label" for="rememberMe">记住我</label>
-        </div>
-        <button type="submit" class="btn btn-login w-100">登录</button>
-      </form>
-      <div class="links text-center mt-3">
-        <p class="mb-2">还没有账户？<a href="/register">立即注册</a></p>
-        <p class="mb-0"><a href="/static">返回首页</a></p>
-      </div>
-    </div>
-  </div>
-</div>
 
-<script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
-<script src="/js/modules/common.js"></script>
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const captchaImg = document.getElementById('captchaImg');
-    captchaImg.addEventListener('click', () => captchaImg.src = '/api/common/captcha?t=' + Date.now());
-
-    document.getElementById('loginForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const data = Object.fromEntries(new FormData(e.target).entries());
-      if(!data.username || !data.password || !data.captcha) return CommonUtils.showAlert('请填写完整信息','error');
-      try{
-        const res = await fetch('/api/user/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-        const json = await res.json();
-        if(json.code===200){
-          (data.rememberMe? localStorage : sessionStorage).setItem('accessToken',json.data.token);
-          location.href='/';
-        }else{
-          CommonUtils.showAlert(json.message||'登录失败','error');
-          captchaImg.click();
+    <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // 检查是否有错误消息
+        var errorMsg = /*[[${errorMsg}]]*/ null;
+        var successMsg = /*[[${successMsg}]]*/ null;
+        
+        if (errorMsg) {
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('errorText').textContent = errorMsg;
+            document.getElementById('messageArea').style.display = 'block';
         }
-      }catch(err){
-        CommonUtils.showAlert('网络错误','error');
-      }
-    });
-  });
-</script>
+        
+        if (successMsg) {
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('successText').textContent = successMsg;
+            document.getElementById('messageArea').style.display = 'block';
+        }
+        /*]]>*/
+    </script>
+    <script src="/js/modules/common.js"></script>
+    <script src="/js/user/login.js"></script>
 </body>
 </html>

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hongyuting.sports.mapper.UserMapper">
-    <resultMap id="userResultMap" type="User">
+
+    <resultMap id="userResultMap" type="com.hongyuting.sports.entity.User">
         <id property="userId" column="user_id"/>
         <result property="username" column="username"/>
         <result property="password" column="password"/>
@@ -19,12 +20,17 @@
         <result property="lastLoginTime" column="last_login_time"/>
     </resultMap>
 
-    <insert id="insertUser" parameterType="User" useGeneratedKeys="true" keyProperty="userId">
+    <!-- 继承BaseMapper的通用方法 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="userId">
         INSERT INTO user (username, password, email, salt, nickname, birthday, gender, height, weight, avatar, wx_openid, register_time, user_status)
         VALUES (#{username}, #{password}, #{email}, #{salt}, #{nickname}, #{birthday}, #{gender}, #{height}, #{weight}, #{avatar}, #{wxOpenid}, #{registerTime}, #{userStatus})
     </insert>
 
-    <update id="updateUser" parameterType="User">
+    <delete id="deleteById">
+        DELETE FROM user WHERE user_id = #{userId}
+    </delete>
+
+    <update id="updateById">
         UPDATE user
         <set>
             <if test="username != null and username != ''">username = #{username},</if>
@@ -45,20 +51,21 @@
         WHERE user_id = #{userId}
     </update>
 
-    <update id="updateUserAvatar">
-        UPDATE user SET avatar = #{avatar} WHERE user_id = #{userId}
-    </update>
-
-    <select id="selectUserById" resultMap="userResultMap">
+    <select id="selectById" resultMap="userResultMap">
         SELECT * FROM user WHERE user_id = #{userId}
     </select>
 
-    <select id="selectUserByUsername" resultMap="userResultMap">
-        SELECT * FROM user WHERE username = #{username}
+    <select id="selectAll" resultMap="userResultMap">
+        SELECT * FROM user ORDER BY register_time DESC
     </select>
 
-    <select id="selectAllUsers" resultMap="userResultMap">
-        SELECT * FROM user ORDER BY register_time DESC
+    <select id="selectTotalCount" resultType="int">
+        SELECT COUNT(*) FROM user
+    </select>
+
+    <!-- 特有方法 -->
+    <select id="selectByUsername" resultMap="userResultMap">
+        SELECT * FROM user WHERE username = #{username}
     </select>
 
     <select id="searchUsers" resultMap="userResultMap">
@@ -85,23 +92,22 @@
         SELECT COUNT(*) FROM user WHERE email = #{email}
     </select>
 
-    <delete id="deleteUser">
-        DELETE FROM user WHERE user_id = #{userId}
-    </delete>
-    
-    <!-- 新增方法 -->
+    <update id="updateUserAvatar">
+        UPDATE user SET avatar = #{avatar} WHERE user_id = #{userId}
+    </update>
+
     <select id="selectUserCountByMonth" resultType="int">
-        SELECT COUNT(*) FROM user 
+        SELECT COUNT(*) FROM user
         WHERE YEAR(register_time) = #{year} AND MONTH(register_time) = #{month}
     </select>
-    
+
     <select id="selectTotalDurationByUserAndDate" resultType="int">
-        SELECT COALESCE(SUM(duration), 0) 
-        FROM behavior_record 
-        WHERE user_id = #{userId} 
-        AND record_date BETWEEN #{startDate} AND #{endDate}
+        SELECT COALESCE(SUM(duration), 0)
+        FROM behavior_record
+        WHERE user_id = #{userId}
+          AND record_date BETWEEN #{startDate} AND #{endDate}
     </select>
-    
+
     <select id="selectBehaviorTypeDistribution" resultType="map">
         SELECT
             bt.type_name as typeName,
@@ -114,18 +120,41 @@
         WHERE bt.status = 1
         GROUP BY bt.type_id, bt.type_name
     </select>
-    
+
     <select id="countBehaviorRecordsByTypeAndDate" resultType="int">
         SELECT COUNT(*) FROM behavior_record br
-        JOIN behavior_type bt ON br.type_id = bt.type_id
+                                 JOIN behavior_type bt ON br.type_id = bt.type_id
         WHERE br.user_id = #{userId}
           AND bt.type_name = #{typeName}
           AND br.record_date BETWEEN #{startDate} AND #{endDate}
     </select>
-    
+
     <select id="selectExerciseDatesByUser" resultType="java.time.LocalDate">
         SELECT DISTINCT record_date FROM behavior_record
         WHERE user_id = #{userId}
         ORDER BY record_date DESC
+    </select>
+    
+    <select id="selectTotalDurationByUser" resultType="int">
+        SELECT COALESCE(SUM(duration), 0)
+        FROM behavior_record
+        WHERE user_id = #{userId}
+    </select>
+    
+    <select id="selectCountByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM behavior_record
+        WHERE user_id = #{userId}
+    </select>
+    
+    <select id="selectUserGrowthStats" resultType="map">
+        SELECT 
+            DATE_FORMAT(register_time, '%Y-%m') as month,
+            COUNT(*) as userCount,
+            SUM(COUNT(*)) OVER (ORDER BY DATE_FORMAT(register_time, '%Y-%m')) as cumulativeCount
+        FROM user
+        WHERE register_time >= DATE_SUB(CURDATE(), INTERVAL #{months} MONTH)
+        GROUP BY DATE_FORMAT(register_time, '%Y-%m')
+        ORDER BY DATE_FORMAT(register_time, '%Y-%m')
     </select>
 </mapper>

@@ -1,8 +1,8 @@
 package com.hongyuting.sports.service;
 
-import com.hongyuting.sports.dto.BadgeDTO;
 import com.hongyuting.sports.dto.ResponseDTO;
 import com.hongyuting.sports.entity.Badge;
+import com.hongyuting.sports.entity.UserBadge;
 
 import java.util.List;
 
@@ -47,16 +47,6 @@ public interface BadgeService {
     List<Badge> getBadgesByName(String name);
 
     /**
-     * 添加徽章（DTO版本）
-     */
-    ResponseDTO addBadge(BadgeDTO badgeDTO);
-
-    /**
-     * 更新徽章（DTO版本）
-     */
-    ResponseDTO updateBadge(BadgeDTO badgeDTO);
-
-    /**
      * 获取徽章总数
      */
     Integer getTotalBadgeCount();
@@ -65,6 +55,11 @@ public interface BadgeService {
      * 获取用户成就
      */
     List<Badge> getUserAchievements(Integer userId);
+    
+    /**
+     * 获取用户成就详情（包含获得时间和进度）
+     */
+    List<UserBadge> getUserAchievementDetails(Integer userId);
 
     /**
      * 获取用户总积分

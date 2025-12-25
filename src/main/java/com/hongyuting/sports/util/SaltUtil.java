@@ -56,20 +56,6 @@ public class SaltUtil {
         String newEncryptedPassword = encryptPassword(plainPassword, salt);
         return newEncryptedPassword.equals(encryptedPassword);
     }
-    
-    /**
-     * 生成随机密码
-     */
-    public String generateRandomPassword(int length) {
-        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder password = new StringBuilder();
-
-        for (int i = 0; i < length; i++) {
-            password.append(chars.charAt(RANDOM.nextInt(chars.length())));
-        }
-
-        return password.toString();
-    }
 
     /**
      * 检查密码强度

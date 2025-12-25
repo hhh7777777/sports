@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -63,7 +63,10 @@
             <i class="fas fa-tachometer-alt me-2"></i>管理员面板
         </a>
         <div class="navbar-nav ms-auto">
-            <span class="navbar-text me-3">
+            <span class="navbar-text me-3" th:if="${admin != null}">
+                欢迎，<span th:text="${admin.username}">管理员</span>
+            </span>
+            <span class="navbar-text me-3" th:if="${admin == null}">
                 欢迎，管理员
             </span>
             <div class="dropdown admin-dropdown">
@@ -71,7 +74,7 @@
                     <i class="fas fa-user-circle"></i>
                 </a>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>个人资料</a></li>
+                    <li><a class="dropdown-item" href="/"><i class="fas fa-home me-2"></i>回到首页</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item" href="#" id="adminLogoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
                 </ul>
@@ -122,7 +125,7 @@
             </div>
 
             <!-- 统计卡片 -->
-            <div class="row">
+            <div class="row" th:if="${stats != null}">
                 <div class="col-xl-3 col-md-6 mb-4">
                     <div class="card border-left-primary shadow h-100 py-2 stat-card">
                         <div class="card-body">
@@ -131,7 +134,7 @@
                                     <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                                         总用户数
                                     </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalUsers">0</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalUsers" th:text="${stats.totalUsers}">0</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-users fa-2x text-gray-300"></i>
@@ -148,7 +151,7 @@
                                     <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                                         今日活跃
                                     </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeToday">0</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeToday" th:text="${stats.activeToday}">0</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-chart-line fa-2x text-gray-300"></i>
@@ -165,7 +168,7 @@
                                     <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                         运动记录
                                     </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalRecords">0</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalRecords" th:text="${stats.totalRecords}">0</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-running fa-2x text-gray-300"></i>
@@ -182,7 +185,7 @@
                                     <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                                         徽章总数
                                     </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalBadges">0</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalBadges" th:text="${stats.totalBadges}">0</div>
                                 </div>
                                 <div class="col-auto">
                                     <i class="fas fa-trophy fa-2x text-gray-300"></i>
@@ -217,9 +220,9 @@
                 </div>
             </div>
 
-            <!-- 最新活动 -->
+            <!-- 最新活动和活跃度排行 -->
             <div class="row">
-                <div class="col-12">
+                <div class="col-lg-6 mb-4">
                     <div class="card shadow">
                         <div class="card-header">
                             <h6 class="m-0 font-weight-bold text-primary">最新活动</h6>
@@ -236,9 +239,47 @@
                                     </tr>
                                     </thead>
                                     <tbody>
+                                        <tr th:if="${recentActivities == null or recentActivities.empty}">
+                                            <td colspan="4" class="text-center">暂无数据</td>
+                                        </tr>
+                                        <tr th:each="activity : ${recentActivities}">
+                                            <td th:text="${activity.userName ?: activity.userId ?: '未知用户'}">用户</td>
+                                            <td th:text="${activity.typeName ?: '未知类型'}">活动类型</td>
+                                            <td th:text="${activity.duration ?: 0}">时长</td>
+                                            <td th:text="${activity.createTime != null ? #temporals.format(activity.createTime, 'yyyy-MM-dd HH:mm') : '未知时间'}">时间</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">活跃度排行</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="activityRank">
+                                    <thead>
                                     <tr>
-                                        <td colspan="4" class="text-center">暂无数据</td>
+                                        <th>排名</th>
+                                        <th>用户</th>
+                                        <th>总时长(分钟)</th>
                                     </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:if="${activityRank == null or activityRank.empty}">
+                                            <td colspan="3" class="text-center">暂无数据</td>
+                                        </tr>
+                                        <tr th:each="rank, iterStat : ${activityRank}">
+                                            <td>
+                                                <span class="badge" th:classappend="${iterStat.index < 3 ? 'bg-danger' : 'bg-secondary'}" th:text="${iterStat.index + 1}">排名</span>
+                                            </td>
+                                            <td th:text="${rank['nickname'] ?: rank['username'] ?: rank['userId'] ?: '未知用户'}">用户</td>
+                                            <td th:text="${rank['totalDuration'] ?: 0} + ' 分钟'">总时长</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>

@@ -30,8 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (changePasswordBtn) {
         changePasswordBtn.addEventListener('click', function() {
             const modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
-            // 清空密码输入框
-            document.getElementById('currentPassword').value = '';
+            // 清空密码输入框（当前密码字段已隐藏，无需清空）
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmNewPassword').value = '';
             modal.show();
@@ -41,6 +40,15 @@ document.addEventListener('DOMContentLoaded', function() {
     if (savePasswordBtn) {
         savePasswordBtn.addEventListener('click', function() {
             changePassword();
+        });
+    }
+    
+    // 绑定退出登录事件
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
         });
     }
     
@@ -359,12 +367,11 @@ async function changePassword() {
         return;
     }
 
-    const currentPassword = document.getElementById('currentPassword')?.value || '';
     const newPassword = document.getElementById('newPassword')?.value || '';
     const confirmNewPassword = document.getElementById('confirmNewPassword')?.value || '';
     
-    if (!currentPassword || !newPassword || !confirmNewPassword) {
-        showAlert('请填写所有密码字段', 'warning');
+    if (!newPassword || !confirmNewPassword) {
+        showAlert('请填写新密码和确认密码', 'warning');
         return;
     }
     
@@ -379,14 +386,13 @@ async function changePassword() {
     }
     
     try {
-        const response = await fetch('/api/user/password', {
+        const response = await fetch('/api/user/password-new', {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': `Bearer ${token}`
             },
             body: new URLSearchParams({
-                oldPassword: currentPassword,
                 newPassword: newPassword
             })
         });
@@ -433,6 +439,36 @@ async function changePassword() {
     } catch (error) {
         console.error('修改密码时出错:', error);
         showAlert('密码修改失败: ' + error.message, 'error');
+    }
+}
+
+async function logout() {
+    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+    if (!token) {
+        // 如果没有token，直接跳转到登录页
+        window.location.href = '/login';
+        return;
+    }
+
+    try {
+        // 向后端发送登出请求
+        const response = await fetch('/api/user/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        // 无论后端登出请求是否成功，都清除本地认证信息并跳转
+        localStorage.removeItem('accessToken');
+        sessionStorage.removeItem('accessToken');
+        window.location.href = '/login';
+    } catch (error) {
+        console.error('登出时出错:', error);
+        // 出错时也清除本地认证信息并跳转
+        localStorage.removeItem('accessToken');
+        sessionStorage.removeItem('accessToken');
+        window.location.href = '/login';
     }
 }
 

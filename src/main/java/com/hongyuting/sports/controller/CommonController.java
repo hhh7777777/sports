@@ -46,7 +46,7 @@ public class CommonController {
         // 输出图片
         ImageIO.write(image, "png", response.getOutputStream());
     }
-
+    //服务器时间拦截器
     @GetMapping("/api/common/server-time")
     public ResponseDTO getServerTime() {
         return ResponseDTO.success("获取成功", System.currentTimeMillis());

@@ -77,10 +77,12 @@ async function loadDashboardData() {
             const statsResult = await statsResponse.json();
             if (statsResult.code === 200 && statsResult.data) {
                 const stats = statsResult.data;
-                document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
-                document.getElementById('activeToday').textContent = stats.activeToday || 0;
-                document.getElementById('totalRecords').textContent = stats.totalRecords || 0;
-                document.getElementById('totalBadges').textContent = stats.totalBadges || 0;
+                
+                // 更新统计卡片
+                updateStatCard('totalUsers', stats.totalUsers || 0);
+                updateStatCard('activeToday', stats.activeToday || 0);
+                updateStatCard('totalRecords', stats.totalRecords || 0);
+                updateStatCard('totalBadges', stats.totalBadges || 0);
             }
         }
         
@@ -90,8 +92,19 @@ async function loadDashboardData() {
         // 加载最新活动
         loadRecentActivities();
         
+        // 加载活跃度排行
+        loadActivityRank();
+        
     } catch (error) {
         console.error('加载仪表板数据时出错:', error);
+    }
+}
+
+// 更新统计卡片的辅助函数
+function updateStatCard(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.textContent = value;
     }
 }
 
@@ -118,27 +131,81 @@ async function loadRecentActivities() {
         }
         
         const tbody = document.querySelector('#recentActivities tbody');
-        tbody.innerHTML = '';
-        
-        if (recentActivities.length === 0) {
-            const row = document.createElement('tr');
-            row.innerHTML = '<td colspan="4" class="text-center">暂无数据</td>';
-            tbody.appendChild(row);
-        } else {
-            recentActivities.forEach(activity => {
+        if (tbody) {
+            tbody.innerHTML = '';
+            
+            if (recentActivities.length === 0) {
                 const row = document.createElement('tr');
-                // 根据实际返回的数据结构调整
-                row.innerHTML = `
-                    <td>${activity.userId || '未知用户'}</td>
-                    <td>${activity.typeName || '未知类型'}</td>
-                    <td>${activity.duration || 0}</td>
-                    <td>${activity.createTime ? new Date(activity.createTime).toLocaleString() : '未知时间'}</td>
-                `;
+                row.innerHTML = '<td colspan="4" class="text-center">暂无数据</td>';
                 tbody.appendChild(row);
-            });
+            } else {
+                recentActivities.forEach(activity => {
+                    const row = document.createElement('tr');
+                    // 根据实际返回的数据结构调整
+                    row.innerHTML = `
+                        <td>${activity.userName || activity.userId || '未知用户'}</td>
+                        <td>${activity.typeName || '未知类型'}</td>
+                        <td>${activity.duration || 0}</td>
+                        <td>${activity.createTime ? new Date(activity.createTime).toLocaleString() : '未知时间'}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
         }
     } catch (error) {
         console.error('加载最新活动时出错:', error);
+    }
+}
+
+async function loadActivityRank() {
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            return;
+        }
+        
+        // 获取活跃度排行
+        const rankResponse = await fetch('/api/admin/stats/activity-rank', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        let activityRank = [];
+        if (rankResponse.ok) {
+            const rankResult = await rankResponse.json();
+            if (rankResult.code === 200 && rankResult.data) {
+                activityRank = Array.isArray(rankResult.data) ? rankResult.data : [];
+            }
+        }
+        
+        // 更新活跃度排行表格
+        const rankTbody = document.querySelector('#activityRank tbody');
+        if (rankTbody) {
+            rankTbody.innerHTML = '';
+            
+            if (activityRank.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="3" class="text-center">暂无排行数据</td>';
+                rankTbody.appendChild(row);
+            } else {
+                activityRank.forEach((user, index) => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>
+                            <span class="badge bg-${index < 3 ? (index === 0 ? 'danger' : index === 1 ? 'warning' : 'info') : 'secondary'}">
+                                ${index + 1}
+                            </span>
+                        </td>
+                        <td>${user.nickname || user.username || user.userId || '未知用户'}</td>
+                        <td>${user.totalDuration || 0} 分钟</td>
+                    `;
+                    rankTbody.appendChild(row);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('加载活跃度排行时出错:', error);
     }
 }
 

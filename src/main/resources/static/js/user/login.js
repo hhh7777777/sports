@@ -51,6 +51,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
 
+                    // 触发登录成功事件，以便其他页面更新UI
+                    const loginEvent = new CustomEvent('userLoginSuccess', {
+                        detail: { token: result.data.token }
+                    });
+                    document.dispatchEvent(loginEvent);
+
                     // 根据项目规范，登录成功后应返回首页而不是仪表板
                     window.location.href = '/';
                 } else {
@@ -82,9 +88,15 @@ document.addEventListener('DOMContentLoaded', function() {
         alertDiv.className = `alert alert-${type} mt-3`;
         alertDiv.textContent = message;
 
-        const container = document.querySelector('.login-body');
+        const container = document.querySelector('.login-right') || document.querySelector('.container');
         const form = document.getElementById('loginForm');
-        container.insertBefore(alertDiv, form);
+        
+        if (container && form) {
+            container.insertBefore(alertDiv, form);
+        } else {
+            // 如果找不到容器或表单，添加到body末尾
+            document.body.appendChild(alertDiv);
+        }
 
         setTimeout(() => {
             alertDiv.remove();

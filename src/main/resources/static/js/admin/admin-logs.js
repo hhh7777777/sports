@@ -78,7 +78,7 @@ async function loadLogs(page = 1) {
             return;
         }
         
-        // 构建查询参数
+        // 构建查询参数 - 使用新的API端点来获取所有操作日志
         let url = `/api/admin/logs?page=${page}&size=10`;
         
         const response = await fetch(url, {
@@ -110,7 +110,7 @@ function renderLogs(data) {
     
     if (!Array.isArray(logs) || logs.length === 0) {
         const row = document.createElement('tr');
-        row.innerHTML = '<td colspan="5" class="text-center">暂无日志数据</td>';
+        row.innerHTML = '<td colspan="6" class="text-center">暂无日志数据</td>';
         tbody.appendChild(row);
         
         // 更新分页控件
@@ -120,10 +120,11 @@ function renderLogs(data) {
     
     logs.forEach(log => {
         const row = document.createElement('tr');
-        // AdminLog实体类中的字段
+        // OperationLog实体类中的字段
         row.innerHTML = `
             <td>${log.operationTime ? new Date(log.operationTime).toLocaleString() : ''}</td>
-            <td>${getLogLevelBadge(log.operation)}</td>
+            <td>${getUserTypeBadge(log.userType)}</td>
+            <td>${getOperationTypeBadge(log.operationType)}</td>
             <td>${log.operation || ''}</td>
             <td>${log.detail || ''}</td>
             <td>${log.ipAddress || ''}</td>
@@ -135,18 +136,35 @@ function renderLogs(data) {
     renderPagination(data.currentPage, data.totalPages, data.totalCount);
 }
 
-function getLogLevelBadge(operation) {
-    // 根据操作类型简单判断日志级别
-    if (operation && typeof operation === 'string') {
-        if (operation.includes('删除') || operation.includes('错误') || operation.includes('失败')) {
-            return '<span class="log-level-error">ERROR</span>';
-        } else if (operation.includes('警告') || operation.includes('注意')) {
-            return '<span class="log-level-warn">WARN</span>';
-        } else {
-            return '<span class="log-level-info">INFO</span>';
-        }
+function getUserTypeBadge(userType) {
+    if (!userType) return '<span class="badge bg-secondary">未知</span>';
+    if (userType === 'ADMIN') {
+        return '<span class="badge bg-danger">管理员</span>';
+    } else if (userType === 'USER') {
+        return '<span class="badge bg-success">普通用户</span>';
+    } else {
+        return `<span class="badge bg-secondary">${userType}</span>`;
     }
-    return '<span class="log-level-info">INFO</span>';
+}
+
+function getOperationTypeBadge(operationType) {
+    if (!operationType) return '<span class="badge bg-secondary">未知</span>';
+    switch (operationType) {
+        case 'LOGIN':
+            return '<span class="badge bg-info">登录</span>';
+        case 'CREATE':
+            return '<span class="badge bg-primary">创建</span>';
+        case 'UPDATE':
+            return '<span class="badge bg-warning">更新</span>';
+        case 'DELETE':
+            return '<span class="badge bg-danger">删除</span>';
+        case 'READ':
+            return '<span class="badge bg-success">查看</span>';
+        case 'AUTH':
+            return '<span class="badge bg-info">认证</span>';
+        default:
+            return `<span class="badge bg-secondary">${operationType}</span>`;
+    }
 }
 
 function initDatePickers() {
@@ -170,7 +188,9 @@ async function filterLogs(page = 1) {
             return;
         }
         
-        const logLevel = document.getElementById('logLevel').value;
+        // 使用新的参数获取过滤条件
+        const userType = document.getElementById('userType').value;
+        const operationType = document.getElementById('operationType').value;
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
         
@@ -178,10 +198,11 @@ async function filterLogs(page = 1) {
         let url = `/api/admin/logs?page=${page}&size=10`;
         const params = new URLSearchParams();
         
-        // 根据前端的logLevel筛选转换为后端的operation参数
-        if (logLevel) {
-            // 这里可以根据需要做映射
-            params.append('operation', logLevel);
+        if (userType) {
+            params.append('userType', userType);
+        }
+        if (operationType) {
+            params.append('operationType', operationType);
         }
         if (startDate) {
             // 需要转换为完整的时间格式
@@ -256,11 +277,12 @@ function renderPagination(currentPage, totalPages, totalCount) {
 // 页面切换函数
 async function changePage(page) {
     // 检查是否有筛选条件
-    const logLevel = document.getElementById('logLevel').value;
+    const userType = document.getElementById('userType').value;
+    const operationType = document.getElementById('operationType').value;
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
     
-    if (logLevel || startDate || endDate) {
+    if (userType || operationType || startDate || endDate) {
         // 如果有筛选条件，使用筛选函数
         await filterLogs(page);
     } else {

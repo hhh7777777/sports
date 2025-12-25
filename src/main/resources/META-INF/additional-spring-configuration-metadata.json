@@ -4,5 +4,10 @@
       "name": "app.captcha.expire-time",
       "type": "java.lang.String",
       "description": "Description for app.captcha.expire-time."
-  }
-] }
+    },
+    {
+      "name": "server.spring.thymeleaf.cache",
+      "type": "java.lang.String",
+      "description": "Description for server.spring.thymeleaf.cache."
+    }
+  ] }

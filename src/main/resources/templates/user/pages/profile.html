@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人资料 - 运动健康管理系统</title>
+    <title>个人资料</title>
     <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
     <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
     <style>
@@ -53,28 +53,40 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
-        .profile-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border-radius: 15px;
-            color: white;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 20px rgb(74, 247, 241);
-        }
-        
-        .profile-img {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 4px solid rgba(255,255,255,0.3);
-            object-fit: cover;
-        }
-        
-        .card {
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        .stat-card {
+            transition: transform 0.2s;
             border: none;
-            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* 用户头像下拉菜单样式修复 */
+        .user-dropdown {
+            position: relative;
+        }
+        
+        .user-dropdown .dropdown-menu {
+            right: 0;
+            left: auto;
+            min-width: 150px;
+            z-index: 1050;
+        }
+        
+        .user-dropdown .dropdown-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
         }
         
         .card-header {
@@ -82,60 +94,37 @@
             border-bottom: 1px solid rgba(0,0,0,0.05);
             font-weight: 600;
             padding: 1rem 1.5rem;
-            border-radius: 15px 15px 0 0 !important;
         }
         
-        .form-control, .form-select {
-            border-radius: 8px;
-            padding: 10px 15px;
-            border: 1px solid #e1e5eb;
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #f8f9fa;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
         
-        .form-control:focus, .form-select:focus {
+        .form-control:focus {
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-weight: 500;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
         }
         
         .btn-primary:hover {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
         }
         
-        .btn-outline-warning, .btn-outline-danger {
-            border-radius: 8px;
-            font-weight: 500;
-        }
-        
-        .user-dropdown img {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin-right: 8px;
-        }
-        
-        .stat-item {
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            color: #6c757d;
-            font-size: 0.9rem;
+        .section-title {
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: var(--dark-color);
         }
     </style>
 </head>
@@ -152,15 +141,17 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text me-3">
-                    欢迎，<span id="userName">用户</span>
+                    欢迎，<span th:text="${currentUser.username} ?: '用户'" id="userName">用户</span>
                 </span>
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle user-dropdown" href="#" role="button" data-bs-toggle="dropdown">
-                        <img src="/images/avatar.png" alt="用户头像" class="user-avatar">
-                        <span class="d-none d-md-inline">用户</span>
+                        <img th:src="${currentUser != null and currentUser.avatar != null and currentUser.avatar != ''} ? ${currentUser.avatar} : '/images/avatar.png'" 
+                             th:alt="${currentUser != null and currentUser.username != null} ? ${currentUser.username} + '的头像' : '用户头像'" class="user-avatar" id="userAvatar">
+                        <span class="d-none d-md-inline" th:text="${currentUser != null and currentUser.username != null} ? ${currentUser.username} : '用户'">用户</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>个人资料</a></li>
+                        <li><a class="dropdown-item" href="/index"><i class="fas fa-home me-2"></i>回到首页</a></li>
+                        <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-tachometer-alt me-2"></i>我的仪表板</a></li>
                         <li><a class="dropdown-item" href="/achievements"><i class="fas fa-trophy me-2"></i>我的成就</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
@@ -202,106 +193,78 @@
         </nav>
 
         <!-- 主内容区 -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
                 <h1 class="h2 fw-bold text-dark">个人资料</h1>
             </div>
+            
             <!-- 个人资料头部 -->
             <div class="profile-header">
                 <div class="row align-items-center">
                     <div class="col-md-2 text-center mb-3 mb-md-0">
-                        <img src="/images/avatar.png" alt="头像" class="profile-img" id="headerAvatar">
+                        <img th:src="${currentUser != null and currentUser.avatar != null and currentUser.avatar != ''} ? ${currentUser.avatar} : '/images/avatar.png'" 
+                             th:alt="${currentUser != null and currentUser.username != null} ? ${currentUser.username} + '的头像' : '用户头像'" class="profile-img" id="headerAvatar">
                     </div>
                     <div class="col-md-10">
-                        <h2 class="mb-2" id="headerUsername">用户</h2>
-                        <p class="mb-3" id="registerInfo">运动爱好者 • 注册于 <span id="registerDate">-</span></p>
+                        <h2 class="mb-3" th:text="${currentUser != null and currentUser.username != null} ? ${currentUser.username} : '用户'">用户</h2>
                         <div class="row">
-                            <div class="col-md-3 col-6">
-                                <div class="stat-item">
-                                    <div class="stat-number" id="monthDuration">0</div>
-                                    <div class="stat-label">本月运动(分钟)</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="stat-item">
-                                    <div class="stat-number" id="monthCount">0</div>
-                                    <div class="stat-label">本月运动(次)</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="stat-item">
-                                    <div class="stat-number" id="badgeCount">0</div>
-                                    <div class="stat-label">获得徽章</div>
-                                </div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="stat-item">
-                                    <div class="stat-number" id="streakDays">0</div>
-                                    <div class="stat-label">连续打卡(天)</div>
-                                </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><i class="fas fa-envelope text-muted me-2"></i> <span th:text="${currentUser != null and currentUser.email != null} ? ${currentUser.email} : '未设置'">邮箱</span></p>
+                                <p class="mb-1"><i class="fas fa-user text-muted me-2"></i> <span th:text="${currentUser != null and currentUser.nickname != null and currentUser.nickname != ''} ? ${currentUser.nickname} : '未设置'">昵称</span></p>
+                                <p class="mb-1"><i class="fas fa-calendar text-muted me-2"></i> <span th:text="${currentUser != null and currentUser.createTime != null} ? ${#temporals.format(currentUser.createTime, 'yyyy-MM-dd HH:mm')} : '未知'">注册时间</span></p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="row">
-                <div class="col-lg-8">
+            
+            <!-- 个人资料编辑表单 -->
+            <div class="row mt-4">
+                <div class="col-md-8">
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="mb-0">基本信息</h5>
+                            <h5 class="mb-0"><i class="fas fa-edit me-2"></i>编辑个人资料</h5>
                         </div>
                         <div class="card-body">
                             <form id="profileForm">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="username" class="form-label">用户名</label>
-                                        <input type="text" class="form-control" id="username" readonly>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="email" class="form-label">邮箱</label>
-                                        <input type="email" class="form-control" id="email">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="nickname" class="form-label">昵称</label>
-                                        <input type="text" class="form-control" id="nickname">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="birthday" class="form-label">生日</label>
-                                        <input type="date" class="form-control" id="birthday">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="gender" class="form-label">性别</label>
-                                        <select class="form-select" id="gender">
-                                            <option value="">保密</option>
-                                            <option value="male">男</option>
-                                            <option value="female">女</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="height" class="form-label">身高(cm)</label>
-                                        <input type="number" class="form-control" id="height">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="weight" class="form-label">体重(kg)</label>
-                                        <input type="number" class="form-control" id="weight">
-                                    </div>
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">用户名</label>
+                                    <input type="text" class="form-control" id="username" th:value="${currentUser != null and currentUser.username != null} ? ${currentUser.username} : ''" readonly>
+                                    <div class="form-text">用户名不可修改</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="nickname" class="form-label">昵称</label>
+                                    <input type="text" class="form-control" id="nickname" th:value="${currentUser != null and currentUser.nickname != null} ? ${currentUser.nickname} : ''" placeholder="请输入昵称">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">邮箱</label>
+                                    <input type="email" class="form-control" id="email" th:value="${currentUser != null and currentUser.email != null} ? ${currentUser.email} : ''" placeholder="请输入邮箱">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">手机号</label>
+                                    <input type="text" class="form-control" id="phone" th:value="${currentUser != null and currentUser.phone != null} ? ${currentUser.phone} : ''" placeholder="请输入手机号">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="bio" class="form-label">个人简介</label>
+                                    <textarea class="form-control" id="bio" rows="3" placeholder="介绍一下自己吧" th:text="${currentUser != null and currentUser.bio != null} ? ${currentUser.bio} : ''"></textarea>
                                 </div>
                                 <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-1"></i>保存更改
+                                    <i class="fas fa-save me-2"></i>保存更改
                                 </button>
                             </form>
                         </div>
                     </div>
                 </div>
                 
-                <div class="col-lg-4">
-                    <div class="card">
+                <div class="col-md-4">
+                    <!-- 头像上传 -->
+                    <div class="card mb-4">
                         <div class="card-header">
-                            <h5 class="mb-0">头像</h5>
+                            <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>头像设置</h5>
                         </div>
                         <div class="card-body text-center">
-                            <img src="/images/avatar.png" alt="头像" class="profile-img mb-3" id="profileImage">
+                            <img th:src="${currentUser != null and currentUser.avatar != null and currentUser.avatar != ''} ? ${currentUser.avatar} : '/images/avatar.png'" 
+                                 th:alt="${currentUser != null and currentUser.username != null} ? ${currentUser.username} + '的头像' : '用户头像'" class="profile-img mb-3" id="profileImage">
                             <div>
                                 <button class="btn btn-outline-primary btn-sm" id="changeAvatarBtn">
                                     <i class="fas fa-upload me-1"></i>更换头像
@@ -311,16 +274,17 @@
                         </div>
                     </div>
                     
+                    <!-- 安全设置 -->
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="mb-0">安全设置</h5>
+                            <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>安全设置</h5>
                         </div>
                         <div class="card-body">
                             <button class="btn btn-outline-warning w-100 mb-2" id="changePasswordBtn">
-                                <i class="fas fa-key me-1"></i>修改密码
+                                <i class="fas fa-key me-2"></i>修改密码
                             </button>
                             <button class="btn btn-outline-danger w-100" id="bindSocialAccountsBtn">
-                                <i class="fas fa-link me-1"></i>绑定社交账号
+                                <i class="fas fa-link me-2"></i>绑定社交账号
                             </button>
                         </div>
                     </div>
@@ -330,39 +294,13 @@
     </div>
 </div>
 
-<!-- 修改密码模态框 -->
-<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="changePasswordModalLabel">修改密码</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="changePasswordForm">
-                    <div class="mb-3">
-                        <label for="currentPassword" class="form-label">当前密码</label>
-                        <input type="password" class="form-control" id="currentPassword" autocomplete="current-password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="newPassword" class="form-label">新密码</label>
-                        <input type="password" class="form-control" id="newPassword" autocomplete="new-password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirmNewPassword" class="form-label">确认新密码</label>
-                        <input type="password" class="form-control" id="confirmNewPassword" autocomplete="new-password" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="savePasswordBtn">保存</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // 将服务端数据传递给JavaScript
+    var currentUser = /*[[${currentUser}]]*/ null;
+    /*]]>*/
+</script>
 <script src="/js/modules/common.js"></script>
 <script src="/js/user/profile.js"></script>
 </body>

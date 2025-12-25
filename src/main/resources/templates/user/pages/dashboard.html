@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>健康仪表板 - 运动健康管理系统</title>
+    <title>个人仪表板</title>
     <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
     <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
     <style>
@@ -119,14 +119,16 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text me-3">
-                    欢迎，<span id="userName">用户</span>
+                    欢迎，<span th:text="${currentUser.username} ?: '用户'" id="userName">用户</span>
                 </span>
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle user-dropdown" href="#" role="button" data-bs-toggle="dropdown">
-                        <img src="/images/avatar.png" alt="用户头像" class="user-avatar">
-                        <span class="d-none d-md-inline">用户</span>
+                        <img th:src="${currentUser != null and currentUser.avatar != null and currentUser.avatar != ''} ? ${currentUser.avatar} : '/images/avatar.png'" 
+                             th:alt="${currentUser != null and currentUser.username != null} ? ${currentUser.username} + '的头像' : '用户头像'" class="user-avatar" id="userAvatar">
+                        <span class="d-none d-md-inline" th:text="${currentUser != null and currentUser.username != null} ? ${currentUser.username} : '用户'">用户</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/index"><i class="fas fa-home me-2"></i>回到首页</a></li>
                         <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>个人资料</a></li>
                         <li><a class="dropdown-item" href="/achievements"><i class="fas fa-trophy me-2"></i>我的成就</a></li>
                         <li><hr class="dropdown-divider"></li>
@@ -168,143 +170,210 @@
             </div>
         </nav>
 
-<!-- 主内容区 -->
+        <!-- 主内容区 -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
                 <h1 class="h2 fw-bold text-dark">健康仪表板</h1>
             </div>
     
-    <!-- 统计卡片 -->
-    <div class="row">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2 stat-card">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                本周运动(分钟)
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="weeklyDuration">0</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
+            <!-- 欢迎横幅 -->
+            <div class="welcome-banner rounded">
+                <h2 class="mb-3">欢迎回来，<span th:text="${currentUser.username} ?: '用户'">用户</span>！</h2>
+                <p class="mb-0">让我们看看您今天的健康数据和成就吧。</p>
             </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2 stat-card">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                本周运动次数
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="weeklyCount">0</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-running fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2 stat-card">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                本月运动(分钟)
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="monthlyDuration">0</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2 stat-card">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                获得徽章
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="badgeCount">0</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-trophy fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     
-    <!-- 图表区域 -->
-    <div class="row">
-        <div class="col-lg-8 mb-4">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h6 class="m-0 font-weight-bold text-primary">本周运动统计</h6>
+            <!-- 统计卡片 -->
+            <div class="row">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2 stat-card">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        本周运动(分钟)
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${weeklyDuration} ?: '0'" id="weeklyDuration">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <canvas id="weeklyChart" height="100"></canvas>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2 stat-card">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        本周运动次数
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${weeklyCount} ?: '0'" id="weeklyCount">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-running fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h6 class="m-0 font-weight-bold text-primary">运动类型分布</h6>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2 stat-card">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        本月运动(分钟)
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${monthlyDuration} ?: '0'" id="monthlyDuration">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <canvas id="typeChart" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- 最近活动 -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow">
-                <div class="card-header">
-                    <h6 class="m-0 font-weight-bold text-primary">最近活动</h6>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="recentActivities">
-                            <thead>
-                                <tr>
-                                    <th>日期</th>
-                                    <th>类型</th>
-                                    <th>时长(分钟)</th>
-                                    <th>备注</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- 活动记录将通过JavaScript动态加载 -->
-                            </tbody>
-                        </table>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2 stat-card">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        获得徽章
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${badgeCount} ?: '0'" id="badgeCount">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-trophy fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</main>
-
-        </div>
+    
+            <!-- 个人排名卡片 -->
+            <div class="row">
+                <div class="col-xl-12 col-lg-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                            <h6 class="m-0 font-weight-bold text-primary">个人活跃度排名</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3 mb-md-0">
+                                    <div class="text-center">
+                                        <i class="fas fa-trophy fa-3x text-warning mb-3"></i>
+                                        <h5 class="font-weight-bold">我的总排名</h5>
+                                        <div class="h3 text-gray-800" th:text="${myRank} ?: '--'" id="myRank">--</div>
+                                        <div class="text-muted">/ <span th:text="${totalUserCount} ?: '--'" id="totalUserCount">--</span> 用户</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3 mb-md-0">
+                                    <div class="text-center">
+                                        <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                                        <h5 class="font-weight-bold">总运动时长</h5>
+                                        <div class="h3 text-gray-800" th:text="${myTotalDuration} ?: '--'" id="myTotalDuration">--</div>
+                                        <div class="text-muted">分钟</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="text-center">
+                                        <i class="fas fa-medal fa-3x text-info mb-3"></i>
+                                        <h5 class="font-weight-bold">总运动次数</h5>
+                                        <div class="h3 text-gray-800" th:text="${myTotalRecords} ?: '--'" id="myTotalRecords">--</div>
+                                        <div class="text-muted">次</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- 图表区域 -->
+            <div class="row">
+                <div class="col-lg-8 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">本周运动统计</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="weeklyChart" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">运动类型分布</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="typeChart" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- 最近活动 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow">
+                        <div class="card-header">
+                            <h6 class="m-0 font-weight-bold text-primary">最近活动</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="recentActivities">
+                                    <thead>
+                                        <tr>
+                                            <th>日期</th>
+                                            <th>类型</th>
+                                            <th>时长(分钟)</th>
+                                            <th>备注</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- 活动记录将通过Thymeleaf渲染 -->
+                                        <tr th:each="activity : ${recentActivities}">
+                                            <td th:text="${#temporals.format(activity.recordDate, 'yyyy-MM-dd')}">2024-12-28</td>
+                                            <td th:text="${activity.typeName}">跑步</td>
+                                            <td th:text="${activity.duration}">30</td>
+                                            <td th:text="${activity.content} ?: '无'">晨跑</td>
+                                        </tr>
+                                        <tr th:if="${#lists.isEmpty(recentActivities)}">
+                                            <td colspan="4" class="text-center">暂无活动记录</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 </div>
 
 <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
 <script src="/libs/chartjs/chart.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // 将服务端数据传递给JavaScript
+    var currentUser = /*[[${currentUser}]]*/ null;
+    var weeklyDuration = /*[[${weeklyDuration}]]*/ 0;
+    var weeklyCount = /*[[${weeklyCount}]]*/ 0;
+    var monthlyDuration = /*[[${monthlyDuration}]]*/ 0;
+    var badgeCount = /*[[${badgeCount}]]*/ 0;
+    var myRank = /*[[${myRank}]]*/ '--';
+    var totalUserCount = /*[[${totalUserCount}]]*/ '--';
+    var myTotalDuration = /*[[${myTotalDuration}]]*/ '--';
+    var myTotalRecords = /*[[${myTotalRecords}]]*/ '--';
+    var recentActivities = /*[[${recentActivities}]]*/ [];
+    /*]]>*/
+</script>
 <script src="/js/modules/common.js"></script>
 <script src="/js/user/dashboard.js"></script>
 </body>

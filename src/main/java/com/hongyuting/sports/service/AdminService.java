@@ -25,6 +25,11 @@ public interface AdminService {
      * 管理员退出登录
      */
     ResponseDTO logout(Integer adminId, String token);
+    
+    /**
+     * 管理员退出登录（带客户端IP）
+     */
+    ResponseDTO logout(Integer adminId, String token, String clientIP);
 
     /**
      * 刷新Token
@@ -61,6 +66,16 @@ public interface AdminService {
      * 获取管理员日志
      */
     List<AdminLog> getAdminLogs(Integer adminId, String operation, LocalDateTime startTime, LocalDateTime endTime);
+    
+    /**
+     * 根据条件获取管理员日志（包含日志级别筛选）
+     */
+    List<AdminLog> getAdminLogsByCondition(Integer adminId, String operation, LocalDateTime startTime, LocalDateTime endTime, String logLevel);
+    
+    /**
+     * 根据条件获取所有操作日志（包括用户和管理员）
+     */
+    List<com.hongyuting.sports.entity.OperationLog> getOperationLogsByCondition(Integer userId, Integer adminId, String operation, LocalDateTime startTime, LocalDateTime endTime, String operationType, String userType);
     
     /**
      * 根据目标获取管理员日志
@@ -106,6 +121,11 @@ public interface AdminService {
      * 根据管理员ID获取当前的Token
      */
     List<String> getTokensByAdminId(Integer adminId);
+
+    /**
+     * 获取系统统计信息
+     */
+    Object getSystemStats();
 
     // 登录结果内部类
     @Getter

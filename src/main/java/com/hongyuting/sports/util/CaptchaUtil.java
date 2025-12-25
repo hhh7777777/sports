@@ -33,30 +33,6 @@ public class CaptchaUtil {
     }
 
     /**
-     * 生成数字验证码
-     */
-    public String generateNumericCaptcha(int length) {
-        Random random = new Random();
-        StringBuilder captcha = new StringBuilder();
-
-        for (int i = 0; i < length; i++) {
-            captcha.append(random.nextInt(10));
-        }
-
-        return captcha.toString();
-    }
-
-    /**
-     * 验证验证码（不区分大小写）
-     */
-    public boolean validateCaptcha(String input, String captcha) {
-        if (input == null || captcha == null) {
-            return false;
-        }
-        return input.equalsIgnoreCase(captcha);
-    }
-
-    /**
      * 生成验证码图片
      *
      * @param captchaText 验证码文本

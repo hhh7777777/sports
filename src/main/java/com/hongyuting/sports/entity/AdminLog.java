@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
  */
 @Data
 public class AdminLog {
+    private Long id;
     private Long logId;
     private Integer adminId;
     private String operation;

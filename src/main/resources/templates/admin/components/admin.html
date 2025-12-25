@@ -44,6 +44,7 @@
             <span class="navbar-text me-3">
                 管理员：<th:block th:text="${session.adminLog.username}">Admin</th:block>
             </span>
+            <a href="/index" class="btn btn-outline-light btn-sm me-2">回到首页</a>
             <a th:href="@{/adminLog/logout}" class="btn btn-outline-light btn-sm">退出</a>
         </div>
     </div>

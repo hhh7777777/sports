@@ -23,9 +23,17 @@ public interface UserService {
      */
     ResponseDTO login(LoginDTO loginDTO);
     /**
+     * 登录用户（带客户端IP）
+     */
+    ResponseDTO login(LoginDTO loginDTO, String clientIP);
+    /**
      * 登出用户
      */
     ResponseDTO logout(String token);
+    /**
+     * 登出用户（带客户端IP）
+     */
+    ResponseDTO logout(String token, String clientIP);
     /**
      * 验证Token有效性
      */
@@ -73,6 +81,16 @@ public interface UserService {
     boolean checkEmailExists(String email);
     
     /**
+     * 获取用户个人统计信息
+     */
+    Map<String, Object> getUserPersonalStats(Integer userId);
+    
+    /**
+     * 获取用户在活跃度排行中的排名信息
+     */
+    Map<String, Object> getUserRankInfo(Integer userId);
+    
+    /**
      * 获取用户活跃度统计
      */
     Map<String, Object> getUserActivityStats(Integer userId, LocalDate startDate, LocalDate endDate);
@@ -86,4 +104,9 @@ public interface UserService {
      * 根据年月获取用户数量
      */
     int getUserCountByMonth(int year, int month);
+    
+    /**
+     * 获取用户增长趋势统计
+     */
+    List<Map<String, Object>> getUserGrowthStats(int months);
 }

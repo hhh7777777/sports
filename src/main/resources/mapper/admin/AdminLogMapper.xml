@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hongyuting.sports.mapper.AdminLogMapper">
-    <resultMap id="adminLogResultMap" type="AdminLog">
-        <id property="logId" column="log_id"/>
+
+    <resultMap id="adminLogResultMap" type="com.hongyuting.sports.entity.AdminLog">
+        <id property="id" column="log_id"/>
         <result property="adminId" column="admin_id"/>
         <result property="operation" column="operation"/>
         <result property="targetType" column="target_type"/>
@@ -12,34 +13,56 @@
         <result property="operationTime" column="operation_time"/>
     </resultMap>
 
-    <insert id="insertAdminLog" useGeneratedKeys="true" keyProperty="logId">
+    <!-- 继承BaseMapper的通用方法 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO admin_log
-            (admin_id, operation, target_type, target_id, detail, ip_address, operation_time)
+        (admin_id, operation, target_type, target_id, detail, ip_address, operation_time)
         VALUES
             (#{adminId}, #{operation}, #{targetType}, #{targetId}, #{detail}, #{ipAddress}, #{operationTime})
     </insert>
 
-    <select id="selectAdminLogById" resultMap="adminLogResultMap">
-        SELECT * FROM admin_log WHERE log_id = #{logId}
+    <delete id="deleteById">
+        DELETE FROM admin_log WHERE log_id = #{id}
+    </delete>
+
+    <update id="updateById">
+        UPDATE admin_log SET
+                             admin_id = #{adminId},
+                             operation = #{operation},
+                             target_type = #{targetType},
+                             target_id = #{targetId},
+                             detail = #{detail},
+                             ip_address = #{ipAddress},
+                             operation_time = #{operationTime}
+        WHERE log_id = #{id}
+    </update>
+
+    <select id="selectById" resultMap="adminLogResultMap">
+        SELECT * FROM admin_log WHERE log_id = #{id}
     </select>
 
-    <select id="selectAdminLogsByAdmin" resultMap="adminLogResultMap">
+    <select id="selectAll" resultMap="adminLogResultMap">
+        SELECT * FROM admin_log ORDER BY operation_time DESC
+    </select>
+
+    <select id="selectTotalCount" resultType="int">
+        SELECT COUNT(*) FROM admin_log
+    </select>
+
+    <!-- 特有方法 -->
+    <select id="selectByAdminId" resultMap="adminLogResultMap">
         SELECT * FROM admin_log
         WHERE admin_id = #{adminId}
         ORDER BY operation_time DESC
     </select>
 
-    <select id="selectAdminLogsByOperation" resultMap="adminLogResultMap">
+    <select id="selectByOperation" resultMap="adminLogResultMap">
         SELECT * FROM admin_log
         WHERE operation = #{operation}
         ORDER BY operation_time DESC
     </select>
 
-    <select id="countAdminLogs" resultType="int">
-        SELECT COUNT(*) FROM admin_log
-    </select>
-
-    <select id="selectAdminLogs" resultMap="adminLogResultMap">
+    <select id="selectByCondition" resultMap="adminLogResultMap">
         SELECT * FROM admin_log
         <where>
             <if test="adminId != null">
@@ -47,6 +70,27 @@
             </if>
             <if test="operation != null and operation != ''">
                 AND operation = #{operation}
+            </if>
+            <if test="logLevel != null and logLevel != ''">
+                AND (
+                    <choose>
+                        <when test="logLevel == 'error'">
+                            (operation LIKE '%删除%' OR operation LIKE '%错误%' OR operation LIKE '%失败%')
+                        </when>
+                        <when test="logLevel == 'warn'">
+                            (operation LIKE '%警告%' OR operation LIKE '%注意%' OR operation LIKE '%提醒%')
+                        </when>
+                        <when test="logLevel == 'info'">
+                            (operation LIKE '%登录%' OR operation LIKE '%查看%' OR operation LIKE '%获取%' OR operation LIKE '%更新%' OR operation LIKE '%创建%')
+                        </when>
+                        <when test="logLevel == 'debug'">
+                            (operation LIKE '%调试%' OR operation LIKE '%DEBUG%')
+                        </when>
+                        <otherwise>
+                            1=1
+                        </otherwise>
+                    </choose>
+                )
             </if>
             <if test="startTime != null">
                 AND operation_time >= #{startTime}
@@ -58,7 +102,7 @@
         ORDER BY operation_time DESC
     </select>
 
-    <select id="selectAdminLogsByTarget" resultMap="adminLogResultMap">
+    <select id="selectByTarget" resultMap="adminLogResultMap">
         SELECT * FROM admin_log
         WHERE target_type = #{targetType}
         <if test="targetId != null">
@@ -82,7 +126,11 @@
         </where>
     </select>
 
-    <delete id="deleteAdminLogsBefore">
+    <delete id="deleteBeforeTime">
         DELETE FROM admin_log WHERE operation_time &lt; #{beforeTime}
+    </delete>
+    
+    <delete id="deleteByAdminId">
+        DELETE FROM admin_log WHERE admin_id = #{adminId}
     </delete>
 </mapper>

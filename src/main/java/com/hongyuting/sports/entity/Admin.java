@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Data
 public class Admin {
     private Integer id;
+    private Integer adminId;
     private String username;
     private String password;
     private String salt;

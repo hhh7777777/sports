@@ -3,8 +3,11 @@ package com.hongyuting.sports.service.impl;
 import com.hongyuting.sports.dto.LoginDTO;
 import com.hongyuting.sports.dto.RegisterDTO;
 import com.hongyuting.sports.dto.ResponseDTO;
+import com.hongyuting.sports.entity.OperationLog;
 import com.hongyuting.sports.entity.User;
 import com.hongyuting.sports.mapper.UserMapper;
+import com.hongyuting.sports.service.BadgeService;
+import com.hongyuting.sports.service.OperationLogService;
 import com.hongyuting.sports.service.TokenService;
 import com.hongyuting.sports.service.UserService;
 import com.hongyuting.sports.util.JwtUtil;
@@ -30,9 +33,12 @@ public class UserServiceImpl implements UserService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final JwtUtil jwtUtil;
     private final SaltUtil saltUtil;
-
-    @Autowired
-    private TokenService tokenService;
+    
+    private final BadgeService badgeService;
+    private final TokenService tokenService;
+    
+    private final com.hongyuting.sports.mapper.BehaviorMapper behaviorMapper;
+    private final com.hongyuting.sports.mapper.BadgeMapper badgeMapper;
 
     @Override
     public ResponseDTO register(RegisterDTO registerDTO) {
@@ -85,9 +91,20 @@ public class UserServiceImpl implements UserService {
             user.setRegisterTime(LocalDateTime.now());
 
             // 插入用户
-            int result = userMapper.insertUser(user);
+            int result = userMapper.insert(user);
             if (result > 0) {
                 log.info("用户注册成功：用户ID={}", user.getUserId());
+                
+                // 自动检查徽章授予
+                try {
+                    ResponseDTO badgeResult = badgeService.autoGrantBadgesBasedOnBehavior(user.getUserId());
+                    if (badgeResult.getCode() != 200) {
+                        log.warn("自动授予徽章失败：用户ID={}, 错误={}", user.getUserId(), badgeResult.getMessage());
+                    }
+                } catch (Exception badgeException) {
+                    log.error("自动授予徽章异常：用户ID={}", user.getUserId(), badgeException);
+                }
+                
                 return ResponseDTO.success("注册成功");
             } else {
                 log.warn("用户注册失败：用户名={}", registerDTO.getUsername());
@@ -101,6 +118,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseDTO login(LoginDTO loginDTO) {
+        // 默认IP地址，用于向后兼容
+        return login(loginDTO, "0:0:0:0:0:0:0:1");
+    }
+
+    @Override
+    public ResponseDTO login(LoginDTO loginDTO, String clientIP) {
         try {
             // 参数校验
             if (loginDTO == null) {
@@ -116,7 +139,7 @@ public class UserServiceImpl implements UserService {
             }
 
             // 根据用户名查找用户
-            User user = userMapper.selectUserByUsername(loginDTO.getUsername());
+            User user = userMapper.selectByUsername(loginDTO.getUsername());
             if (user == null) {
                 log.warn("用户登录失败：用户名或密码错误，用户名={}", loginDTO.getUsername());
                 return ResponseDTO.error("用户名或密码错误");
@@ -161,7 +184,7 @@ public class UserServiceImpl implements UserService {
                 // 更新用户信息
                 user.setPassword(newEncryptedPassword);
                 user.setSalt(newSalt);
-                userMapper.updateUser(user);
+                userMapper.updateById(user);
                 
                 // 更新局部变量供后续使用
                 encryptedPassword = newEncryptedPassword;
@@ -170,7 +193,7 @@ public class UserServiceImpl implements UserService {
 
             // 更新最后登录时间
             user.setLastLoginTime(LocalDateTime.now());
-            userMapper.updateUser(user);
+            userMapper.updateById(user);
 
             // 生成JWT Token
             String token = jwtUtil.generateToken(user.getUserId());
@@ -182,8 +205,36 @@ public class UserServiceImpl implements UserService {
             // 返回用户信息和Token
             user.setPassword(null); // 不返回密码
             user.setSalt(null); // 不返回盐值
+            
+            // 自动检查徽章授予
+            try {
+                ResponseDTO badgeResult = badgeService.autoGrantBadgesBasedOnBehavior(user.getUserId());
+                if (badgeResult.getCode() != 200) {
+                    log.warn("自动授予徽章失败：用户ID={}, 错误={}", user.getUserId(), badgeResult.getMessage());
+                }
+            } catch (Exception badgeException) {
+                log.error("自动授予徽章异常：用户ID={}", user.getUserId(), badgeException);
+            }
 
             log.info("用户登录成功：用户ID={}", user.getUserId());
+            
+            // 手动记录登录日志
+            try {
+                OperationLog loginLog = new OperationLog();
+                loginLog.setUserId(user.getUserId());
+                loginLog.setUserType("USER");
+                loginLog.setOperation("用户登录");
+                loginLog.setOperationType("AUTH");
+                loginLog.setTargetType("SYSTEM");
+                loginLog.setIpAddress(clientIP); // 使用传入的IP地址
+                loginLog.setOperationTime(LocalDateTime.now());
+                loginLog.setDetail("用户登录成功");
+                
+                operationLogService.addOperationLog(loginLog);
+            } catch (Exception logException) {
+                log.error("记录用户登录日志失败：用户ID={}", user.getUserId(), logException);
+            }
+            
             return ResponseDTO.success("登录成功", new LoginResponse(token, refreshToken, user));
         } catch (Exception e) {
             log.error("用户登录异常: ", e);
@@ -193,6 +244,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseDTO logout(String token) {
+        // 默认IP地址，用于向后兼容
+        return logout(token, "0:0:0:0:0:0:0:1");
+    }
+
+    @Override
+    public ResponseDTO logout(String token, String clientIP) {
         try {
             // 参数校验
             if (!StringUtils.hasText(token)) {
@@ -201,6 +258,29 @@ public class UserServiceImpl implements UserService {
             
             // 从Redis中删除Token (使用TokenService)
             tokenService.deleteToken(token.replace("Bearer ", ""));
+            
+            // 获取用户ID用于记录日志
+            String actualToken = token.replace("Bearer ", "");
+            Integer userId = jwtUtil.getUserIdFromToken(actualToken);
+            if (userId != null) {
+                // 记录退出日志
+                try {
+                    OperationLog logoutLog = new OperationLog();
+                    logoutLog.setUserId(userId);
+                    logoutLog.setUserType("USER");
+                    logoutLog.setOperation("用户退出");
+                    logoutLog.setOperationType("AUTH");
+                    logoutLog.setTargetType("SYSTEM");
+                    logoutLog.setIpAddress(clientIP); // 使用传入的IP地址
+                    logoutLog.setOperationTime(LocalDateTime.now());
+                    logoutLog.setDetail("用户退出登录");
+                    
+                    operationLogService.addOperationLog(logoutLog);
+                } catch (Exception logException) {
+                    log.error("记录用户退出日志失败：用户ID={}", userId, logException);
+                }
+            }
+            
             log.info("用户退出登录成功");
             return ResponseDTO.success("退出成功");
         } catch (Exception e) {
@@ -224,7 +304,7 @@ public class UserServiceImpl implements UserService {
             }
 
             // 首先验证JWT Token格式是否有效
-            if (!jwtUtil.validateToken(actualToken)) {
+            if (jwtUtil.validateToken(actualToken)) {
                 return ResponseDTO.error("Token格式无效");
             }
 
@@ -308,7 +388,7 @@ public class UserServiceImpl implements UserService {
             if (userId == null) {
                 return null;
             }
-            return userMapper.selectUserById(userId);
+            return userMapper.selectById(userId);
         } catch (Exception e) {
             log.error("根据ID获取用户信息异常: userId={}", userId, e);
             return null;
@@ -329,7 +409,7 @@ public class UserServiceImpl implements UserService {
             }
 
             // 更新用户信息
-            User existingUser = userMapper.selectUserById(user.getUserId());
+            User existingUser = userMapper.selectById(user.getUserId());
             if (existingUser == null) {
                 return ResponseDTO.error("用户不存在");
             }
@@ -364,7 +444,7 @@ public class UserServiceImpl implements UserService {
                 existingUser.setUserStatus(user.getUserStatus());
             }
 
-            int result = userMapper.updateUser(existingUser);
+            int result = userMapper.updateById(existingUser);
             if (result > 0) {
                 log.info("更新用户信息成功：用户ID={}", user.getUserId());
                 // 清除Redis中的用户信息缓存
@@ -388,7 +468,7 @@ public class UserServiceImpl implements UserService {
             if (user == null || user.getUserId() == null) {
                 return 0;
             }
-            return userMapper.updateUserAvatar(user);
+            return userMapper.updateUserAvatar(user.getUserId(), user.getAvatar());
         } catch (Exception e) {
             log.error("更新用户头像异常: userId={}", user != null ? user.getUserId() : null, e);
             return 0;
@@ -408,14 +488,14 @@ public class UserServiceImpl implements UserService {
             }
 
             // 先获取用户信息
-            User user = userMapper.selectUserById(userId);
+            User user = userMapper.selectById(userId);
             if (user == null) {
                 return ResponseDTO.error("用户不存在");
             }
             
             // 更新用户状态
             user.setUserStatus(status);
-            int result = userMapper.updateUser(user);
+            int result = userMapper.updateById(user);
             if (result > 0) {
                 log.info("更新用户状态成功：用户ID={}，状态={}", userId, status);
                 return ResponseDTO.success("用户状态更新成功");
@@ -438,7 +518,7 @@ public class UserServiceImpl implements UserService {
             }
 
             // 删除用户
-            int result = userMapper.deleteUser(userId);
+            int result = userMapper.deleteById(userId);
             if (result > 0) {
                 log.info("删除用户成功：用户ID={}", userId);
                 return ResponseDTO.success("用户删除成功");
@@ -455,7 +535,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAllUsers() {
         try {
-            return userMapper.selectAllUsers();
+            return userMapper.selectAll();
         } catch (Exception e) {
             log.error("获取所有用户异常: ", e);
             return null;
@@ -615,7 +695,7 @@ public class UserServiceImpl implements UserService {
             }
             
             // 先获取所有具有该邮箱的用户
-            List<User> users = userMapper.selectAllUsers();
+            List<User> users = userMapper.selectAll();
             return users.stream()
                     .filter(user -> email.equals(user.getEmail()))
                     .anyMatch(user -> !userId.equals(user.getUserId()));
@@ -624,7 +704,82 @@ public class UserServiceImpl implements UserService {
             return false;
         }
     }
-
+    
+    @Override
+    public Map<String, Object> getUserPersonalStats(Integer userId) {
+        try {
+            Map<String, Object> stats = new HashMap<>();
+            
+            // 获取用户的总运动时长
+            Integer totalDuration = userMapper.selectTotalDurationByUser(userId);
+            stats.put("totalDuration", totalDuration != null ? totalDuration : 0);
+            
+            // 获取用户的总运动记录数
+            int totalRecords = userMapper.selectCountByUserId(userId);
+            stats.put("totalRecords", totalRecords);
+            
+            // 获取用户在活跃度排行中的位置
+            List<Map<String, Object>> activityRank = behaviorMapper.selectActivityRank(Integer.MAX_VALUE);
+            int myRank = -1;
+            for (int i = 0; i < activityRank.size(); i++) {
+                Map<String, Object> userRank = activityRank.get(i);
+                if (userId.equals((Integer) userRank.get("userId"))) {
+                    myRank = i + 1; // 排名从1开始
+                    break;
+                }
+            }
+            stats.put("myRank", myRank);
+            
+            // 获取总用户数
+            int totalUserCount = userMapper.selectTotalCount();
+            stats.put("totalUserCount", totalUserCount);
+            
+            return stats;
+        } catch (Exception e) {
+            log.error("获取用户个人统计信息异常，用户ID: {}", userId, e);
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("totalDuration", 0);
+            stats.put("totalRecords", 0);
+            stats.put("myRank", -1);
+            stats.put("totalUserCount", 0);
+            return stats;
+        }
+    }
+    
+    @Override
+    public Map<String, Object> getUserRankInfo(Integer userId) {
+        try {
+            Map<String, Object> rankInfo = new HashMap<>();
+            
+            // 获取所有用户的活跃度排行
+            List<Map<String, Object>> activityRank = behaviorMapper.selectActivityRank(Integer.MAX_VALUE);
+            
+            // 找到当前用户在排行中的位置
+            int myRank = -1;
+            for (int i = 0; i < activityRank.size(); i++) {
+                Map<String, Object> userRank = activityRank.get(i);
+                if (userId.equals((Integer) userRank.get("userId"))) {
+                    myRank = i + 1; // 排名从1开始
+                    break;
+                }
+            }
+            
+            // 获取总用户数
+            int totalUserCount = userMapper.selectTotalCount();
+            
+            rankInfo.put("myRank", myRank);
+            rankInfo.put("totalUserCount", totalUserCount);
+            
+            return rankInfo;
+        } catch (Exception e) {
+            log.error("获取用户排名信息异常，用户ID: {}", userId, e);
+            Map<String, Object> rankInfo = new HashMap<>();
+            rankInfo.put("myRank", -1);
+            rankInfo.put("totalUserCount", 0);
+            return rankInfo;
+        }
+    }
+    
     @Data
     public static class LoginResponse {
         private String token;
@@ -639,4 +794,31 @@ public class UserServiceImpl implements UserService {
             this.user = user;
         }
     }
+    
+    // 添加获取客户端IP的辅助方法
+    private String getClientIPFromLoginDTO(LoginDTO loginDTO) {
+        // 由于LoginDTO中没有IP信息，我们返回一个默认值
+        // 实际应用中应该从请求上下文中获取IP
+        return "0:0:0:0:0:0:0:1"; // 默认IP，实际应用中应从请求上下文获取
+    }
+    
+    @Override
+    public List<Map<String, Object>> getUserGrowthStats(int months) {
+        try {
+            return userMapper.selectUserGrowthStats(months);
+        } catch (Exception e) {
+            log.error("获取用户增长趋势统计失败: ", e);
+            return new ArrayList<>();
+        }
+    }
+    
+    private String getClientIPFromToken(String token) {
+        // 由于Token中没有IP信息，我们返回一个默认值
+        // 实际应用中应该从请求上下文获取IP
+        return "0:0:0:0:0:0:0:1"; // 默认IP，实际应用中应从请求上下文获取
+    }
+    
+    // 注入OperationLogService
+    @Autowired
+    private OperationLogService operationLogService;
 }

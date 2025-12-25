@@ -137,4 +137,9 @@ public interface BehaviorService {
      * 上传行为记录图片
      */
     ResponseDTO uploadBehaviorImage(MultipartFile file);
+    
+    /**
+     * 获取活跃度排行（按运动时长）
+     */
+    List<Map<String, Object>> getActivityRank(Integer limit);
 }

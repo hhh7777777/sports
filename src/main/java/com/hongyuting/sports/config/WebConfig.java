@@ -4,9 +4,15 @@ import com.hongyuting.sports.interceptor.AuthInterceptor;
 import com.hongyuting.sports.interceptor.LogInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -37,6 +43,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/common/captcha",
                         "/api/common/server-time",
                         "/api/test",
+                        // 排除徽章相关公开接口
+                        "/api/badge/list",
                         // 排除管理员登录相关接口
                         "/api/admin/login",
                         "/api/admin/refresh",
@@ -49,9 +57,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(logInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns(
-                        "/api/user/login",
-                        "/api/user/register",
-                        "/api/common/captcha",
+                        // 移除了登录和注册接口，使其能够被记录日志
                         "/css/**", "/js/**", "/images/**"
                 );
     }
@@ -60,9 +66,24 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 添加 favicon.ico 处理
+        registry.addResourceHandler("/favicon.ico")
+                .addResourceLocations("classpath:/static/images/favicon.ico");
+        
         registry.addResourceHandler("/static/**")
                 .addResourceLocations("classpath:/static/");
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:./uploads/");
+        registry.addResourceHandler("/icons/**")
+                .addResourceLocations("classpath:/static/images/icons/");
+    }
+    
+    @Override
+    public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+        // 添加字符串转换器，确保使用UTF-8编码
+        converters.add(new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        
+        // 添加Jackson JSON转换器
+        converters.add(new MappingJackson2HttpMessageConverter());
     }
 }

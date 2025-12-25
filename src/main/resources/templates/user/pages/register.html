@@ -1,183 +1,282 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>用户注册 - 运动健康管理系统</title>
+    <title>用户注册 - 健康星球</title>
     <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
     <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --health-green:#4caf50;
-            --deep-green: #00b09b;
-            --white: #ffffff;
+            --primary-color: #00b09b;
+            --secondary-color: #96c93d;
+            --accent-color: #4af7f1;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4ade80;
+            --warning-color: #facc15;
+            --danger-color: #f87171;
         }
-
-        /* ===== 你的背景图 + 薄荷绿渐变兜底 ===== */
+        
         body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: url('/static/images/loginimage/liveone.jpg') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
-            margin: 0;
             display: flex;
             align-items: center;
-            background:
-                    url('/static/images/loginimage/liveone.jpg') center/cover no-repeat, /* 换成你的图片路径 */
-                    linear-gradient(135deg, var(--health-green) 0%, var(--deep-green) 100%);
-            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            padding: 20px;
         }
-
-        /* 登录卡片：纯白不透 */
-        .login-container {
-            width: 100%;
-            max-width: 450px;
-            margin: 0 auto;
-        }
-        .login-card {
-            border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,.25);
-            border: 2px solid var(--health-green);
+        
+        .register-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
             overflow: hidden;
-            background: var(--white); /* 纯白 */
+            width: 100%;
+            max-width: 1000px;
         }
-
-        /* 头部：薄荷绿底 + 白字（与按钮同色） */
-        .login-header {
-            background: var(--health-green); /* 与按钮同色 */
-            color: var(--white);
-            padding: 30px;
-            text-align: center;
-            letter-spacing: 2px;
+        
+        .register-left {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
-        .login-header h2 { font-weight: 700; margin-top: 8px; }
-
-        /* 身体：纯白 */
-        .login-body {
-            background: var(--white);
-            padding: 30px;
+        
+        .register-right {
+            padding: 40px;
         }
-
-        /* 输入框：薄荷绿边框 */
-        .form-control, .input-group-text {
+        
+        .register-logo {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .register-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .register-subtitle {
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-list i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .form-control {
+            border: 1px solid #e1e5eb;
             border-radius: 8px;
-            border: 1px solid var(--health-green);
-            background: var(--white);
+            padding: 12px 15px;
         }
+        
         .form-control:focus {
-            border-color: var(--deep-green);
-            box-shadow: 0 0 0 .2rem rgba(0,176,155,.25);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(0, 176, 155, 0.25);
         }
-
-        /* 按钮：薄荷绿 */
-        .btn-login {
-            background: var(--health-green);
-            color: #fff;
-            border: none;
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
             border-radius: 8px;
-            padding: 12px;
-            font-weight: 700;
-            transition: all .3s ease;
+            padding: 10px;
+            font-weight: 500;
         }
-        .btn-login:hover {
-            background: var(--deep-green);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,176,155,.4);
+        
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
         }
-
-        /* 链接：薄荷绿 */
-        .links a { color: var(--health-green); font-weight: 500; }
-        .links a:hover { color: var(--deep-green); }
-
-        /* 验证码图片圆角 */
-        #captchaImg { border-radius: 8px; cursor: pointer; }
+        
+        .alert {
+            border-radius: 8px;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e1e5eb;
+        }
+        
+        .divider span {
+            padding: 0 10px;
+            color: #6c757d;
+        }
+        
+        .password-strength {
+            height: 5px;
+            border-radius: 3px;
+            margin-top: 5px;
+            background-color: #e9ecef;
+            overflow: hidden;
+        }
+        
+        .password-strength .strength-meter {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
     </style>
 </head>
 <body>
-<div class="login-container">
-    <div class="login-card">
-        <div class="login-header">
-            <!-- 图标放在标题上方 -->
-            <i class="fas fa-user-plus fa-2x mb-2"></i>
-            <h2>用户注册</h2>
-            <p class="mb-0">创建您的运动健康账户</p>
-        </div>
-        <div class="login-body">
-            <form id="registerForm">
-                <div class="mb-3">
-                    <label for="username" class="form-label">用户名</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-user"></i></span>
-                        <input type="text" class="form-control" id="username" name="username" required placeholder="请输入用户名">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="register-container">
+                    <div class="row g-0">
+                        <div class="col-md-6 d-none d-md-block register-left">
+                            <div class="register-content">
+                                <div class="register-logo">
+                                    <i class="fas fa-running"></i>
+                                </div>
+                                <h2 class="register-title">健康星球</h2>
+                                <p class="register-subtitle">加入我们，开启健康生活</p>
+                                
+                                <ul class="feature-list">
+                                    <li><i class="fas fa-check-circle"></i> 记录您的运动数据</li>
+                                    <li><i class="fas fa-check-circle"></i> 获得专属成就徽章</li>
+                                    <li><i class="fas fa-check-circle"></i> 与朋友分享健康成果</li>
+                                    <li><i class="fas fa-check-circle"></i> 跟踪您的健康趋势</li>
+                                </ul>
+                                
+                                <div class="mt-4">
+                                    <p>已有账号？ <a href="/login" class="text-white fw-bold">立即登录</a></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="register-right">
+                                <div class="text-center mb-5">
+                                    <div class="register-logo text-primary mb-3">
+                                        <i class="fas fa-user-plus fa-2x"></i>
+                                    </div>
+                                    <h3 class="fw-bold">用户注册</h3>
+                                    <p class="text-muted">创建您的健康星球账户</p>
+                                </div>
+                                
+                                <form id="registerForm">
+                                    <div class="mb-3">
+                                        <label for="username" class="form-label">用户名</label>
+                                        <input type="text" class="form-control" id="username" name="username" placeholder="请输入用户名" required>
+                                        <div class="form-text">4-20个字符，可包含字母、数字和下划线</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="email" class="form-label">邮箱</label>
+                                        <input type="email" class="form-control" id="email" name="email" placeholder="请输入邮箱地址" required>
+                                        <div class="form-text">我们将向此邮箱发送验证邮件</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label">密码</label>
+                                        <input type="password" class="form-control" id="password" name="password" placeholder="请输入密码" required>
+                                        <div class="password-strength">
+                                            <div class="strength-meter" id="passwordStrengthMeter"></div>
+                                        </div>
+                                        <div class="form-text">至少6个字符，包含字母和数字</div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="confirmPassword" class="form-label">确认密码</label>
+                                        <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入密码" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="captcha" class="form-label">验证码</label>
+                                        <div class="captcha-container">
+                                            <input type="text" class="form-control captcha-input" id="captcha" name="captcha" placeholder="请输入验证码" required>
+                                            <img id="captchaImage" class="captcha-image" src="/api/common/captcha" alt="验证码" onclick="this.src='/api/common/captcha?d='+Math.random()">
+                                        </div>
+                                        <div class="form-text">点击图片刷新验证码</div>
+                                    </div>
+                                    
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="agreeTerms" required>
+                                        <label class="form-check-label" for="agreeTerms">我同意 <a href="#" class="text-decoration-none">用户协议</a> 和 <a href="#" class="text-decoration-none">隐私政策</a></label>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary w-100 mb-3">
+                                        <i class="fas fa-user-plus me-2"></i>注册账户
+                                    </button>
+                                </form>
+                                
+                                <div class="divider">
+                                    <span>已有账号</span>
+                                </div>
+                                
+                                <div class="d-grid">
+                                    <a href="/login" class="btn btn-outline-secondary">
+                                        <i class="fas fa-sign-in-alt me-2"></i>前往登录
+                                    </a>
+                                </div>
+                                
+                                <!-- 消息提示区域 -->
+                                <div id="messageArea" class="mt-3" style="display: none;">
+                                    <div class="alert alert-success" id="successMessage" role="alert" style="display: none;">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        <span id="successText"></span>
+                                    </div>
+                                    <div class="alert alert-danger" id="errorMessage" role="alert" style="display: none;">
+                                        <i class="fas fa-exclamation-circle me-2"></i>
+                                        <span id="errorText"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label for="email" class="form-label">电子邮箱</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                        <input type="email" class="form-control" id="email" name="email" required placeholder="请输入电子邮箱">
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">密码</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                        <input type="password" class="form-control" id="password" name="password" required placeholder="请输入密码（至少8位）">
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label for="confirmPassword" class="form-label">确认密码</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required placeholder="请再次输入密码">
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label for="captcha" class="form-label">验证码</label>
-                    <div class="input-group">
-                        <input type="text" class="form-control" id="captcha" name="captcha" required placeholder="请输入验证码">
-                        <img src="/api/common/captcha" id="captchaImg" class="input-group-text" style="height: 40px;" title="点击刷新">
-                    </div>
-                </div>
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="agree" name="agree" required>
-                    <label class="form-check-label" for="agree">我同意服务条款和隐私政策</label>
-                </div>
-                <button type="submit" class="btn btn-login w-100">注册账户</button>
-            </form>
-            <div class="links text-center mt-3">
-                <p class="mb-2">已有账户？<a href="/login">立即登录</a></p>
-                <p class="mb-0"><a href="/static">返回首页</a></p>
             </div>
         </div>
     </div>
-</div>
 
-<script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
-<script src="/js/modules/common.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const captchaImg = document.getElementById('captchaImg');
-        captchaImg.addEventListener('click', () => captchaImg.src = '/api/common/captcha?t=' + Date.now());
-
-        document.getElementById('registerForm').addEventListener('submit', async e => {
-            e.preventDefault();
-            const data = Object.fromEntries(new FormData(e.target).entries());
-            if(!data.username || !data.email || !data.password || !data.confirmPassword || !data.captcha) return CommonUtils.showAlert('请填写完整信息','error');
-            if(data.password !== data.confirmPassword) return CommonUtils.showAlert('两次密码不一致','error');
-            if(!data.agree) return CommonUtils.showAlert('请同意服务条款','error');
-            try{
-                const res = await fetch('/api/user/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-                const json = await res.json();
-                if(json.code===200){
-                    CommonUtils.showAlert('注册成功！即将跳转到登录页...','success');
-                    setTimeout(()=> location.href='/login',1500);
-                }else{
-                    CommonUtils.showAlert(json.message||'注册失败','error');
-                    captchaImg.click();
-                }
-            }catch(err){
-                CommonUtils.showAlert('网络错误','error');
-            }
-        });
-    });
-</script>
+    <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // 检查是否有错误消息
+        var errorMsg = /*[[${errorMsg}]]*/ null;
+        var successMsg = /*[[${successMsg}]]*/ null;
+        
+        if (errorMsg) {
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('errorText').textContent = errorMsg;
+            document.getElementById('messageArea').style.display = 'block';
+        }
+        
+        if (successMsg) {
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('successText').textContent = successMsg;
+            document.getElementById('messageArea').style.display = 'block';
+        }
+        /*]]>*/
+    </script>
+    <script src="/js/modules/common.js"></script>
+    <script src="/js/user/register.js"></script>
 </body>
 </html>

@@ -28,5 +28,7 @@ public class Behavior {
     private LocalDateTime updateTime;
     // 类型名称
     private String typeName;
+    // 用户名
+    private String userName;
 
 }

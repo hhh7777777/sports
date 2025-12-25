@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirmPassword');
     const passwordStrength = document.getElementById('passwordStrength');
-    const captchaImg = document.getElementById('captchaImg');
+    const captchaImage = document.getElementById('captchaImage');
 
     // 初始化验证码
     refreshCaptcha();
@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmPasswordInput.addEventListener('input', validateConfirmPassword);
 
     // 验证码点击刷新
-    captchaImg.addEventListener('click', refreshCaptcha);
+    captchaImage && captchaImage.addEventListener('click', refreshCaptcha);
 
     // 表单提交处理
     registerForm.addEventListener('submit', async function(e) {
@@ -44,6 +44,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (response.ok && result.code === 200) {
                 showAlert('注册成功！正在跳转...', 'success');
+                
+                // 触发注册成功事件，以便其他页面更新UI
+                const registerEvent = new CustomEvent('userLoginSuccess', {
+                    detail: { message: '注册成功' }
+                });
+                document.dispatchEvent(registerEvent);
+                
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 1500);
@@ -160,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // 初始化验证码点击事件
-    document.getElementById('captchaImg').addEventListener('click', refreshCaptcha);
+    captchaImage && captchaImage.addEventListener('click', refreshCaptcha);
 
     // 页面加载时初始化验证码
     window.addEventListener('load', refreshCaptcha);

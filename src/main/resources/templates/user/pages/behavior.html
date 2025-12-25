@@ -1,17 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>运动记录 - 运动健康管理系统</title>
+    <title>运动记录</title>
     <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
     <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
-    <link href="/libs/flatpickr/flatpickr.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4af7f1;
-            --secondary-color: #4af7f1;
-            --accent-color: #4cc9f0;
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4af7f1;
             --light-color: #f8f9fa;
             --dark-color: #212529;
             --success-color: #4ade80;
@@ -54,47 +53,40 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
-        .activity-card {
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        .stat-card {
+            transition: transform 0.2s;
             border: none;
-            transition: all 0.3s ease;
-            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        .activity-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        .stat-card:hover {
+            transform: translateY(-2px);
         }
         
-        .activity-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
+        /* 用户头像下拉菜单样式修复 */
+        .user-dropdown {
+            position: relative;
+        }
+        
+        .user-dropdown .dropdown-menu {
+            right: 0;
+            left: auto;
+            min-width: 150px;
+            z-index: 1050;
+        }
+        
+        .user-dropdown .dropdown-toggle {
+            cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: white;
         }
         
-        .running { background-color: #28a745; }
-        .swimming { background-color: #17a2b8; }
-        .cycling { background-color: #ffc107; color: #212529 !important; }
-        .yoga { background-color: #6f42c1; }
-        
-        .stat-card {
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border: none;
-        }
-        
-        .user-dropdown img {
+        .user-avatar {
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            object-fit: cover;
             margin-right: 8px;
+            object-fit: cover;
         }
         
         .card-header {
@@ -104,35 +96,40 @@
             padding: 1rem 1.5rem;
         }
         
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-        }
-        
-        .btn-primary:hover {
-            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
-        }
-        
-        .form-control, .form-select {
+        .behavior-form .form-control, .behavior-form .form-select {
+            border: 1px solid #e1e5eb;
             border-radius: 8px;
             padding: 10px 15px;
         }
         
-        .btn-add-record {
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-weight: 500;
+        .behavior-form .form-control:focus, .behavior-form .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
         }
         
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
+        .table th {
+            border-top: none;
+            font-weight: 600;
+            color: #495057;
         }
         
-        .empty-state i {
-            font-size: 3rem;
-            color: #ced4da;
-            margin-bottom: 20px;
+        .table-hover tbody tr:hover {
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .pagination .page-link {
+            color: var(--primary-color);
+        }
+        
+        .pagination .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .behavior-type-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
         }
     </style>
 </head>
@@ -149,15 +146,17 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text me-3">
-                    欢迎，<span id="userName">用户</span>
+                    欢迎，<span th:text="${currentUser.username} ?: '用户'" id="userName">用户</span>
                 </span>
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle user-dropdown" href="#" role="button" data-bs-toggle="dropdown">
-                        <img src="/images/avatar.png" alt="用户头像" class="user-avatar">
-                        <span class="d-none d-md-inline">用户</span>
+                        <img th:src="${currentUser != null and currentUser.avatar != null and currentUser.avatar != ''} ? ${currentUser.avatar} : '/images/avatar.png'" 
+                             th:alt="${currentUser != null and currentUser.username != null} ? ${currentUser.username} + '的头像' : '用户头像'" class="user-avatar" id="userAvatar">
+                        <span class="d-none d-md-inline" th:text="${currentUser != null and currentUser.username != null} ? ${currentUser.username} : '用户'">用户</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>个人资料</a></li>
+                        <li><a class="dropdown-item" href="/index"><i class="fas fa-home me-2"></i>回到首页</a></li>
+                        <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-tachometer-alt me-2"></i>我的仪表板</a></li>
                         <li><a class="dropdown-item" href="/achievements"><i class="fas fa-trophy me-2"></i>我的成就</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
@@ -199,168 +198,155 @@
         </nav>
 
         <!-- 主内容区 -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
                 <h1 class="h2 fw-bold text-dark">运动记录</h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <button class="btn btn-primary btn-add-record" data-bs-toggle="modal" data-bs-target="#addActivityModal">
-                        <i class="fas fa-plus me-1"></i>添加记录
-                    </button>
-                </div>
             </div>
 
-            <!-- 统计卡片 -->
+            <!-- 添加运动记录表单 -->
             <div class="row mb-4">
-                <div class="col-md-3 mb-3">
-                    <div class="card stat-card">
-                        <div class="card-body text-center">
-                            <h5 class="card-title text-primary" id="monthlyDuration">0</h5>
-                            <p class="card-text text-muted mb-0">本月时长(分钟)</p>
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-plus-circle me-2"></i>添加新的运动记录</h5>
                         </div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card stat-card">
-                        <div class="card-body text-center">
-                            <h5 class="card-title text-success" id="monthlyCount">0</h5>
-                            <p class="card-text text-muted mb-0">本月次数</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card stat-card">
-                        <div class="card-body text-center">
-                            <h5 class="card-title text-warning" id="monthlyDistance">0</h5>
-                            <p class="card-text text-muted mb-0">本月里程(km)</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <div class="card stat-card">
-                        <div class="card-body text-center">
-                            <h5 class="card-title text-info" id="monthlyCalories">0</h5>
-                            <p class="card-text text-muted mb-0">本月卡路里</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 筛选表单 -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h6 class="m-0 font-weight-bold text-primary">筛选条件</h6>
-                </div>
-                <div class="card-body">
-                    <form id="filterForm">
-                        <div class="row">
-                            <div class="col-md-3 mb-3">
-                                <label for="activityType" class="form-label">运动类型</label>
-                                <select class="form-select" id="activityType">
-                                    <option value="">全部</option>
-                                    <option value="running">跑步</option>
-                                    <option value="swimming">游泳</option>
-                                    <option value="cycling">骑行</option>
-                                    <option value="yoga">瑜伽</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label for="startDate" class="form-label">开始日期</label>
-                                <input type="text" class="form-control" id="startDate" placeholder="选择日期">
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label for="endDate" class="form-label">结束日期</label>
-                                <input type="text" class="form-control" id="endDate" placeholder="选择日期">
-                            </div>
-                            <div class="col-md-3 mb-3 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-filter me-1"></i>筛选
+                        <div class="card-body behavior-form">
+                            <form id="behaviorForm">
+                                <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <label for="behaviorType" class="form-label">运动类型</label>
+                                        <select class="form-select" id="behaviorType" name="typeId" required>
+                                            <option value="">请选择运动类型</option>
+                                            <option th:each="type : ${behaviorTypes}" th:value="${type.typeId}" th:text="${type.typeName}">跑步</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label for="recordDate" class="form-label">运动日期</label>
+                                        <input type="date" class="form-control" id="recordDate" name="recordDate" required>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label for="duration" class="form-label">运动时长(分钟)</label>
+                                        <input type="number" class="form-control" id="duration" name="duration" min="1" required>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <label for="distance" class="form-label">运动距离(km)</label>
+                                        <input type="number" step="0.01" class="form-control" id="distance" name="distance" min="0">
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="content" class="form-label">备注</label>
+                                        <textarea class="form-control" id="content" name="content" rows="2" placeholder="记录本次运动的感受..."></textarea>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="imageUpload" class="form-label">运动图片</label>
+                                        <input type="file" class="form-control" id="imageUpload" accept="image/*">
+                                        <div class="form-text">支持 JPG, PNG 格式图片</div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>保存记录
                                 </button>
-                            </div>
+                            </form>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
 
             <!-- 运动记录列表 -->
-            <div class="row" id="activityList">
-                <!-- 动态加载内容 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="fas fa-list me-2"></i>我的运动记录</h5>
+                            <div>
+                                <input type="text" class="form-control d-inline-block" id="searchInput" style="width: 200px;" placeholder="搜索运动类型...">
+                                <button class="btn btn-outline-secondary ms-2" id="searchBtn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>日期</th>
+                                            <th>类型</th>
+                                            <th>时长(分钟)</th>
+                                            <th>距离(km)</th>
+                                            <th>备注</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="behaviorList">
+                                        <tr th:if="${#lists.isEmpty(behaviors)}">
+                                            <td colspan="6" class="text-center text-muted py-4">
+                                                <i class="fas fa-running fa-2x mb-3"></i>
+                                                <p>暂无运动记录，快去添加第一条记录吧！</p>
+                                            </td>
+                                        </tr>
+                                        <tr th:each="behavior : ${behaviors}">
+                                            <td th:text="${#temporals.format(behavior.recordDate, 'yyyy-MM-dd')}">2024-12-28</td>
+                                            <td>
+                                                <span class="behavior-type-badge" th:style="'background-color: ' + ${behavior.typeColor ?: '#6c757d'} + '; color: white;'" 
+                                                      th:text="${behavior.typeName}">跑步</span>
+                                            </td>
+                                            <td th:text="${behavior.duration} ?: '0'">30</td>
+                                            <td th:text="${behavior.distance != null} ? ${#numbers.formatDecimal(behavior.distance, 1, 2)} : '0.00'">5.5</td>
+                                            <td th:text="${behavior.content} ?: '无'">晨跑</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-2" th:data-id="${behavior.recordId}">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" th:data-id="${behavior.recordId}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- 分页 -->
+                            <nav aria-label="行为记录分页">
+                                <ul class="pagination justify-content-center" id="pagination">
+                                    <!-- 分页内容将通过Thymeleaf或JavaScript生成 -->
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">上一页</a>
+                                    </li>
+                                    <li class="page-item active">
+                                        <a class="page-link" href="#">1</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">2</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">3</a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">下一页</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <!-- 分页 -->
-            <nav aria-label="Page navigation" class="mt-4">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" tabindex="-1">上一页</a>
-                    </li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">下一页</a>
-                    </li>
-                </ul>
-            </nav>
         </main>
     </div>
 </div>
 
-<!-- 添加记录模态框 -->
-<div class="modal fade" id="addActivityModal" tabindex="-1" aria-labelledby="addActivityModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addActivityModalLabel">添加运动记录</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addActivityForm">
-                    <div class="mb-3">
-                        <label for="newActivityType" class="form-label">运动类型</label>
-                        <select class="form-select" id="newActivityType" required>
-                            <option value="">请选择</option>
-                            <option value="running">跑步</option>
-                            <option value="swimming">游泳</option>
-                            <option value="cycling">骑行</option>
-                            <option value="yoga">瑜伽</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="activityDate" class="form-label">日期</label>
-                        <input type="text" class="form-control" id="activityDate" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="activityDuration" class="form-label">时长(分钟)</label>
-                        <input type="number" class="form-control" id="activityDuration" min="1" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="activityDistance" class="form-label">距离(公里)</label>
-                        <input type="number" class="form-control" id="activityDistance" min="0" step="0.1">
-                    </div>
-                    <div class="mb-3">
-                        <label for="activityCalories" class="form-label">消耗卡路里</label>
-                        <input type="number" class="form-control" id="activityCalories" min="0">
-                    </div>
-                    <div class="mb-3">
-                        <label for="activityDescription" class="form-label">描述</label>
-                        <textarea class="form-control" id="activityDescription" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="activityImage" class="form-label">图片</label>
-                        <input type="file" class="form-control" id="activityImage" accept="image/*">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-primary" id="saveActivityBtn">保存</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
-<script src="/libs/flatpickr/flatpickr.min.js"></script>
-<script src="/libs/flatpickr/zh.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // 将服务端数据传递给JavaScript
+    var currentUser = /*[[${currentUser}]]*/ null;
+    var behaviors = /*[[${behaviors}]]*/ [];
+    var behaviorTypes = /*[[${behaviorTypes}]]*/ [];
+    /*]]>*/
+</script>
+<script src="/js/modules/common.js"></script>
 <script src="/js/user/behavior.js"></script>
 </body>
 </html>

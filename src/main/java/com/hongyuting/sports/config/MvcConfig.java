@@ -13,7 +13,6 @@ public class MvcConfig implements WebMvcConfigurer {
     public void addViewControllers(ViewControllerRegistry registry) {
         // 统一视图控制器配置
         registry.addRedirectViewController("/", "/index");
-        registry.addViewController("/index").setViewName("index");
         registry.addViewController("/user/login").setViewName("user/pages/login");
         registry.addViewController("/user/register").setViewName("user/pages/register");
         registry.addViewController("/user/dashboard").setViewName("user/pages/dashboard");

@@ -4,23 +4,21 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
+import jakarta.annotation.PostConstruct;
 import java.util.Date;
 
-/**
- * JWT工具类
- */
 @Component
 public class JwtUtil {
 
     @Value("${jwt.secret:defaultSecretKeyForHongYuTingSportsApplication2024}")
     private String secret;
 
-    private Key key;
+    private SecretKey key;
 
     @PostConstruct
     public void init() {
@@ -83,9 +81,9 @@ public class JwtUtil {
                     .setSigningKey(key)
                     .build()
                     .parseClaimsJws(token);
-            return true;
+            return true; // 修复：验证成功应该返回true
         } catch (Exception e) {
-            return false;
+            return false; // 修复：验证失败应该返回false
         }
     }
 

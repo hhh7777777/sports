@@ -4,18 +4,25 @@ import com.hongyuting.sports.dto.AdminLoginDTO;
 import com.hongyuting.sports.dto.ResponseDTO;
 import com.hongyuting.sports.entity.Admin;
 import com.hongyuting.sports.entity.AdminLog;
+import com.hongyuting.sports.entity.OperationLog;
 import com.hongyuting.sports.mapper.AdminLogMapper;
 import com.hongyuting.sports.mapper.AdminMapper;
 import com.hongyuting.sports.service.AdminService;
+import com.hongyuting.sports.service.OperationLogService;
 import com.hongyuting.sports.service.TokenService;
 import com.hongyuting.sports.util.JwtUtil;
 import com.hongyuting.sports.util.SaltUtil;
+import com.hongyuting.sports.mapper.UserMapper;
+import com.hongyuting.sports.mapper.BehaviorMapper;
+import com.hongyuting.sports.mapper.BadgeMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +42,10 @@ public class AdminServiceImpl implements AdminService {
     private final SaltUtil saltUtil;
     private final JwtUtil jwtUtil;
     private final TokenService tokenService;
+    private final OperationLogService operationLogService;
+    private final UserMapper userMapper;
+    private final BehaviorMapper behaviorMapper;
+    private final BadgeMapper badgeMapper;
 
     @Override
     public ResponseDTO login(AdminLoginDTO loginDTO, String clientIP) {
@@ -56,12 +67,42 @@ public class AdminServiceImpl implements AdminService {
             Admin admin = adminMapper.findByUsername(loginDTO.getUsername());
             if (admin == null) {
                 log.warn("管理员登录失败：用户名或密码错误，用户名={}", loginDTO.getUsername());
+                
+                // 记录失败的登录尝试
+                try {
+                    AdminLog adminLog = new AdminLog();
+                    adminLog.setAdminId(null); // 未成功登录，ID为null
+                    adminLog.setOperation("管理员登录失败");
+                    adminLog.setTargetType("SYSTEM");
+                    adminLog.setDetail("用户名或密码错误: " + loginDTO.getUsername());
+                    adminLog.setIpAddress(clientIP);
+                    adminLog.setOperationTime(LocalDateTime.now());
+                    adminLogMapper.insert(adminLog);
+                } catch (Exception logException) {
+                    log.error("记录管理员登录失败日志异常", logException);
+                }
+                
                 return ResponseDTO.error("用户名或密码错误");
             }
 
             // 3. 检查账号状态
             if (admin.getStatus() == null || admin.getStatus() == 0) {
                 log.warn("管理员登录失败：账号已被禁用，管理员ID={}", admin.getAdminId());
+                
+                // 记录失败的登录尝试
+                try {
+                    AdminLog adminLog = new AdminLog();
+                    adminLog.setAdminId(admin.getAdminId());
+                    adminLog.setOperation("管理员登录失败");
+                    adminLog.setTargetType("SYSTEM");
+                    adminLog.setDetail("账号已被禁用");
+                    adminLog.setIpAddress(clientIP);
+                    adminLog.setOperationTime(LocalDateTime.now());
+                    adminLogMapper.insert(adminLog);
+                } catch (Exception logException) {
+                    log.error("记录管理员登录失败日志异常", logException);
+                }
+                
                 return ResponseDTO.error("账号已被禁用");
             }
 
@@ -85,6 +126,21 @@ public class AdminServiceImpl implements AdminService {
 
             if (!passwordValid) {
                 log.warn("管理员登录失败：用户名或密码错误，管理员ID={}", admin.getAdminId());
+                
+                // 记录失败的登录尝试
+                try {
+                    AdminLog adminLog = new AdminLog();
+                    adminLog.setAdminId(admin.getAdminId());
+                    adminLog.setOperation("管理员登录失败");
+                    adminLog.setTargetType("SYSTEM");
+                    adminLog.setDetail("用户名或密码错误");
+                    adminLog.setIpAddress(clientIP);
+                    adminLog.setOperationTime(LocalDateTime.now());
+                    adminLogMapper.insert(adminLog);
+                } catch (Exception logException) {
+                    log.error("记录管理员登录失败日志异常", logException);
+                }
+                
                 return ResponseDTO.error("用户名或密码错误");
             }
 
@@ -120,7 +176,7 @@ public class AdminServiceImpl implements AdminService {
             adminLog.setDetail("IP: " + clientIP);
             adminLog.setIpAddress(clientIP);
             adminLog.setOperationTime(LocalDateTime.now());
-            adminLogMapper.insertAdminLog(adminLog);
+            adminLogMapper.insert(adminLog);
 
             // 10. 返回登录结果（不返回密码信息）
             admin.setPassword(null);
@@ -141,6 +197,12 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public ResponseDTO logout(Integer adminId, String token) {
+        // 默认IP地址，用于向后兼容
+        return logout(adminId, token, "0:0:0:0:0:0:0:1");
+    }
+
+    @Override
+    public ResponseDTO logout(Integer adminId, String token, String clientIP) {
         try {
             // 参数校验
             if (adminId == null) {
@@ -153,6 +215,23 @@ public class AdminServiceImpl implements AdminService {
 
             // 从Redis中删除Token
             tokenService.deleteAdminToken(token);
+            
+            // 记录退出日志
+            try {
+                OperationLog logoutLog = new OperationLog();
+                logoutLog.setAdminId(adminId);
+                logoutLog.setUserType("ADMIN");
+                logoutLog.setOperation("管理员退出");
+                logoutLog.setOperationType("AUTH");
+                logoutLog.setTargetType("SYSTEM");
+                logoutLog.setIpAddress(clientIP); // 使用传入的IP地址
+                logoutLog.setOperationTime(LocalDateTime.now());
+                logoutLog.setDetail("管理员退出登录");
+                
+                operationLogService.addOperationLog(logoutLog);
+            } catch (Exception logException) {
+                log.error("记录管理员退出日志异常", logException);
+            }
             
             log.info("管理员退出登录成功：管理员ID={}", adminId);
             return ResponseDTO.success("退出成功");
@@ -170,7 +249,7 @@ public class AdminServiceImpl implements AdminService {
                 return ResponseDTO.error("刷新令牌不能为空");
             }
             
-            if (!jwtUtil.validateToken(refreshToken)) {
+            if (jwtUtil.validateToken(refreshToken)) {
                 return ResponseDTO.error("刷新令牌无效");
             }
 
@@ -195,7 +274,7 @@ public class AdminServiceImpl implements AdminService {
             tokenService.deleteAdminToken(refreshToken);
             
             // 创建新的管理员信息
-            Admin admin = adminMapper.findById(adminId);
+            Admin admin = adminMapper.selectById(adminId);
             if (admin != null) {
                 admin.setPassword(null); // 不存储密码信息
                 admin.setSalt(null); // 不存储盐值
@@ -250,7 +329,7 @@ public class AdminServiceImpl implements AdminService {
             if (adminId == null) {
                 return null;
             }
-            return adminMapper.findById(adminId);
+            return adminMapper.selectById(adminId);
         } catch (Exception e) {
             log.error("获取管理员信息异常：管理员ID={}", adminId, e);
             return null;
@@ -278,7 +357,7 @@ public class AdminServiceImpl implements AdminService {
             }
 
             // 查询管理员信息
-            Admin admin = adminMapper.findById(adminId);
+            Admin admin = adminMapper.selectById(adminId);
             if (admin == null) {
                 return ResponseDTO.error("管理员不存在");
             }
@@ -323,9 +402,40 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<AdminLog> getAdminLogs(Integer adminId, String operation, LocalDateTime startTime, LocalDateTime endTime) {
         try {
-            return adminLogMapper.selectAdminLogs(adminId, operation, startTime, endTime);
+            return getAdminLogsByCondition(adminId, operation, startTime, endTime, null);
         } catch (Exception e) {
             log.error("获取管理员操作日志异常：", e);
+            return null;
+        }
+    }
+    
+    public List<AdminLog> getAdminLogsByCondition(Integer adminId, String operation, LocalDateTime startTime, LocalDateTime endTime, String logLevel) {
+        try {
+            // 为了向后兼容，仍然使用原有的adminLogMapper获取管理员日志
+            return adminLogMapper.selectByCondition(adminId, operation, startTime, endTime, logLevel);
+        } catch (Exception e) {
+            log.error("根据条件获取管理员操作日志异常：", e);
+            return null;
+        }
+    }
+    
+    /**
+     * 获取所有操作日志（包括用户和管理员）
+     */
+    public List<com.hongyuting.sports.entity.OperationLog> getOperationLogsByCondition(Integer userId, Integer adminId, String operation, LocalDateTime startTime, LocalDateTime endTime, String operationType, String userType) {
+        try {
+            java.util.Map<String, Object> params = new java.util.HashMap<>();
+            params.put("userId", userId);
+            params.put("adminId", adminId);
+            params.put("operation", operation);
+            params.put("startDate", startTime);
+            params.put("endDate", endTime);
+            params.put("operationType", operationType);
+            params.put("userType", userType);
+            
+            return operationLogService.getOperationLogs(params);
+        } catch (Exception e) {
+            log.error("根据条件获取所有操作日志异常：", e);
             return null;
         }
     }
@@ -333,7 +443,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<AdminLog> getAdminLogsByTarget(String targetType, Integer targetId) {
         try {
-            return adminLogMapper.selectAdminLogsByTarget(targetType, targetId);
+            return adminLogMapper.selectByTarget(targetType, targetId);
         } catch (Exception e) {
             log.error("按目标获取管理员操作日志异常：", e);
             return null;
@@ -347,9 +457,9 @@ public class AdminServiceImpl implements AdminService {
                 return ResponseDTO.error("日志信息不能为空");
             }
 
-            int result = adminLogMapper.insertAdminLog(adminLog);
+            int result = adminLogMapper.insert(adminLog);
             if (result > 0) {
-                log.info("添加管理员操作日志成功：日志ID={}", adminLog.getLogId());
+                log.info("添加管理员操作日志成功：日志ID={}", adminLog.getId());
                 return ResponseDTO.success("添加日志成功");
             } else {
                 log.warn("添加管理员操作日志失败");
@@ -368,7 +478,7 @@ public class AdminServiceImpl implements AdminService {
                 return ResponseDTO.error("时间不能为空");
             }
 
-            int result = adminLogMapper.deleteAdminLogsBefore(beforeTime);
+            int result = adminLogMapper.deleteBeforeTime(beforeTime);
             log.info("清理管理员旧日志完成：清理条数={}, 时间={}", result, beforeTime);
             return ResponseDTO.success("清理完成，共清理" + result + "条日志");
         } catch (Exception e) {
@@ -392,20 +502,98 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<Admin> getAllAdmins() {
-        // 这个方法在AdminMapper中没有对应的方法，暂时返回空列表
-        return List.of();
+        try {
+            return adminMapper.selectAll();
+        } catch (Exception e) {
+            log.error("获取所有管理员异常：", e);
+            return List.of();
+        }
     }
 
     @Override
     public ResponseDTO updateAdminInfo(Admin admin) {
-        // 这个方法在AdminMapper中没有对应的方法，暂时返回错误
-        return ResponseDTO.error("暂不支持更新管理员信息");
+        try {
+            // 参数校验
+            if (admin == null || admin.getAdminId() == null) {
+                return ResponseDTO.error("管理员信息不能为空");
+            }
+            
+            // 检查管理员是否存在
+            Admin existingAdmin = adminMapper.selectById(admin.getAdminId());
+            if (existingAdmin == null) {
+                return ResponseDTO.error("管理员不存在");
+            }
+            
+            // 更新管理员信息（不更新密码和盐值）
+            existingAdmin.setUsername(admin.getUsername());
+            existingAdmin.setEmail(admin.getEmail());
+            existingAdmin.setRoleLevel(admin.getRoleLevel());
+            existingAdmin.setDepartment(admin.getDepartment());
+            existingAdmin.setStatus(admin.getStatus());
+            
+            int result = adminMapper.updateAdminInfo(existingAdmin);
+            if (result > 0) {
+                log.info("更新管理员信息成功：管理员ID={}", admin.getAdminId());
+                
+                // 更新Redis中的管理员信息
+                String token = (String) redisTemplate.opsForValue().get("admin:id:" + admin.getAdminId());
+                if (token != null) {
+                    existingAdmin.setPassword(null); // 不返回密码
+                    existingAdmin.setSalt(null); // 不返回盐值
+                    tokenService.storeAdminInfo(token, existingAdmin);
+                }
+                
+                return ResponseDTO.success("更新管理员信息成功");
+            } else {
+                log.warn("更新管理员信息失败：管理员ID={}", admin.getAdminId());
+                return ResponseDTO.error("更新管理员信息失败");
+            }
+        } catch (Exception e) {
+            log.error("更新管理员信息异常：", e);
+            return ResponseDTO.error("更新管理员信息异常: " + e.getMessage());
+        }
     }
 
     @Override
     public ResponseDTO deleteAdmin(Integer adminId) {
-        // 这个方法在AdminMapper中没有对应的方法，暂时返回错误
-        return ResponseDTO.error("暂不支持删除管理员");
+        try {
+            // 参数校验
+            if (adminId == null) {
+                return ResponseDTO.error("管理员ID不能为空");
+            }
+            
+            // 检查管理员是否存在
+            Admin admin = adminMapper.selectById(adminId);
+            if (admin == null) {
+                return ResponseDTO.error("管理员不存在");
+            }
+            
+            // 不允许删除自己（如果是通过token获取的管理员ID）
+            // 注意：这里需要通过调用方来判断是否为当前登录管理员
+            
+            // 删除管理员
+            int result = adminMapper.deleteById(adminId);
+            if (result > 0) {
+                log.info("删除管理员成功：管理员ID={}", adminId);
+                
+                // 删除Redis中的相关数据
+                String token = (String) redisTemplate.opsForValue().get("admin:id:" + adminId);
+                if (token != null) {
+                    tokenService.deleteAdminToken(token);
+                }
+                
+                // 删除管理员的所有操作日志
+                adminLogMapper.deleteByAdminId(adminId);
+                
+                return ResponseDTO.success("删除管理员成功");
+            } else {
+                log.warn("删除管理员失败：管理员ID={}", adminId);
+                return ResponseDTO.error("删除管理员失败");
+            }
+        } catch (Exception e) {
+            log.error("删除管理员异常：", e);
+            return ResponseDTO.error("删除管理员异常: " + e.getMessage());
+        }
     }
 
     @Override
@@ -463,7 +651,7 @@ public class AdminServiceImpl implements AdminService {
             admin.setLastLoginTime(null);
 
             // 插入管理员
-            int result = adminMapper.insertAdmin(admin);
+            int result = adminMapper.insert(admin);
             if (result > 0) {
                 log.info("创建管理员成功：管理员ID={}", admin.getAdminId());
                 
@@ -489,7 +677,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public boolean isSuperAdmin(Integer adminId) {
         // 获取管理员信息
-        Admin admin = adminMapper.findById(adminId);
+        Admin admin = adminMapper.selectById(adminId);
         if (admin == null) {
             return false;
         }
@@ -497,5 +685,35 @@ public class AdminServiceImpl implements AdminService {
         // 假设roleLevel为1表示超级管理员，可以根据实际需求调整判断逻辑
         // 或者可以有其他判断方式，比如通过角色字段
         return admin.getRoleLevel() != null && admin.getRoleLevel() == 1;
+    }
+
+    @Override
+    public Object getSystemStats() {
+        try {
+            // 获取用户总数
+            int totalUsers = userMapper.selectTotalCount();
+
+            // 获取今日活跃用户数（今天有行为记录的用户数）
+            LocalDate today = LocalDate.now();
+            int activeToday = behaviorMapper.selectActiveUserCountByDate(today);
+
+            // 获取行为记录总数
+            int totalRecords = behaviorMapper.selectTotalCount();
+
+            // 获取徽章总数
+            int totalBadges = badgeMapper.selectTotalCount();
+
+            // 构造返回结果
+            Map<String, Object> stats = new HashMap<>();
+            stats.put("totalUsers", totalUsers);
+            stats.put("activeToday", activeToday);
+            stats.put("totalRecords", totalRecords);
+            stats.put("totalBadges", totalBadges);
+
+            return stats;
+        } catch (Exception e) {
+            log.error("获取系统统计信息失败: ", e);
+            return null;
+        }
     }
 }

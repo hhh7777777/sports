@@ -1,17 +1,16 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的成就 - 运动健康管理系统</title>
+    <title>我的成就</title>
     <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
     <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
-    <link href="/css/common/main.css" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #4af7f1;
-            --secondary-color: #4af7f1;
-            --accent-color: #4cc9f0;
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4af7f1;
             --light-color: #f8f9fa;
             --dark-color: #212529;
             --success-color: #4ade80;
@@ -52,6 +51,49 @@
         
         .navbar {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card {
+            transition: transform 0.2s;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* 用户头像下拉菜单样式修复 */
+        .user-dropdown {
+            position: relative;
+        }
+        
+        .user-dropdown .dropdown-menu {
+            right: 0;
+            left: auto;
+            min-width: 150px;
+            z-index: 1050;
+        }
+        
+        .user-dropdown .dropdown-toggle {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 8px;
+            object-fit: cover;
+        }
+        
+        .card-header {
+            background: white;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-weight: 600;
+            padding: 1rem 1.5rem;
         }
         
         .badge-card {
@@ -134,21 +176,6 @@
         .card-header {
             background: white;
             border-bottom: 1px solid rgba(0,0,0,0.05);
-            font-weight: 600;
-            padding: 1rem 1.5rem;
-        }
-        
-        /* 添加一些额外的响应式样式 */
-        @media (max-width: 768px) {
-            .sidebar {
-                min-height: auto;
-            }
-            
-            .badge-icon {
-                width: 80px;
-                height: 80px;
-                font-size: 2rem;
-            }
         }
     </style>
 </head>
@@ -165,16 +192,18 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text me-3">
-                    欢迎，<span id="userName">用户</span>
+                    欢迎，<span th:text="${currentUser.username} ?: '用户'" id="userName">用户</span>
                 </span>
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle user-dropdown" href="#" role="button" data-bs-toggle="dropdown">
-                        <img src="/images/avatar.png" alt="用户头像" class="user-avatar">
-                        <span class="d-none d-md-inline">用户</span>
+                        <img th:src="${currentUser != null and currentUser.avatar != null and currentUser.avatar != ''} ? ${currentUser.avatar} : '/images/avatar.png'" 
+                             th:alt="${currentUser != null and currentUser.username != null} ? ${currentUser.username} + '的头像' : '用户头像'" class="user-avatar" id="userAvatar">
+                        <span class="d-none d-md-inline" th:text="${currentUser != null and currentUser.username != null} ? ${currentUser.username} : '用户'">用户</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/index"><i class="fas fa-home me-2"></i>回到首页</a></li>
+                        <li><a class="dropdown-item" href="/dashboard"><i class="fas fa-tachometer-alt me-2"></i>我的仪表板</a></li>
                         <li><a class="dropdown-item" href="/profile"><i class="fas fa-user me-2"></i>个人资料</a></li>
-                        <li><a class="dropdown-item" href="/achievements"><i class="fas fa-trophy me-2"></i>我的成就</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt me-2"></i>退出登录</a></li>
                     </ul>
@@ -215,45 +244,135 @@
         </nav>
 
         <!-- 主内容区 -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-                <h1 class="h2 fw-bold text-dark">我的成就</h1>
+                <h1 class="h2 fw-bold text-dark">成就徽章</h1>
             </div>
 
-            <!-- 成就分类 -->
-            <ul class="nav nav-tabs mb-4" id="achievementTabs" role="tablist">
+            <!-- 徽章统计 -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">总徽章数</h5>
+                            <h2 class="text-success" th:text="${totalBadges} ?: '0'">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-warning">已获得</h5>
+                            <h2 class="text-success" th:text="${earnedBadges} ?: '0'">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-info">未获得</h5>
+                            <h2 class="text-success" th:text="${totalBadges - earnedBadges} ?: '0'">0</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-success">完成率</h5>
+                            <h2 class="text-success" th:text="${totalBadges > 0} ? ${#numbers.formatDecimal(earnedBadges * 100.0 / totalBadges, 1, 1)} + '%' : '0%'">0%</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 徽章分类标签页 -->
+            <ul class="nav nav-tabs mb-4" id="badgeTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab">
-                        全部成就
-                    </button>
+                    <button class="nav-link active" id="all-badges-tab" data-bs-toggle="tab" data-bs-target="#all-badges" type="button" role="tab">全部徽章</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="earned-tab" data-bs-toggle="tab" data-bs-target="#earned" type="button" role="tab">
-                        已获得
-                    </button>
+                    <button class="nav-link" id="earned-badges-tab" data-bs-toggle="tab" data-bs-target="#earned-badges" type="button" role="tab">已获得</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="progress-tab" data-bs-toggle="tab" data-bs-target="#progress" type="button" role="tab">
-                        进行中
-                    </button>
+                    <button class="nav-link" id="locked-badges-tab" data-bs-toggle="tab" data-bs-target="#locked-badges" type="button" role="tab">未获得</button>
                 </li>
             </ul>
 
-            <!-- 成就内容 -->
-            <div class="tab-content" id="achievementTabContent">
-                <div class="tab-pane fade show active" id="all" role="tabpanel">
-                    <div class="row" id="allBadges">
-                        <!-- 动态内容将在这里加载 -->
+            <!-- 徽章内容 -->
+            <div class="tab-content" id="badgeTabContent">
+                <!-- 全部徽章 -->
+                <div class="tab-pane fade show active" id="all-badges" role="tabpanel">
+                    <div class="row" id="allBadgesContainer">
+                        <div th:if="${#lists.isEmpty(allBadges)}" class="col-12 text-center py-5">
+                            <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">暂无徽章数据</p>
+                        </div>
+                        <div class="col-md-6 col-lg-4 mb-4" th:each="badge : ${allBadges}">
+                            <div class="card badge-card h-100 text-center" th:classappend="${badge.earned} ? '' : 'badge-locked'">
+                                <div class="card-body">
+                                    <div class="badge-icon mx-auto mb-3" th:styleappend="'background: ' + ${badge.color ?: '#808080'} + ';'">
+                                        <img th:if="${badge.iconUrl}" th:src="${badge.iconUrl}" th:alt="${badge.name}" class="badge-img">
+                                        <i th:unless="${badge.iconUrl}" th:class="${badge.icon ?: 'fas fa-award'} + ' fa-2x'" th:style="'color: ' + ${badge.color ?: '#808080'} + ';'"></i>
+                                    </div>
+                                    <h5 class="card-title" th:text="${badge.name}">徽章名称</h5>
+                                    <p class="card-text text-muted" th:text="${badge.description}">徽章描述</p>
+                                    <div class="progress mb-3" th:if="${badge.progress} and ${badge.requiredProgress}">
+                                        <div class="progress-bar" role="progressbar" 
+                                             th:style="'width: ' + ${badge.currentProgress * 100.0 / badge.requiredProgress} + '%; background: ' + ${badge.color ?: '#007bff'} + ';'"
+                                             th:attr="aria-valuenow=${badge.currentProgress}, aria-valuemin='0', aria-valuemax=${badge.requiredProgress}"
+                                             th:text="${badge.currentProgress} + '/' + ${badge.requiredProgress}"></div>
+                                    </div>
+                                    <span class="badge" th:classappend="'bg-' + ${badge.rarity == 'legendary' ? 'warning' : (badge.rarity == 'epic' ? 'primary' : (badge.rarity == 'rare' ? 'info' : 'secondary'))}" 
+                                          th:text="${badge.rarity} ?: 'common'">稀有度</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="tab-pane fade" id="earned" role="tabpanel">
-                    <div class="row" id="earnedBadges">
-                        <!-- 动态内容将在这里加载 -->
+
+                <!-- 已获得徽章 -->
+                <div class="tab-pane fade" id="earned-badges" role="tabpanel">
+                    <div class="row" id="earnedBadgesContainer">
+                        <div th:if="${#lists.isEmpty(earnedBadges)}" class="col-12 text-center py-5">
+                            <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">暂无已获得的徽章</p>
+                        </div>
+                        <div class="col-md-6 col-lg-4 mb-4" th:each="badge : ${earnedBadges}">
+                            <div class="card badge-card h-100 text-center">
+                                <div class="card-body">
+                                    <div class="badge-icon mx-auto mb-3" th:styleappend="'background: ' + ${badge.color ?: '#808080'} + ';'">
+                                        <img th:if="${badge.iconUrl}" th:src="${badge.iconUrl}" th:alt="${badge.name}" class="badge-img">
+                                        <i th:unless="${badge.iconUrl}" th:class="${badge.icon ?: 'fas fa-award'} + ' fa-2x'" th:style="'color: ' + ${badge.color ?: '#808080'} + ';'"></i>
+                                    </div>
+                                    <h5 class="card-title" th:text="${badge.name}">徽章名称</h5>
+                                    <p class="card-text text-muted" th:text="${badge.description}">徽章描述</p>
+                                    <span class="badge bg-success" th:text="${badge.rarity} ?: 'common'">已获得</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="tab-pane fade" id="progress" role="tabpanel">
-                    <div class="row" id="progressBadges">
-                        <!-- 动态内容将在这里加载 -->
+
+                <!-- 未获得徽章 -->
+                <div class="tab-pane fade" id="locked-badges" role="tabpanel">
+                    <div class="row" id="lockedBadgesContainer">
+                        <div th:if="${#lists.isEmpty(lockedBadges)}" class="col-12 text-center py-5">
+                            <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">恭喜！您已获得所有徽章</p>
+                        </div>
+                        <div class="col-md-6 col-lg-4 mb-4" th:each="badge : ${lockedBadges}">
+                            <div class="card badge-card h-100 text-center badge-locked">
+                                <div class="card-body">
+                                    <div class="badge-icon mx-auto mb-3" th:styleappend="'background: ' + ${badge.color ?: '#808080'} + ';'">
+                                        <img th:if="${badge.iconUrl}" th:src="${badge.iconUrl}" th:alt="${badge.name}" class="badge-img">
+                                        <i th:unless="${badge.iconUrl}" th:class="${badge.icon ?: 'fas fa-award'} + ' fa-2x'" th:style="'color: ' + ${badge.color ?: '#808080'} + ';'"></i>
+                                    </div>
+                                    <h5 class="card-title" th:text="${badge.name}">徽章名称</h5>
+                                    <p class="card-text text-muted" th:text="${badge.description}">徽章描述</p>
+                                    <span class="badge bg-secondary" th:text="${badge.rarity} ?: 'common'">未获得</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -262,6 +381,18 @@
 </div>
 
 <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // 将服务端数据传递给JavaScript
+    var currentUser = /*[[${currentUser}]]*/ null;
+    var allBadges = /*[[${allBadges}]]*/ [];
+    var earnedBadges = /*[[${earnedBadges}]]*/ [];
+    var lockedBadges = /*[[${lockedBadges}]]*/ [];
+    var totalBadges = /*[[${totalBadges}]]*/ 0;
+    var earnedBadgesCount = /*[[${earnedBadges}]]*/ 0;
+    /*]]>*/
+</script>
+<script src="/js/modules/common.js"></script>
 <script src="/js/user/achievements.js"></script>
 </body>
 </html>

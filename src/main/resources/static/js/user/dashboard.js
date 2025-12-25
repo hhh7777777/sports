@@ -255,6 +255,9 @@ async function loadDashboardData() {
         // 加载最近活动
         loadRecentActivities();
         
+        // 加载个人排名信息
+        loadPersonalRankInfo();
+        
         // 初始化图表
         // 使用setTimeout确保DOM完全加载后再初始化图表
         setTimeout(() => {
@@ -421,5 +424,95 @@ async function loadRecentActivities() {
     } catch (error) {
         console.error('加载最近活动时出错:', error);
         CommonUtils.showAlert('加载活动数据失败: ' + error.message, 'error');
+    }
+}
+
+async function loadPersonalRankInfo() {
+    try {
+        const isAuthenticated = await CommonUtils.checkUserAuth();
+        if (!isAuthenticated) {
+            window.location.href = '/login';
+            return;
+        }
+        
+        const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+        
+        // 获取用户ID
+        let userId = CommonUtils.getUserIdFromToken(token);
+        if (!userId) {
+            // 如果无法从token中解析用户ID，则通过用户信息API获取
+            const userInfoResponse = await fetch('/api/user/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (userInfoResponse.ok) {
+                const userInfoResult = await userInfoResponse.json();
+                if (userInfoResult.code === 200 && userInfoResult.data) {
+                    userId = userInfoResult.data.userId;
+                }
+            }
+        }
+        
+        if (!userId) {
+            throw new Error('无法获取用户ID');
+        }
+        
+        // 获取用户的个人统计信息
+        const userStatsResponse = await fetch(`/api/user/personal-stats`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        let userStats = {};
+        if (userStatsResponse.ok) {
+            const userStatsResult = await userStatsResponse.json();
+            if (userStatsResult.code === 200 && userStatsResult.data) {
+                userStats = userStatsResult.data;
+            }
+        }
+        
+        // 获取用户在活跃度排行中的排名
+        const rankResponse = await fetch('/api/user/rank-info', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        let rankInfo = {};
+        if (rankResponse.ok) {
+            const rankResult = await rankResponse.json();
+            if (rankResult.code === 200 && rankResult.data) {
+                rankInfo = rankResult.data;
+            }
+        }
+        
+        // 更新个人排名信息
+        const myRankElement = document.getElementById('myRank');
+        const totalUserCountElement = document.getElementById('totalUserCount');
+        const myTotalDurationElement = document.getElementById('myTotalDuration');
+        const myTotalRecordsElement = document.getElementById('myTotalRecords');
+        
+        if (myRankElement) {
+            myRankElement.textContent = rankInfo.myRank || '--';
+        }
+        
+        if (totalUserCountElement) {
+            totalUserCountElement.textContent = rankInfo.totalUserCount || '--';
+        }
+        
+        if (myTotalDurationElement) {
+            myTotalDurationElement.textContent = userStats.totalDuration || 0;
+        }
+        
+        if (myTotalRecordsElement) {
+            myTotalRecordsElement.textContent = userStats.totalRecords || 0;
+        }
+        
+    } catch (error) {
+        console.error('加载个人排名信息时出错:', error);
+        CommonUtils.showAlert('加载个人排名信息失败: ' + error.message, 'error');
     }
 }
