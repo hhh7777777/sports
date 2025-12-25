@@ -2,49 +2,37 @@ package com.hongyuting.sports.mapper;
 
 import com.hongyuting.sports.entity.AdminLog;
 import org.apache.ibatis.annotations.Param;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface AdminLogMapper {
-    /**
-     * 插入管理员日志
-     */
-    int insertAdminLog(AdminLog adminLog);
-
-    /**
-     * 根据ID查询管理员日志
-     */
-    AdminLog selectAdminLogById(Integer logId);
+/**
+ * 管理员日志映射接口
+ */
+public interface AdminLogMapper extends BaseMapper<AdminLog, Long> {
 
     /**
      * 根据管理员ID查询日志
      */
-    List<AdminLog> selectAdminLogsByAdmin(Integer adminId);
+    List<AdminLog> selectByAdminId(@Param("adminId") Integer adminId);
 
     /**
      * 根据操作类型查询日志
      */
-    List<AdminLog> selectAdminLogsByOperation(String operation);
-
-    /**
-     * 统计日志数量
-     */
-    int countAdminLogs();
+    List<AdminLog> selectByOperation(@Param("operation") String operation);
 
     /**
      * 根据条件查询日志
      */
-    List<AdminLog> selectAdminLogs(@Param("adminId") Integer adminId,
-                                   @Param("operation") String operation,
-                                   @Param("startTime") LocalDateTime startTime,
-                                   @Param("endTime") LocalDateTime endTime);
+    List<AdminLog> selectByCondition(@Param("adminId") Integer adminId,
+                                     @Param("operation") String operation,
+                                     @Param("startTime") LocalDateTime startTime,
+                                     @Param("endTime") LocalDateTime endTime);
 
     /**
      * 根据目标查询日志
      */
-    List<AdminLog> selectAdminLogsByTarget(@Param("targetType") String targetType,
-                                           @Param("targetId") Integer targetId);
+    List<AdminLog> selectByTarget(@Param("targetType") String targetType,
+                                  @Param("targetId") Integer targetId);
 
     /**
      * 统计操作次数
@@ -56,5 +44,28 @@ public interface AdminLogMapper {
     /**
      * 删除指定时间前的日志
      */
-    int deleteAdminLogsBefore(LocalDateTime beforeTime);
+    int deleteBeforeTime(@Param("beforeTime") LocalDateTime beforeTime);
+    
+    /**
+     * 分页查询所有日志
+     */
+    List<AdminLog> selectAllWithPaging(@Param("offset") int offset, @Param("limit") int limit);
+    
+    /**
+     * 统计符合条件的日志数量
+     */
+    Integer selectCountByCondition(@Param("adminId") Integer adminId,
+                                  @Param("operation") String operation,
+                                  @Param("startTime") LocalDateTime startTime,
+                                  @Param("endTime") LocalDateTime endTime);
+    
+    /**
+     * 根据条件分页查询日志
+     */
+    List<AdminLog> selectByConditionWithPaging(@Param("adminId") Integer adminId,
+                                              @Param("operation") String operation,
+                                              @Param("startTime") LocalDateTime startTime,
+                                              @Param("endTime") LocalDateTime endTime,
+                                              @Param("offset") int offset,
+                                              @Param("limit") int limit);
 }

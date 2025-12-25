@@ -98,7 +98,7 @@ public class TokenService {
         // 存储token与管理员ID的映射
         if (admin != null && admin instanceof com.hongyuting.sports.entity.Admin) {
             com.hongyuting.sports.entity.Admin adminObj = (com.hongyuting.sports.entity.Admin) admin;
-            redisTemplate.opsForValue().set(buildAdminIdKey(adminObj.getId()), token, TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
+            redisTemplate.opsForValue().set(buildAdminIdKey(adminObj.getAdminId()), token, TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -117,7 +117,7 @@ public class TokenService {
         if (admin != null && admin instanceof com.hongyuting.sports.entity.Admin) {
             com.hongyuting.sports.entity.Admin adminObj = (com.hongyuting.sports.entity.Admin) admin;
             redisTemplate.delete(buildAdminTokenKey(token));
-            redisTemplate.delete(buildAdminIdKey(adminObj.getId()));
+            redisTemplate.delete(buildAdminIdKey(adminObj.getAdminId()));
         }
     }
 
@@ -139,7 +139,7 @@ public class TokenService {
         if (admin != null && admin instanceof com.hongyuting.sports.entity.Admin) {
             com.hongyuting.sports.entity.Admin adminObj = (com.hongyuting.sports.entity.Admin) admin;
             redisTemplate.expire(buildAdminTokenKey(token), TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
-            redisTemplate.expire(buildAdminIdKey(adminObj.getId()), TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
+            redisTemplate.expire(buildAdminIdKey(adminObj.getAdminId()), TOKEN_EXPIRATION, TimeUnit.MILLISECONDS);
         }
     }
 

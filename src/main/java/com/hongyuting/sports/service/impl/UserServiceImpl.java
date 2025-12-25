@@ -85,7 +85,7 @@ public class UserServiceImpl implements UserService {
             user.setRegisterTime(LocalDateTime.now());
 
             // 插入用户
-            int result = userMapper.insertUser(user);
+            int result = userMapper.insert(user);
             if (result > 0) {
                 log.info("用户注册成功：用户ID={}", user.getUserId());
                 return ResponseDTO.success("注册成功");
@@ -116,7 +116,7 @@ public class UserServiceImpl implements UserService {
             }
 
             // 根据用户名查找用户
-            User user = userMapper.selectUserByUsername(loginDTO.getUsername());
+            User user = userMapper.selectByUsername(loginDTO.getUsername());
             if (user == null) {
                 log.warn("用户登录失败：用户名或密码错误，用户名={}", loginDTO.getUsername());
                 return ResponseDTO.error("用户名或密码错误");
@@ -161,7 +161,7 @@ public class UserServiceImpl implements UserService {
                 // 更新用户信息
                 user.setPassword(newEncryptedPassword);
                 user.setSalt(newSalt);
-                userMapper.updateUser(user);
+                userMapper.updateById(user);
                 
                 // 更新局部变量供后续使用
                 encryptedPassword = newEncryptedPassword;
@@ -170,7 +170,7 @@ public class UserServiceImpl implements UserService {
 
             // 更新最后登录时间
             user.setLastLoginTime(LocalDateTime.now());
-            userMapper.updateUser(user);
+            userMapper.updateById(user);
 
             // 生成JWT Token
             String token = jwtUtil.generateToken(user.getUserId());
@@ -308,7 +308,7 @@ public class UserServiceImpl implements UserService {
             if (userId == null) {
                 return null;
             }
-            return userMapper.selectUserById(userId);
+            return userMapper.selectById(userId);
         } catch (Exception e) {
             log.error("根据ID获取用户信息异常: userId={}", userId, e);
             return null;
@@ -329,7 +329,7 @@ public class UserServiceImpl implements UserService {
             }
 
             // 更新用户信息
-            User existingUser = userMapper.selectUserById(user.getUserId());
+            User existingUser = userMapper.selectById(user.getUserId());
             if (existingUser == null) {
                 return ResponseDTO.error("用户不存在");
             }
@@ -364,7 +364,7 @@ public class UserServiceImpl implements UserService {
                 existingUser.setUserStatus(user.getUserStatus());
             }
 
-            int result = userMapper.updateUser(existingUser);
+            int result = userMapper.updateById(existingUser);
             if (result > 0) {
                 log.info("更新用户信息成功：用户ID={}", user.getUserId());
                 // 清除Redis中的用户信息缓存
@@ -388,7 +388,7 @@ public class UserServiceImpl implements UserService {
             if (user == null || user.getUserId() == null) {
                 return 0;
             }
-            return userMapper.updateUserAvatar(user);
+            return userMapper.updateUserAvatar(user.getUserId(), user.getAvatar());
         } catch (Exception e) {
             log.error("更新用户头像异常: userId={}", user != null ? user.getUserId() : null, e);
             return 0;
@@ -408,14 +408,14 @@ public class UserServiceImpl implements UserService {
             }
 
             // 先获取用户信息
-            User user = userMapper.selectUserById(userId);
+            User user = userMapper.selectById(userId);
             if (user == null) {
                 return ResponseDTO.error("用户不存在");
             }
             
             // 更新用户状态
             user.setUserStatus(status);
-            int result = userMapper.updateUser(user);
+            int result = userMapper.updateById(user);
             if (result > 0) {
                 log.info("更新用户状态成功：用户ID={}，状态={}", userId, status);
                 return ResponseDTO.success("用户状态更新成功");
@@ -438,7 +438,7 @@ public class UserServiceImpl implements UserService {
             }
 
             // 删除用户
-            int result = userMapper.deleteUser(userId);
+            int result = userMapper.deleteById(userId);
             if (result > 0) {
                 log.info("删除用户成功：用户ID={}", userId);
                 return ResponseDTO.success("用户删除成功");
@@ -455,7 +455,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAllUsers() {
         try {
-            return userMapper.selectAllUsers();
+            return userMapper.selectAll();
         } catch (Exception e) {
             log.error("获取所有用户异常: ", e);
             return null;
@@ -615,7 +615,7 @@ public class UserServiceImpl implements UserService {
             }
             
             // 先获取所有具有该邮箱的用户
-            List<User> users = userMapper.selectAllUsers();
+            List<User> users = userMapper.selectAll();
             return users.stream()
                     .filter(user -> email.equals(user.getEmail()))
                     .anyMatch(user -> !userId.equals(user.getUserId()));

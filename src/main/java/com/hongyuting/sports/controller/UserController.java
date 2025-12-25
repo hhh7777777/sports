@@ -42,7 +42,7 @@ public class UserController {
     private final BadgeService badgeService;
     private final TokenService tokenService;
     private final SaltUtil saltUtil;
-    private final UserAchievementService userAchievementService; // 添加用户成就服务
+    private final UserAchievementService userAchievementService;
     
     /**
      * 用户注册
@@ -181,7 +181,7 @@ public class UserController {
             // 更新密码和盐值
             user.setPassword(encryptedNewPassword);
             user.setSalt(newSalt);
-            int result = userMapper.updateUser(user);
+            int result = userMapper.updateById(user);
 
             if (result > 0) {
                 // 使该用户的所有token失效

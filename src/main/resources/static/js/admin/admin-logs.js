@@ -19,6 +19,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 页面加载时获取日志列表
     loadLogs(1);
+    
+    // 绑定清理日志事件
+    document.getElementById('clearLogsBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        clearOldLogs();
+    });
 });
 
 // 当前页码
@@ -104,7 +110,23 @@ async function loadLogs(page = 1) {
 }
 
 function renderLogs(data) {
-    const logs = data.logs;
+    let logs = [];
+    let currentPage = 1;
+    let totalPages = 1;
+    let totalCount = 0;
+    
+    // 判断数据结构，如果是分页数据则提取logs数组
+    if (data.logs !== undefined) {
+        logs = data.logs || [];
+        currentPage = data.currentPage || 1;
+        totalPages = data.totalPages || 1;
+        totalCount = data.totalCount || 0;
+    } else {
+        // 如果直接是数组
+        logs = Array.isArray(data) ? data : [];
+        totalCount = logs.length;
+    }
+    
     const tbody = document.getElementById('logsTableBody');
     tbody.innerHTML = '';
     
@@ -114,34 +136,46 @@ function renderLogs(data) {
         tbody.appendChild(row);
         
         // 更新分页控件
-        renderPagination(1, 1, 0);
+        renderPagination(currentPage, totalPages, totalCount);
         return;
     }
     
     logs.forEach(log => {
         const row = document.createElement('tr');
         // AdminLog实体类中的字段
+        const operationTime = log.operationTime ? new Date(log.operationTime).toLocaleString() : '';
+        const operation = log.operation || '';
+        const detail = log.detail || '';
+        const ipAddress = log.ipAddress || '';
+        
+
+        
         row.innerHTML = `
-            <td>${log.operationTime ? new Date(log.operationTime).toLocaleString() : ''}</td>
-            <td>${getLogLevelBadge(log.operation)}</td>
-            <td>${log.operation || ''}</td>
-            <td>${log.detail || ''}</td>
-            <td>${log.ipAddress || ''}</td>
+            <td>${operationTime}</td>
+            <td>${getLogLevelBadge(operation)}</td>
+            <td>${operation}</td>
+            <td>${detail}</td>
+            <td>${ipAddress}</td>
         `;
         tbody.appendChild(row);
     });
     
     // 更新分页控件
-    renderPagination(data.currentPage, data.totalPages, data.totalCount);
+    renderPagination(currentPage, totalPages, totalCount);
 }
 
 function getLogLevelBadge(operation) {
     // 根据操作类型简单判断日志级别
     if (operation && typeof operation === 'string') {
-        if (operation.includes('删除') || operation.includes('错误') || operation.includes('失败')) {
+        const op = operation.toLowerCase();
+        if (op.includes('delete') || op.includes('remove') || op.includes('error') || op.includes('fail')) {
             return '<span class="log-level-error">ERROR</span>';
-        } else if (operation.includes('警告') || operation.includes('注意')) {
+        } else if (op.includes('warn') || op.includes('alert') || op.includes('warning')) {
             return '<span class="log-level-warn">WARN</span>';
+        } else if (op.includes('get') || op.includes('select') || op.includes('query')) {
+            return '<span class="log-level-info">INFO</span>';
+        } else if (op.includes('debug')) {
+            return '<span class="log-level-info">DEBUG</span>';
         } else {
             return '<span class="log-level-info">INFO</span>';
         }
@@ -171,6 +205,7 @@ async function filterLogs(page = 1) {
         }
         
         const logLevel = document.getElementById('logLevel').value;
+        const adminId = document.getElementById('adminId').value;
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
         
@@ -178,17 +213,37 @@ async function filterLogs(page = 1) {
         let url = `/api/admin/logs?page=${page}&size=10`;
         const params = new URLSearchParams();
         
-        // 根据前端的logLevel筛选转换为后端的operation参数
+        // 根据前端的logLevel筛选转换为operation关键词匹配
         if (logLevel) {
-            // 这里可以根据需要做映射
-            params.append('operation', logLevel);
+            // 根据选择的日志级别转换为相应的关键词
+            let operationKeyword = '';
+            switch(logLevel.toLowerCase()) {
+                case 'error':
+                    operationKeyword = 'error';
+                    break;
+                case 'warn':
+                    operationKeyword = 'warn';
+                    break;
+                case 'info':
+                    operationKeyword = 'get'; // GET请求通常对应INFO级别
+                    break;
+                case 'debug':
+                    operationKeyword = 'debug';
+                    break;
+                default:
+                    operationKeyword = logLevel;
+            }
+            params.append('operation', operationKeyword);
+        }
+        if (adminId) {
+            params.append('adminId', adminId);
         }
         if (startDate) {
-            // 需要转换为完整的时间格式
+            // 需要转换为完整的时间格式，符合后端LocalDateTime解析
             params.append('startTime', startDate + ' 00:00:00');
         }
         if (endDate) {
-            // 需要转换为完整的时间格式
+            // 需要转换为完整的时间格式，符合后端LocalDateTime解析
             params.append('endTime', endDate + ' 23:59:59');
         }
         
@@ -257,10 +312,11 @@ function renderPagination(currentPage, totalPages, totalCount) {
 async function changePage(page) {
     // 检查是否有筛选条件
     const logLevel = document.getElementById('logLevel').value;
+    const adminId = document.getElementById('adminId').value;
     const startDate = document.getElementById('startDate').value;
     const endDate = document.getElementById('endDate').value;
     
-    if (logLevel || startDate || endDate) {
+    if (logLevel || adminId || startDate || endDate) {
         // 如果有筛选条件，使用筛选函数
         await filterLogs(page);
     } else {
@@ -289,4 +345,51 @@ function showAlert(message, type) {
     setTimeout(() => {
         alertDiv.remove();
     }, 3000);
+}
+
+async function clearOldLogs() {
+    if (!confirm('确定要清理旧日志吗？此操作不可恢复。')) {
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        if (!token) {
+            window.location.href = '/admin/login';
+            return;
+        }
+        
+        // 弹出日期选择对话框
+        const beforeDate = prompt('请输入要清理的日期（格式：YYYY-MM-DD，例如：2024-01-01）：');
+        if (!beforeDate) {
+            return;
+        }
+        
+        // 验证日期格式
+        const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+        if (!dateRegex.test(beforeDate)) {
+            showAlert('日期格式不正确，请使用 YYYY-MM-DD 格式', 'error');
+            return;
+        }
+        
+        const response = await fetch(`/api/admin/logs/clean?beforeTime=${beforeDate} 00:00:00`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        if (result.code === 200) {
+            showAlert('日志清理成功', 'success');
+            // 重新加载日志列表
+            loadLogs(1);
+        } else {
+            showAlert(result.message || '日志清理失败', 'error');
+        }
+    } catch (error) {
+        console.error('清理日志时出错:', error);
+        showAlert('清理日志失败: ' + error.message, 'error');
+    }
 }

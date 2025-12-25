@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hongyuting.sports.mapper.BehaviorMapper">
+
+<resultMap id="behaviorResultMap" type="com.hongyuting.sports.entity.Behavior">
+    <id property="recordId" column="record_id"/>
+    <result property="userId" column="user_id"/>
+    <result property="typeId" column="type_id"/>
+    <result property="recordDate" column="record_date" jdbcType="DATE"/>
+    <result property="duration" column="duration"/>
+    <result property="content" column="content"/>
+    <result property="imageUrl" column="image_url"/>
+    <result property="distance" column="distance"/>
+    <result property="calories" column="calories"/>
+    <result property="createTime" column="create_time"/>
+    <result property="updateTime" column="update_time"/>
+    <result property="typeName" column="type_name"/>
+</resultMap>
+
+<resultMap id="behaviorTypeResultMap" type="com.hongyuting.sports.entity.BehaviorType">
+    <id property="typeId" column="type_id"/>
+    <result property="typeName" column="type_name"/>
+    <result property="description" column="description"/>
+    <result property="iconUrl" column="icon_url"/>
+    <result property="status" column="status"/>
+    <result property="createTime" column="create_time"/>
+    <result property="updateTime" column="update_time"/>
+</resultMap>
+
+<!-- 继承BaseMapper的通用方法 -->
+<insert id="insert" useGeneratedKeys="true" keyProperty="recordId">
+    INSERT INTO behavior_record (user_id, type_id, record_date, duration, content, image_url, distance, calories, create_time, update_time)
+    VALUES (#{userId}, #{typeId}, #{recordDate}, #{duration}, #{content}, #{imageUrl}, #{distance}, #{calories}, #{createTime}, #{updateTime})
+</insert>
+
+<delete id="deleteById">
+    DELETE FROM behavior_record WHERE record_id = #{recordId}
+</delete>
+
+<update id="updateById">
+    UPDATE behavior_record SET
+    user_id = #{userId},
+    type_id = #{typeId},
+    record_date = #{recordDate},
+    duration = #{duration},
+    content = #{content},
+    image_url = #{imageUrl},
+    distance = #{distance},
+    calories = #{calories},
+    update_time = #{updateTime}
+    WHERE record_id = #{recordId}
+</update>
+
+<select id="selectById" resultMap="behaviorResultMap">
+    SELECT br.*, bt.type_name
+    FROM behavior_record br
+    LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+    WHERE br.record_id = #{recordId}
+</select>
+
+<select id="selectAll" resultMap="behaviorResultMap">
+    SELECT br.*, bt.type_name
+    FROM behavior_record br
+    LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+    ORDER BY br.create_time DESC
+</select>
+
+<select id="selectTotalCount" resultType="int">
+    SELECT COUNT(*) FROM behavior_record
+</select>
+
+<!-- 特有方法 -->
+<select id="selectByUserId" resultMap="behaviorResultMap">
+    SELECT br.*, bt.type_name
+    FROM behavior_record br
+    LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+    WHERE br.user_id = #{userId}
+    ORDER BY br.record_date DESC
+</select>
+
+<select id="selectByUserAndDate" resultMap="behaviorResultMap">
+    SELECT br.*, bt.type_name
+    FROM behavior_record br
+    LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+    WHERE br.user_id = #{userId}
+    AND br.record_date BETWEEN #{startDate} AND #{endDate}
+    ORDER BY br.record_date DESC
+</select>
+
+<select id="selectByDate" resultMap="behaviorResultMap">
+    SELECT br.*, bt.type_name, u.username as user_name
+    FROM behavior_record br
+    LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+    LEFT JOIN user u ON br.user_id = u.user_id
+    WHERE br.record_date BETWEEN #{startDate} AND #{endDate}
+    ORDER BY br.record_date DESC
+</select>
+
+<select id="selectTotalDurationByUserAndDate" resultType="int">
+    SELECT COALESCE(SUM(duration), 0) FROM behavior_record
+    WHERE user_id = #{userId} AND record_date BETWEEN #{startDate} AND #{endDate}
+</select>
+
+<select id="selectBehaviorTypeDistribution" resultType="map">
+    SELECT
+    bt.type_name as typeName,
+    COUNT(br.record_id) as recordCount,
+    COALESCE(SUM(br.duration), 0) as totalDuration
+    FROM behavior_type bt
+    LEFT JOIN behavior_record br ON bt.type_id = br.type_id
+    AND br.user_id = #{userId}
+    AND br.record_date BETWEEN #{startDate} AND #{endDate}
+    WHERE bt.status = 1
+    GROUP BY bt.type_id, bt.type_name
+</select>
+
+<select id="countByTypeAndDate" resultType="int">
+    SELECT COUNT(*) FROM behavior_record
+    WHERE type_id = #{typeId}
+    AND record_date BETWEEN #{startDate} AND #{endDate}
+</select>
+
+<select id="selectRecentBehaviors" resultMap="behaviorResultMap">
+    SELECT br.*, bt.type_name
+    FROM behavior_record br
+    LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+    ORDER BY br.create_time DESC
+    LIMIT #{limit}
+</select>
+
+<select id="selectByTypeId" resultMap="behaviorResultMap">
+    SELECT br.*, bt.type_name
+    FROM behavior_record br
+    LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+    WHERE br.type_id = #{typeId}
+    ORDER BY br.record_date DESC
+</select>
+
+<select id="selectByUserAndTypeId" resultMap="behaviorResultMap">
+    SELECT br.*, bt.type_name
+    FROM behavior_record br
+    LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+    WHERE br.user_id = #{userId} AND br.type_id = #{typeId}
+    ORDER BY br.record_date DESC
+</select>
+
+<select id="selectByTypeAndDate" resultMap="behaviorResultMap">
+    SELECT br.*, bt.type_name
+    FROM behavior_record br
+    LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+    WHERE br.type_id = #{typeId}
+    AND br.record_date BETWEEN #{startDate} AND #{endDate}
+    ORDER BY br.record_date DESC
+</select>
+
+<select id="selectByUserTypeAndDate" resultMap="behaviorResultMap">
+    SELECT br.*, bt.type_name
+    FROM behavior_record br
+    LEFT JOIN behavior_type bt ON br.type_id = bt.type_id
+    WHERE br.user_id = #{userId}
+    AND br.type_id = #{typeId}
+    AND br.record_date BETWEEN #{startDate} AND #{endDate}
+    ORDER BY br.record_date DESC
+</select>
+
+<!-- BehaviorType相关方法 -->
+<select id="selectAllBehaviorTypes" resultMap="behaviorTypeResultMap">
+    SELECT * FROM behavior_type WHERE status = 1
+</select>
+
+<select id="selectBehaviorTypeById" resultMap="behaviorTypeResultMap">
+    SELECT * FROM behavior_type WHERE type_id = #{typeId}
+</select>
+
+<insert id="insertBehaviorType" useGeneratedKeys="true" keyProperty="typeId">
+    INSERT INTO behavior_type (type_name, description, icon_url, create_time, update_time)
+    VALUES (#{typeName}, #{description}, #{iconUrl}, #{createTime}, #{updateTime})
+</insert>
+
+<update id="updateBehaviorType">
+    UPDATE behavior_type SET
+    type_name = #{typeName},
+    description = #{description},
+    icon_url = #{iconUrl},
+    update_time = #{updateTime}
+    WHERE type_id = #{typeId}
+</update>
+
+<delete id="deleteBehaviorType">
+    DELETE FROM behavior_type WHERE type_id = #{typeId}
+</delete>
+</mapper>

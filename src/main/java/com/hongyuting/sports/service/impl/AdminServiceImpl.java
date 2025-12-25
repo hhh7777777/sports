@@ -120,7 +120,7 @@ public class AdminServiceImpl implements AdminService {
             adminLog.setDetail("IP: " + clientIP);
             adminLog.setIpAddress(clientIP);
             adminLog.setOperationTime(LocalDateTime.now());
-            adminLogMapper.insertAdminLog(adminLog);
+            adminLogMapper.insert(adminLog);
 
             // 10. 返回登录结果（不返回密码信息）
             admin.setPassword(null);
@@ -195,7 +195,7 @@ public class AdminServiceImpl implements AdminService {
             tokenService.deleteAdminToken(refreshToken);
             
             // 创建新的管理员信息
-            Admin admin = adminMapper.findById(adminId);
+            Admin admin = adminMapper.selectById(adminId);
             if (admin != null) {
                 admin.setPassword(null); // 不存储密码信息
                 admin.setSalt(null); // 不存储盐值
@@ -250,7 +250,7 @@ public class AdminServiceImpl implements AdminService {
             if (adminId == null) {
                 return null;
             }
-            return adminMapper.findById(adminId);
+            return adminMapper.selectById(adminId);
         } catch (Exception e) {
             log.error("获取管理员信息异常：管理员ID={}", adminId, e);
             return null;
@@ -278,7 +278,7 @@ public class AdminServiceImpl implements AdminService {
             }
 
             // 查询管理员信息
-            Admin admin = adminMapper.findById(adminId);
+            Admin admin = adminMapper.selectById(adminId);
             if (admin == null) {
                 return ResponseDTO.error("管理员不存在");
             }
@@ -323,17 +323,46 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public List<AdminLog> getAdminLogs(Integer adminId, String operation, LocalDateTime startTime, LocalDateTime endTime) {
         try {
-            return adminLogMapper.selectAdminLogs(adminId, operation, startTime, endTime);
+            return adminLogMapper.selectByCondition(adminId, operation, startTime, endTime);
         } catch (Exception e) {
             log.error("获取管理员操作日志异常：", e);
             return null;
+        }
+    }
+    
+    @Override
+    public List<AdminLog> getAllAdminLogsPaged(int page, int size) {
+        try {
+            // 由于BaseMapper没有提供分页查询，需要手动实现
+            // 首先获取所有日志（按时间倒序）
+            List<AdminLog> allLogs = adminLogMapper.selectAll();
+            if (allLogs == null) {
+                return List.of();
+            }
+            
+            // 按操作时间倒序排列
+            allLogs.sort((a, b) -> b.getOperationTime().compareTo(a.getOperationTime()));
+            
+            // 计算起始索引
+            int startIndex = (page - 1) * size;
+            if (startIndex >= allLogs.size()) {
+                return List.of();
+            }
+            
+            // 计算结束索引
+            int endIndex = Math.min(startIndex + size, allLogs.size());
+            
+            return allLogs.subList(startIndex, endIndex);
+        } catch (Exception e) {
+            log.error("获取分页管理员操作日志异常：", e);
+            return List.of();
         }
     }
 
     @Override
     public List<AdminLog> getAdminLogsByTarget(String targetType, Integer targetId) {
         try {
-            return adminLogMapper.selectAdminLogsByTarget(targetType, targetId);
+            return adminLogMapper.selectByTarget(targetType, targetId);
         } catch (Exception e) {
             log.error("按目标获取管理员操作日志异常：", e);
             return null;
@@ -347,7 +376,7 @@ public class AdminServiceImpl implements AdminService {
                 return ResponseDTO.error("日志信息不能为空");
             }
 
-            int result = adminLogMapper.insertAdminLog(adminLog);
+            int result = adminLogMapper.insert(adminLog);
             if (result > 0) {
                 log.info("添加管理员操作日志成功：日志ID={}", adminLog.getLogId());
                 return ResponseDTO.success("添加日志成功");
@@ -368,7 +397,7 @@ public class AdminServiceImpl implements AdminService {
                 return ResponseDTO.error("时间不能为空");
             }
 
-            int result = adminLogMapper.deleteAdminLogsBefore(beforeTime);
+            int result = adminLogMapper.deleteBeforeTime(beforeTime);
             log.info("清理管理员旧日志完成：清理条数={}, 时间={}", result, beforeTime);
             return ResponseDTO.success("清理完成，共清理" + result + "条日志");
         } catch (Exception e) {
@@ -463,7 +492,7 @@ public class AdminServiceImpl implements AdminService {
             admin.setLastLoginTime(null);
 
             // 插入管理员
-            int result = adminMapper.insertAdmin(admin);
+            int result = adminMapper.insert(admin);
             if (result > 0) {
                 log.info("创建管理员成功：管理员ID={}", admin.getAdminId());
                 
@@ -489,7 +518,7 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public boolean isSuperAdmin(Integer adminId) {
         // 获取管理员信息
-        Admin admin = adminMapper.findById(adminId);
+        Admin admin = adminMapper.selectById(adminId);
         if (admin == null) {
             return false;
         }

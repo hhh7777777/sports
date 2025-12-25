@@ -63,6 +63,11 @@ public interface AdminService {
     List<AdminLog> getAdminLogs(Integer adminId, String operation, LocalDateTime startTime, LocalDateTime endTime);
     
     /**
+     * 获取所有管理员日志（带分页）
+     */
+    List<AdminLog> getAllAdminLogsPaged(int page, int size);
+    
+    /**
      * 根据目标获取管理员日志
      */
     List<AdminLog> getAdminLogsByTarget(String targetType, Integer targetId);

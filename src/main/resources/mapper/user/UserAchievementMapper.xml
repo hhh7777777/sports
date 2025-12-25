@@ -1,9 +1,8 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hongyuting.sports.mapper.UserAchievementMapper">
 
-    <resultMap id="userAchievementResultMap" type="UserAchievement">
+    <resultMap id="userAchievementResultMap" type="com.hongyuting.sports.entity.UserAchievement">
         <id property="id" column="id"/>
         <result property="userId" column="user_id"/>
         <result property="badgeId" column="badge_id"/>
@@ -11,7 +10,7 @@
         <result property="progress" column="progress"/>
     </resultMap>
 
-    <resultMap id="userBadgeResultMap" type="UserBadge">
+    <resultMap id="userBadgeResultMap" type="com.hongyuting.sports.entity.UserBadge">
         <id property="id" column="id"/>
         <result property="userId" column="user_id"/>
         <result property="badgeId" column="badge_id"/>
@@ -20,43 +19,60 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
-    <select id="selectByUserId" resultMap="userAchievementResultMap">
-        SELECT * FROM user_achievement
-        WHERE user_id = #{userId}
-    </select>
-
-    <select id="selectRecentlyAchievedBadges" resultMap="userBadgeResultMap">
-        SELECT * FROM user_achievement WHERE user_id = #{userId} 
-        ORDER BY achieve_time DESC LIMIT #{limit}
-    </select>
-
-    <select id="countUsersWithBadge" resultType="int">
-        SELECT COUNT(DISTINCT user_id) FROM user_achievement WHERE badge_id = #{badgeId} AND progress >= 100
-    </select>
-
-    <select id="countAchievementsByUserAndDate" resultType="int">
-        SELECT COUNT(*) FROM user_achievement 
-        WHERE user_id = #{userId} 
-        AND DATE(achieve_time) BETWEEN #{startDate} AND #{endDate}
-    </select>
-
-    <insert id="insertUserAchievement" useGeneratedKeys="true" keyProperty="id">
+    <!-- 继承BaseMapper的通用方法 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO user_achievement
             (user_id, badge_id, progress)
         VALUES
             (#{userId}, #{badgeId}, #{progress})
     </insert>
 
-    <update id="updateUserAchievement">
+    <delete id="deleteById">
+        DELETE FROM user_achievement WHERE id = #{id}
+    </delete>
+
+    <update id="updateById">
         UPDATE user_achievement SET
-            progress = #{progress},
-            update_time = #{updateTime}
-        WHERE user_id = #{userId} AND badge_id = #{badgeId}
+                                    user_id = #{userId},
+                                    badge_id = #{badgeId},
+                                    progress = #{progress},
+                                    achieve_time = #{achieveTime},
+                                    update_time = #{updateTime}
+        WHERE id = #{id}
     </update>
 
-    <select id="selectUserAchievement" resultMap="userAchievementResultMap">
+    <select id="selectById" resultMap="userAchievementResultMap">
+        SELECT * FROM user_achievement WHERE id = #{id}
+    </select>
+
+    <select id="selectAll" resultMap="userAchievementResultMap">
+        SELECT * FROM user_achievement ORDER BY achieve_time DESC
+    </select>
+
+    <select id="selectTotalCount" resultType="int">
+        SELECT COUNT(*) FROM user_achievement
+    </select>
+
+    <!-- 特有方法 -->
+    <select id="selectByUserId" resultMap="userAchievementResultMap">
         SELECT * FROM user_achievement
-        WHERE user_id = #{userId} AND badge_id = #{badgeId}
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="selectRecentlyAchievedBadges" resultMap="userBadgeResultMap">
+        SELECT * FROM user_achievement WHERE user_id = #{userId}
+        ORDER BY achieve_time DESC LIMIT #{limit}
+    </select>
+
+    <select id="countUsersWithBadge" resultType="int">
+        SELECT COUNT(DISTINCT user_id) FROM user_achievement
+        WHERE badge_id = #{badgeId} AND progress >= 100
+    </select>
+
+    <select id="countAchievementsByUserAndDate" resultType="int">
+        SELECT COUNT(*) FROM user_achievement
+        WHERE user_id = #{userId}
+          AND DATE(achieve_time) BETWEEN #{startDate} AND #{endDate}
     </select>
 
     <select id="existsByUserIdAndBadgeId" resultType="boolean">
@@ -91,7 +107,8 @@
     </select>
 
     <select id="selectUserBadgesByUserId" resultMap="userBadgeResultMap">
-        SELECT * FROM user_achievement WHERE user_id = #{userId} ORDER BY achieve_time DESC
+        SELECT * FROM user_achievement WHERE user_id = #{userId}
+        ORDER BY achieve_time DESC
     </select>
 
     <insert id="insertUserBadge" useGeneratedKeys="true" keyProperty="id">
@@ -100,8 +117,7 @@
     </insert>
 
     <select id="selectUserBadge" resultMap="userBadgeResultMap">
-        SELECT * FROM user_achievement 
+        SELECT * FROM user_achievement
         WHERE user_id = #{userId} AND badge_id = #{badgeId}
     </select>
-
 </mapper>

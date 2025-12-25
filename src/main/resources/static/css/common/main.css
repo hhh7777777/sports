@@ -1,66 +1,62 @@
+/* 主样式文件 */
 :root {
+    /* 主题变量 */
     --primary-color: #4361ee;
     --secondary-color: #3f37c9;
     --accent-color: #4cc9f0;
+    --success-color: #4ade80;
+    --warning-color: #facc15;
+    --danger-color: #f87171;
     --light-color: #f8f9fa;
     --dark-color: #212529;
+
+    /* 新年主题变量 */
+    --newyear-red: #d32f2f;
+    --newyear-orange: #f57c00;
+    --newyear-gold: #ffd700;
+
+    /* 布局变量 */
+    --sidebar-width: 250px;
+    --header-height: 56px;
+}
+
+/* 基础重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-    font-family: 'Microsoft YaHei', sans-serif;
-    background: var(--light-color);
-    color: var(--dark-color);
+    font-family: 'Segoe UI', Roboto, 'Microsoft YaHei', sans-serif;
+    line-height: 1.6;
+    background-color: var(--light-color);
+}
+
+/* 通用组件样式 */
+.common-navbar {
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.common-card {
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    border: none;
     transition: all 0.3s ease;
 }
 
-header {
-    background-color: var(--primary-color);
-    color: white;
+.common-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 
-.btn-primary {
-    background-color: var(--accent-color);
-    border-color: var(--accent-color);
-}
-
-.card {
-    background-color: white;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-}
-
-#theme-switch {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-}
-
-#theme-switch:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-}
-
-/* 轮播图样式 */
-.carousel-item {
-    background-size: cover;
-    background-position: center;
-}
-
-/* 响应式设计 */
+/* 响应式工具类 */
 @media (max-width: 768px) {
-    .hero-section h1 {
-        font-size: 2.5rem;
+    .mobile-hidden {
+        display: none !important;
     }
 
-    .hero-section .btn {
-        width: 100%;
-        margin-bottom: 10px;
+    .mobile-full {
+        width: 100% !important;
     }
 }

@@ -67,7 +67,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             record.setCreateTime(LocalDateTime.now());
             record.setUpdateTime(LocalDateTime.now());
 
-            int result = behaviorMapper.insertBehaviorRecord(record);
+            int result = behaviorMapper.insert(record);
             if (result > 0) {
                 log.info("行为记录添加成功：记录ID={}", record.getRecordId());
                 return ResponseDTO.success("行为记录添加成功", record.getRecordId());
@@ -87,7 +87,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (recordId == null) {
                 return null;
             }
-            return behaviorMapper.selectBehaviorRecordById(recordId);
+            return behaviorMapper.selectById(recordId);
         } catch (Exception e) {
             log.error("根据ID获取行为记录异常: recordId={}", recordId, e);
             return null;
@@ -100,7 +100,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (userId == null) {
                 return List.of();
             }
-            return behaviorMapper.selectBehaviorRecordsByUserId(userId);
+            return behaviorMapper.selectByUserId(userId);
         } catch (Exception e) {
             log.error("根据用户ID获取行为记录异常: userId={}", userId, e);
             return List.of();
@@ -113,7 +113,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (userId == null || startDate == null || endDate == null) {
                 return List.of();
             }
-            return behaviorMapper.selectBehaviorRecordsByUserAndDate(userId, startDate, endDate);
+            return behaviorMapper.selectByUserAndDate(userId, startDate, endDate);
         } catch (Exception e) {
             log.error("根据用户ID和日期范围获取行为记录异常: userId={}, startDate={}, endDate={}", userId, startDate, endDate, e);
             return List.of();
@@ -154,7 +154,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (startDate == null || endDate == null) {
                 return List.of();
             }
-            return behaviorMapper.selectBehaviorRecordsByDate(startDate, endDate);
+            return behaviorMapper.selectByDate(startDate, endDate);
         } catch (Exception e) {
             log.error("根据日期范围获取行为记录异常: startDate={}, endDate={}", startDate, endDate, e);
             return List.of();
@@ -164,7 +164,7 @@ public class BehaviorServiceImpl implements BehaviorService {
     @Override
     public int getTotalBehaviorRecords() {
         try {
-            return behaviorMapper.selectTotalBehaviorRecords();
+            return behaviorMapper.selectTotalCount();
         } catch (Exception e) {
             log.error("获取行为记录总数异常", e);
             return 0;
@@ -177,7 +177,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (typeId == null || startDate == null || endDate == null) {
                 return 0;
             }
-            return behaviorMapper.selectBehaviorCountByTypeAndDate(typeId, startDate, endDate);
+            return behaviorMapper.countByTypeAndDate(typeId, startDate, endDate);
         } catch (Exception e) {
             log.error("获取行为记录数量异常: typeId={}, startDate={}, endDate={}", typeId, startDate, endDate, e);
             return 0;
@@ -310,7 +310,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             }
 
             record.setUpdateTime(LocalDateTime.now());
-            int result = behaviorMapper.updateBehaviorRecord(record);
+            int result = behaviorMapper.updateById(record);
             if (result > 0) {
                 log.info("行为记录更新成功：记录ID={}", record.getRecordId());
                 return ResponseDTO.success("行为记录更新成功");
@@ -333,7 +333,7 @@ public class BehaviorServiceImpl implements BehaviorService {
                 return ResponseDTO.error("记录ID不能为空");
             }
 
-            int result = behaviorMapper.deleteBehaviorRecord(recordId);
+            int result = behaviorMapper.deleteById(recordId);
             if (result > 0) {
                 log.info("行为记录删除成功：记录ID={}", recordId);
                 return ResponseDTO.success("行为记录删除成功");
@@ -378,7 +378,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             totalDuration = totalDuration != null ? totalDuration : 0;
 
             // 获取本周行为记录数量
-            List<Behavior> weeklyRecords = behaviorMapper.selectBehaviorRecordsByUserAndDate(userId, weekStart, weekEnd);
+            List<Behavior> weeklyRecords = behaviorMapper.selectByUserAndDate(userId, weekStart, weekEnd);
             int recordCount = weeklyRecords != null ? weeklyRecords.size() : 0;
 
             statistics.put("weekStart", weekStart);
@@ -412,7 +412,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             totalDuration = totalDuration != null ? totalDuration : 0;
 
             // 获取本月行为记录数量
-            List<Behavior> monthlyRecords = behaviorMapper.selectBehaviorRecordsByUserAndDate(userId, monthStart, monthEnd);
+            List<Behavior> monthlyRecords = behaviorMapper.selectByUserAndDate(userId, monthStart, monthEnd);
             int recordCount = monthlyRecords != null ? monthlyRecords.size() : 0;
 
             statistics.put("monthStart", monthStart);
@@ -431,7 +431,7 @@ public class BehaviorServiceImpl implements BehaviorService {
     @Override
     public List<Behavior> getAllBehaviors() {
         try {
-            return behaviorMapper.selectAllBehaviorRecords();
+            return behaviorMapper.selectAll();
         } catch (Exception e) {
             log.error("获取所有行为记录异常", e);
             return List.of();
@@ -444,7 +444,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (typeId == null) {
                 return List.of();
             }
-            return behaviorMapper.selectBehaviorRecordsByTypeId(typeId);
+            return behaviorMapper.selectByTypeId(typeId);
         } catch (Exception e) {
             log.error("根据类型ID获取行为记录异常: typeId={}", typeId, e);
             return List.of();
@@ -457,7 +457,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (userId == null || typeId == null) {
                 return List.of();
             }
-            return behaviorMapper.selectBehaviorRecordsByUserAndTypeId(userId, typeId);
+            return behaviorMapper.selectByUserAndTypeId(userId, typeId);
         } catch (Exception e) {
             log.error("根据用户ID和类型ID获取行为记录异常: userId={}, typeId={}", userId, typeId, e);
             return List.of();
@@ -470,7 +470,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (typeId == null || startDate == null || endDate == null) {
                 return List.of();
             }
-            return behaviorMapper.selectBehaviorRecordsByTypeAndDate(typeId, startDate, endDate);
+            return behaviorMapper.selectByTypeAndDate(typeId, startDate, endDate);
         } catch (Exception e) {
             log.error("根据类型ID和日期范围获取行为记录异常: typeId={}, startDate={}, endDate={}", typeId, startDate, endDate, e);
             return List.of();
@@ -483,7 +483,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             if (userId == null || typeId == null || startDate == null || endDate == null) {
                 return List.of();
             }
-            return behaviorMapper.selectBehaviorRecordsByUserTypeAndDate(userId, typeId, startDate, endDate);
+            return behaviorMapper.selectByUserTypeAndDate(userId, typeId, startDate, endDate);
         } catch (Exception e) {
             log.error("根据用户ID、类型ID和日期范围获取行为记录异常: userId={}, typeId={}, startDate={}, endDate={}", userId, typeId, startDate, endDate, e);
             return List.of();

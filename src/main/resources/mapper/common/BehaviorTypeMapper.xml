@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hongyuting.sports.mapper.BehaviorTypeMapper">
-    <resultMap id="behaviorTypeResultMap" type="BehaviorType">
+
+    <resultMap id="behaviorTypeResultMap" type="com.hongyuting.sports.entity.BehaviorType">
         <id property="typeId" column="type_id"/>
         <result property="typeName" column="type_name"/>
         <result property="description" column="description"/>
@@ -11,37 +12,48 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
-    <insert id="insertBehaviorType" useGeneratedKeys="true" keyProperty="typeId">
+    <!-- 继承BaseMapper的通用方法 -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="typeId">
         INSERT INTO behavior_type (type_name, description, icon_url, create_time, update_time)
         VALUES (#{typeName}, #{description}, #{iconUrl}, #{createTime}, #{updateTime})
     </insert>
 
-    <update id="updateBehaviorType">
+    <delete id="deleteById">
+        DELETE FROM behavior_type WHERE type_id = #{typeId}
+    </delete>
+
+    <update id="updateById">
         UPDATE behavior_type SET
-            type_name = #{typeName},
-            description = #{description},
-            icon_url = #{iconUrl},
-            update_time = #{updateTime}
+                                 type_name = #{typeName},
+                                 description = #{description},
+                                 icon_url = #{iconUrl},
+                                 update_time = #{updateTime}
         WHERE type_id = #{typeId}
     </update>
 
-    <update id="disableBehaviorType">
-        UPDATE behavior_type SET status = 0, update_time = NOW() WHERE type_id = #{typeId}
-    </update>
-
-    <select id="selectBehaviorTypeById" resultMap="behaviorTypeResultMap">
+    <select id="selectById" resultMap="behaviorTypeResultMap">
         SELECT * FROM behavior_type WHERE type_id = #{typeId}
     </select>
 
-    <select id="selectBehaviorTypeByName" resultMap="behaviorTypeResultMap">
-        SELECT * FROM behavior_type WHERE type_name = #{typeName}
-    </select>
-
-    <select id="selectAllBehaviorTypes" resultMap="behaviorTypeResultMap">
+    <select id="selectAll" resultMap="behaviorTypeResultMap">
         SELECT * FROM behavior_type WHERE status = 1
     </select>
 
-    <select id="selectAllBehaviorTypesIncludeDisabled" resultMap="behaviorTypeResultMap">
+    <select id="selectTotalCount" resultType="int">
+        SELECT COUNT(*) FROM behavior_type WHERE status = 1
+    </select>
+
+    <!-- 特有方法 -->
+    <select id="selectByName" resultMap="behaviorTypeResultMap">
+        SELECT * FROM behavior_type WHERE type_name = #{typeName}
+    </select>
+
+    <update id="disable">
+        UPDATE behavior_type SET status = 0, update_time = NOW()
+        WHERE type_id = #{typeId}
+    </update>
+
+    <select id="selectAllIncludeDisabled" resultMap="behaviorTypeResultMap">
         SELECT * FROM behavior_type
     </select>
 </mapper>

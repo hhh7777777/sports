@@ -16,10 +16,8 @@ public class RedisConfig {
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(factory);
-
         // 使用FastJSON序列化
         GenericFastJsonRedisSerializer fastJsonRedisSerializer = new GenericFastJsonRedisSerializer();
-
         // key采用String的序列化方式
         template.setKeySerializer(new StringRedisSerializer());
         // value序列化方式采用FastJSON
@@ -28,10 +26,8 @@ public class RedisConfig {
         template.setHashKeySerializer(new StringRedisSerializer());
         // hash的value序列化方式采用FastJSON
         template.setHashValueSerializer(fastJsonRedisSerializer);
-
         // 设置默认序列化方式
         template.setDefaultSerializer(fastJsonRedisSerializer);
-
         // 启用事务支持
         template.setEnableTransactionSupport(true);
         template.afterPropertiesSet();

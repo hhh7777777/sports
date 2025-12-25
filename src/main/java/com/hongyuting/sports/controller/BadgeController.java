@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BadgeController {
     /**
-     * 徽章服务
+     * 徽章服务类
      */
     private final BadgeService badgeService;
 
@@ -124,7 +124,7 @@ public class BadgeController {
     }
 
     /**
-     * 获取最近获得的成就
+     * 获取用户最近获得的成就
      */
     @GetMapping("/recent-achievements")
     public ResponseDTO getRecentAchievements(@RequestAttribute Integer userId,
@@ -135,7 +135,7 @@ public class BadgeController {
     }
 
     /**
-     * 检查是否拥有某个徽章
+     * 检查用户是否拥有某个徽章
      */
     @GetMapping("/check/{badgeId}")
     public ResponseDTO checkBadgeOwnership(@PathVariable Integer badgeId,

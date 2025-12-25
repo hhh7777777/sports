@@ -13,11 +13,14 @@ import com.hongyuting.sports.service.BadgeService;
 import com.hongyuting.sports.service.BehaviorService;
 import com.hongyuting.sports.service.FileUploadService;
 import com.hongyuting.sports.service.UserService;
+import com.hongyuting.sports.util.CaptchaUtil;
 import com.hongyuting.sports.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
@@ -45,11 +48,14 @@ public class AdminController {
     private final UserService userService;
     private final FileUploadService fileUploadService;
     private final JwtUtil jwtUtil;
+    private final com.hongyuting.sports.mapper.AdminLogMapper adminLogMapper;
     
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminController.class);
     /**
      * 使用验证码工具类
      */
+    @Setter
+    @Getter
     @Autowired
     private com.hongyuting.sports.util.CaptchaUtil captchaUtil;
     
@@ -179,33 +185,21 @@ public class AdminController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size) {
 
-        List<AdminLog> allLogs = adminService.getAdminLogs(adminId, operation, startTime, endTime);
-        
-        if (allLogs == null) {
-            allLogs = new ArrayList<>();
-        }
-        
-        // 计算总记录数
-        int totalCount = allLogs.size();
+        // 使用数据库级别的分页查询
+        int totalCount = adminLogMapper.selectCountByCondition(adminId, operation, startTime, endTime);
         
         // 计算总页数
         int totalPages = (int) Math.ceil((double) totalCount / size);
         
+        // 验证页码参数
+        if (page < 1) page = 1;
+        if (size < 1) size = 10;
+        
         // 计算起始索引
-        int startIndex = (page - 1) * size;
-        if (startIndex >= totalCount) {
-            startIndex = 0;
-            page = 1;
-        }
+        int offset = (page - 1) * size;
         
-        // 计算结束索引
-        int endIndex = Math.min(startIndex + size, totalCount);
-        
-        // 获取当前页数据
-        List<AdminLog> pagedLogs = new ArrayList<>();
-        if (startIndex < endIndex) {
-            pagedLogs = allLogs.subList(startIndex, endIndex);
-        }
+        // 使用分页查询获取当前页数据，使用相同条件
+        List<AdminLog> pagedLogs = adminLogMapper.selectByConditionWithPaging(adminId, operation, startTime, endTime, offset, size);
         
         // 构造分页结果
         Map<String, Object> result = new HashMap<>();

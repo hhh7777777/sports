@@ -25,7 +25,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Override
     public List<Badge> getAllBadges() {
         try {
-            return badgeMapper.selectAllBadges();
+            return badgeMapper.selectAll();
         } catch (Exception e) {
             log.error("获取所有徽章失败", e);
             return null;
@@ -45,13 +45,13 @@ public class BadgeServiceImpl implements BadgeService {
             }
 
             // 检查徽章名称是否已存在
-            List<Badge> existingBadges = badgeMapper.selectBadgesByName(badge.getBadgeName());
+            List<Badge> existingBadges = badgeMapper.selectByName(badge.getBadgeName());
             if (existingBadges != null && !existingBadges.isEmpty()) {
                 return ResponseDTO.error("徽章名称已存在");
             }
 
             // 插入徽章
-            int result = badgeMapper.insertBadge(badge);
+            int result = badgeMapper.insert(badge);
             if (result > 0) {
                 log.info("添加徽章成功：徽章ID={}", badge.getBadgeId());
                 return ResponseDTO.success("添加徽章成功");
@@ -74,13 +74,13 @@ public class BadgeServiceImpl implements BadgeService {
             }
 
             // 检查徽章是否存在
-            Badge existingBadge = badgeMapper.selectBadgeById(badge.getBadgeId());
+            Badge existingBadge = badgeMapper.selectById(badge.getBadgeId());
             if (existingBadge == null) {
                 return ResponseDTO.error("徽章不存在");
             }
 
             // 更新徽章
-            int result = badgeMapper.updateBadge(badge);
+            int result = badgeMapper.updateById(badge);
             if (result > 0) {
                 log.info("更新徽章成功：徽章ID={}", badge.getBadgeId());
                 return ResponseDTO.success("更新徽章成功");
@@ -103,7 +103,7 @@ public class BadgeServiceImpl implements BadgeService {
             }
 
             // 删除徽章
-            int result = badgeMapper.deleteBadge(badgeId);
+            int result = badgeMapper.deleteById(badgeId);
             if (result > 0) {
                 log.info("删除徽章成功：徽章ID={}", badgeId);
                 return ResponseDTO.success("删除徽章成功");
@@ -123,7 +123,7 @@ public class BadgeServiceImpl implements BadgeService {
             if (badgeId == null) {
                 return null;
             }
-            return badgeMapper.selectBadgeById(badgeId);
+            return badgeMapper.selectById(badgeId);
         } catch (Exception e) {
             log.error("获取徽章详情失败：徽章ID={}", badgeId, e);
             return null;
@@ -134,9 +134,9 @@ public class BadgeServiceImpl implements BadgeService {
     public List<Badge> getBadgesByType(String badgeType) {
         try {
             if (!StringUtils.hasText(badgeType)) {
-                return badgeMapper.selectAllBadges();
+                return badgeMapper.selectAll();
             }
-            return badgeMapper.selectBadgesByType(badgeType);
+            return badgeMapper.selectByType(badgeType);
         } catch (Exception e) {
             log.error("根据类型获取徽章失败：类型={}", badgeType, e);
             return null;
@@ -149,7 +149,7 @@ public class BadgeServiceImpl implements BadgeService {
             if (!StringUtils.hasText(name)) {
                 return null;
             }
-            return badgeMapper.selectBadgesByName(name);
+            return badgeMapper.selectByName(name);
         } catch (Exception e) {
             log.error("根据名称获取徽章失败：名称={}", name, e);
             return null;
@@ -159,7 +159,7 @@ public class BadgeServiceImpl implements BadgeService {
     @Override
     public Integer getTotalBadgeCount() {
         try {
-            return badgeMapper.selectTotalBadgeCount();
+            return badgeMapper.selectTotalCount();
         } catch (Exception e) {
             log.error("获取徽章总数失败", e);
             return 0;
@@ -225,7 +225,7 @@ public class BadgeServiceImpl implements BadgeService {
             if (!StringUtils.hasText(conditionType)) {
                 return List.of();
             }
-            return badgeMapper.selectBadgesByConditionType(conditionType);
+            return badgeMapper.selectByConditionType(conditionType);
         } catch (Exception e) {
             log.error("根据条件类型获取徽章失败：条件类型={}", conditionType, e);
             return List.of();
@@ -238,7 +238,7 @@ public class BadgeServiceImpl implements BadgeService {
             if (level == null) {
                 return List.of();
             }
-            return badgeMapper.selectBadgesByLevel(level);
+            return badgeMapper.selectByLevel(level);
         } catch (Exception e) {
             log.error("根据等级获取徽章失败：等级={}", level, e);
             return List.of();
@@ -253,7 +253,7 @@ public class BadgeServiceImpl implements BadgeService {
             }
 
             // 检查徽章是否存在
-            Badge badge = badgeMapper.selectBadgeById(badgeId);
+            Badge badge = badgeMapper.selectById(badgeId);
             if (badge == null) {
                 return ResponseDTO.error("徽章不存在");
             }
