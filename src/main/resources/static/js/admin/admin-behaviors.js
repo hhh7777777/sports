@@ -272,18 +272,6 @@ async function deleteBehavior(behaviorId) {
     }
 }
 
-// 辅助函数：根据活动类型获取类型ID
-function getActivityTypeId(activityType) {
-    // 这里应该从后端获取真实的类型ID映射
-    // 目前使用硬编码的映射作为临时解决方案
-    const typeMap = {
-        'running': 1,
-        'swimming': 2,
-        'cycling': 3
-    };
-    return typeMap[activityType] || 1;
-}
-
 function showAlert(message, type) {
     // 创建提示元素
     const alertDiv = document.createElement('div');

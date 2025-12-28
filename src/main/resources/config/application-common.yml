@@ -1,0 +1,31 @@
+# 通用配置
+spring:
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+
+# MyBatis配置
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.hongyuting.sports.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: true
+
+# 应用自定义配置
+app:
+  upload-dir: ./uploads/
+  captcha:
+    length: 4
+    expire-minutes: 5
+  security:
+    jwt:
+      secret: ${JWT_SECRET:hongyuting_sports_secret_key_2025_secure}
+      expiration: 86400000
+      refresh-expiration: 2592000000

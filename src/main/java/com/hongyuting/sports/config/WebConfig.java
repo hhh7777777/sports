@@ -16,20 +16,13 @@ import java.util.List;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-    /**
-     * 认证拦截器
-     */
+    /** 认证拦截器*/
     @Autowired
     private AuthInterceptor authInterceptor;
-    /**
-     * 日志拦截器
-     */
+    /**日志拦截器*/
     @Autowired
     private LogInterceptor logInterceptor;
-
-    /**
-     * 添加拦截器
-     */
+    /**添加认证拦截器*/
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 认证拦截器（保护需要登录的接口）

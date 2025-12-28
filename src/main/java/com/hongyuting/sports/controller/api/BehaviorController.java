@@ -8,6 +8,7 @@ import com.hongyuting.sports.service.BehaviorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -167,5 +168,13 @@ public class BehaviorController {
     public ResponseDTO getMonthlyStatistics(@RequestParam Integer userId) {
         Map<String, Object> statistics = behaviorService.getMonthlyStatistics(userId);
         return ResponseDTO.success("获取成功", statistics);
+    }
+    
+    /**
+     * 上传行为记录图片
+     */
+    @PostMapping("/upload-image")
+    public ResponseDTO uploadBehaviorImage(@RequestParam("file") MultipartFile file) {
+        return behaviorService.uploadBehaviorImage(file);
     }
 }
