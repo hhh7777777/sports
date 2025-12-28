@@ -6,6 +6,7 @@
     <title>运动记录</title>
     <link href="/libs/bootstrap/5.3.0/bootstrap.min.css" rel="stylesheet">
     <link href="/libs/fontawesome/6.0.0/all.min.css" rel="stylesheet">
+    <link href="/libs/flatpickr/flatpickr.min.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #4361ee;
@@ -234,17 +235,21 @@
                                     </div>
                                 </div>
                                 <div class="row">
+                                    <div class="col-md-3 mb-3">
+                                        <label for="calories" class="form-label">消耗卡路里</label>
+                                        <input type="number" class="form-control" id="calories" name="calories" min="0">
+                                    </div>
                                     <div class="col-md-6 mb-3">
                                         <label for="content" class="form-label">备注</label>
                                         <textarea class="form-control" id="content" name="content" rows="2" placeholder="记录本次运动的感受..."></textarea>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-3 mb-3">
                                         <label for="imageUpload" class="form-label">运动图片</label>
                                         <input type="file" class="form-control" id="imageUpload" accept="image/*">
                                         <div class="form-text">支持 JPG, PNG 格式图片</div>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" id="saveActivityBtn">
                                     <i class="fas fa-save me-2"></i>保存记录
                                 </button>
                             </form>
@@ -267,6 +272,27 @@
                             </div>
                         </div>
                         <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label for="startDate" class="form-label">开始日期</label>
+                                    <input type="text" class="form-control" id="startDate" placeholder="选择开始日期">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="endDate" class="form-label">结束日期</label>
+                                    <input type="text" class="form-control" id="endDate" placeholder="选择结束日期">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="activityType" class="form-label">活动类型</label>
+                                    <select class="form-select" id="activityType">
+                                        <option value="">全部类型</option>
+                                        <option th:each="type : ${behaviorTypes}" th:value="${type.typeId}" th:text="${type.typeName}">跑步</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button class="btn btn-primary me-2" id="filterBtn">筛选</button>
+                                    <button class="btn btn-secondary" id="resetFilterBtn">重置</button>
+                                </div>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table table-hover">
                                     <thead>
