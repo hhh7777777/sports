@@ -192,7 +192,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text me-3">
-                    欢迎，<span th:text="${currentUser.username} ?: '用户'" id="userName">用户</span>
+                    欢迎，<span th:text="${currentUser != null and currentUser.username != null} ? ${currentUser.username} : '用户'" id="userName">用户</span>
                 </span>
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle user-dropdown" href="#" role="button" data-bs-toggle="dropdown">
@@ -393,6 +393,6 @@
     /*]]>*/
 </script>
 <script src="/js/modules/common.js"></script>
-<script src="/js/user/achievements.js"></script>
+<script src="/js/user/user-achievements.js"></script>
 </body>
 </html>

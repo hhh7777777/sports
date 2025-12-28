@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const registerForm = document.getElementById('registerForm');
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirmPassword');
-    const passwordStrength = document.getElementById('passwordStrength');
+    const passwordStrength = document.getElementById('passwordStrengthMeter');
     const captchaImage = document.getElementById('captchaImage');
 
     // 初始化验证码
@@ -73,22 +73,23 @@ document.addEventListener('DOMContentLoaded', function() {
         if (/[0-9]/.test(password)) strength++;
         if (/[^A-Za-z0-9]/.test(password)) strength++;
 
-        passwordStrength.className = 'password-strength';
+        const strengthMeter = passwordStrength;
+        strengthMeter.className = 'strength-meter';
 
         if (password.length === 0) {
-            passwordStrength.style.width = '0%';
+            strengthMeter.style.width = '0%';
         } else if (strength <= 1) {
-            passwordStrength.className += ' strength-weak';
-            passwordStrength.style.width = '25%';
+            strengthMeter.className += ' strength-weak';
+            strengthMeter.style.width = '25%';
         } else if (strength === 2) {
-            passwordStrength.className += ' strength-medium';
-            passwordStrength.style.width = '50%';
+            strengthMeter.className += ' strength-medium';
+            strengthMeter.style.width = '50%';
         } else if (strength === 3) {
-            passwordStrength.className += ' strength-strong';
-            passwordStrength.style.width = '75%';
+            strengthMeter.className += ' strength-strong';
+            strengthMeter.style.width = '75%';
         } else {
-            passwordStrength.className += ' strength-very-strong';
-            passwordStrength.style.width = '100%';
+            strengthMeter.className += ' strength-very-strong';
+            strengthMeter.style.width = '100%';
         }
     }
 
@@ -136,7 +137,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 验证条款同意
-        if (!document.getElementById('agreeTerms').checked) {
+        const agreeTermsElement = document.getElementById('agreeTerms');
+        if (!agreeTermsElement || !agreeTermsElement.checked) {
             showAlert('请同意服务条款和隐私政策', 'danger');
             isValid = false;
         }
@@ -160,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 验证码刷新功能
     function refreshCaptcha() {
-        const captchaImage = document.getElementById('captchaImg');
+        const captchaImage = document.getElementById('captchaImage');
         if (captchaImage) {
             captchaImage.src = '/api/common/captcha?t=' + new Date().getTime();
         }
@@ -169,23 +171,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始化验证码点击事件
     captchaImage && captchaImage.addEventListener('click', refreshCaptcha);
 
-    // 页面加载时初始化验证码
-    window.addEventListener('load', refreshCaptcha);
-
     function showAlert(message, type) {
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} mt-3`;
-        alertDiv.textContent = message;
-
-        const existingAlert = registerForm.querySelector('.alert');
-        if (existingAlert) {
-            existingAlert.replaceWith(alertDiv);
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const messageArea = document.getElementById('messageArea');
+        
+        // 隐藏所有消息
+        if (successMessage) successMessage.style.display = 'none';
+        if (errorMessage) errorMessage.style.display = 'none';
+        
+        if (type === 'success') {
+            if (successMessage) {
+                document.getElementById('successText').textContent = message;
+                successMessage.style.display = 'block';
+            }
         } else {
-            registerForm.appendChild(alertDiv);
+            if (errorMessage) {
+                document.getElementById('errorText').textContent = message;
+                errorMessage.style.display = 'block';
+            }
         }
-
+        
+        if (messageArea) {
+            messageArea.style.display = 'block';
+        }
+        
+        // 3秒后自动隐藏消息
         setTimeout(() => {
-            alertDiv.remove();
+            if (messageArea) messageArea.style.display = 'none';
         }, 3000);
     }
 });

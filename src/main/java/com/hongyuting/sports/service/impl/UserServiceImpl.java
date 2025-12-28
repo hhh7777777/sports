@@ -256,11 +256,21 @@ public class UserServiceImpl implements UserService {
                 return ResponseDTO.error("Token不能为空");
             }
             
+            // 如果Token以"Bearer "开头，则去掉前缀
+            String actualToken = token;
+            if (token.startsWith("Bearer ")) {
+                actualToken = token.substring(7);
+            }
+            
+            // 验证JWT Token格式是否有效
+            if (!jwtUtil.validateToken(actualToken)) {
+                return ResponseDTO.error("Token格式无效");
+            }
+            
             // 从Redis中删除Token (使用TokenService)
-            tokenService.deleteToken(token.replace("Bearer ", ""));
+            tokenService.deleteToken(actualToken);
             
             // 获取用户ID用于记录日志
-            String actualToken = token.replace("Bearer ", "");
             Integer userId = jwtUtil.getUserIdFromToken(actualToken);
             if (userId != null) {
                 // 记录退出日志
@@ -304,7 +314,7 @@ public class UserServiceImpl implements UserService {
             }
 
             // 首先验证JWT Token格式是否有效
-            if (jwtUtil.validateToken(actualToken)) {
+            if (!jwtUtil.validateToken(actualToken)) {
                 return ResponseDTO.error("Token格式无效");
             }
 
@@ -347,6 +357,11 @@ public class UserServiceImpl implements UserService {
             String actualToken = token;
             if (token.startsWith("Bearer ")) {
                 actualToken = token.substring(7);
+            }
+
+            // 首先验证JWT Token格式是否有效
+            if (!jwtUtil.validateToken(actualToken)) {
+                return ResponseDTO.error("Token格式无效");
             }
 
             // 从Redis中获取用户信息 (使用TokenService)

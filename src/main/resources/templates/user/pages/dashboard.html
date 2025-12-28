@@ -119,7 +119,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text me-3">
-                    欢迎，<span th:text="${currentUser.username} ?: '用户'" id="userName">用户</span>
+                    欢迎，<span th:text="${currentUser != null and currentUser.username != null} ? ${currentUser.username} : '用户'" id="userName">用户</span>
                 </span>
                 <div class="dropdown">
                     <a class="nav-link dropdown-toggle user-dropdown" href="#" role="button" data-bs-toggle="dropdown">
@@ -178,7 +178,7 @@
     
             <!-- 欢迎横幅 -->
             <div class="welcome-banner rounded">
-                <h2 class="mb-3">欢迎回来，<span th:text="${currentUser.username} ?: '用户'">用户</span>！</h2>
+                <h2 class="mb-3">欢迎回来，<span th:text="${currentUser != null and currentUser.username != null} ? ${currentUser.username} : '用户'">用户</span>！</h2>
                 <p class="mb-0">让我们看看您今天的健康数据和成就吧。</p>
             </div>
     
@@ -375,6 +375,6 @@
     /*]]>*/
 </script>
 <script src="/js/modules/common.js"></script>
-<script src="/js/user/dashboard.js"></script>
+<script src="/js/user/user-dashboard.js"></script>
 </body>
 </html>

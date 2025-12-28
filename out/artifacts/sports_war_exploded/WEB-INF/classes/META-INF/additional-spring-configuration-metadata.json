@@ -9,5 +9,35 @@
       "name": "server.spring.thymeleaf.cache",
       "type": "java.lang.String",
       "description": "Description for server.spring.thymeleaf.cache."
+    },
+    {
+      "name": "thymeleaf.cache",
+      "type": "java.lang.String",
+      "description": "Description for thymeleaf.cache."
+    },
+    {
+      "name": "thymeleaf.encoding",
+      "type": "java.lang.String",
+      "description": "Description for thymeleaf.encoding."
+    },
+    {
+      "name": "thymeleaf.mode",
+      "type": "java.lang.String",
+      "description": "Description for thymeleaf.mode."
+    },
+    {
+      "name": "thymeleaf.prefix",
+      "type": "java.lang.String",
+      "description": "Description for thymeleaf.prefix."
+    },
+    {
+      "name": "thymeleaf.suffix",
+      "type": "java.lang.String",
+      "description": "Description for thymeleaf.suffix."
+    },
+    {
+      "name": "thymeleaf.servlet.content-type",
+      "type": "java.lang.String",
+      "description": "Description for thymeleaf.servlet.content-type."
     }
   ] }

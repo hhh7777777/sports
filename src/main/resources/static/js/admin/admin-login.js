@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('adminLoginForm');
-    const captchaImg = document.getElementById('adminCaptchaImg');
+    const loginForm = document.getElementById('adminForm');
+    const captchaImage = document.getElementById('captchaImage');
 
     // 初始化验证码
     refreshCaptcha();
 
     // 验证码点击刷新
-    if (captchaImg) {
-        captchaImg.addEventListener('click', refreshCaptcha);
+    if (captchaImage) {
+        captchaImage.addEventListener('click', refreshCaptcha);
     }
 
     // 表单提交处理
@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
 
             const username = document.getElementById('adminUsername').value;
-            const password = document.getElementById('adminPassword').value;
-            const captcha = document.getElementById('adminCaptcha').value;
-            const rememberMe = document.getElementById('adminRememberMe').checked;
+            const password = document.getElementById('password').value;
+            const captcha = document.getElementById('captcha').value;
+            const rememberMe = document.getElementById('adminRememberMe') ? document.getElementById('adminRememberMe').checked : false;
 
             // 简单前端验证
             if (!username || !password || !captcha) {
@@ -65,31 +65,40 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function refreshCaptcha() {
-        const captchaImage = document.getElementById('adminCaptchaImg');
+        const captchaImage = document.getElementById('captchaImage');
         if (captchaImage) {
             captchaImage.src = '/api/common/captcha?t=' + new Date().getTime();
         }
     }
 
     function showAlert(message, type) {
-        // 移除现有的提示
-        const existingAlert = document.querySelector('.alert');
-        if (existingAlert) {
-            existingAlert.remove();
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const messageArea = document.getElementById('messageArea');
+        
+        // 隐藏所有消息
+        if (successMessage) successMessage.style.display = 'none';
+        if (errorMessage) errorMessage.style.display = 'none';
+        
+        if (type === 'success') {
+            if (successMessage) {
+                document.getElementById('successText').textContent = message;
+                successMessage.style.display = 'block';
+            }
+        } else {
+            if (errorMessage) {
+                document.getElementById('errorText').textContent = message;
+                errorMessage.style.display = 'block';
+            }
         }
-
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} mt-3`;
-        alertDiv.textContent = message;
-
-        const container = document.querySelector('.card-body');
-        const form = document.getElementById('adminLoginForm');
-        if (form) {
-            form.parentNode.insertBefore(alertDiv, form.nextSibling);
+        
+        if (messageArea) {
+            messageArea.style.display = 'block';
         }
-
+        
+        // 3秒后自动隐藏消息
         setTimeout(() => {
-            alertDiv.remove();
+            if (messageArea) messageArea.style.display = 'none';
         }, 3000);
     }
 });

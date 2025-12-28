@@ -2,6 +2,7 @@ package com.hongyuting.sports.config;
 
 import com.hongyuting.sports.interceptor.AuthInterceptor;
 import com.hongyuting.sports.interceptor.LogInterceptor;
+import com.hongyuting.sports.interceptor.PageAuthInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -19,6 +20,9 @@ public class WebConfig implements WebMvcConfigurer {
     /** 认证拦截器*/
     @Autowired
     private AuthInterceptor authInterceptor;
+    /**页面认证拦截器*/
+    @Autowired
+    private PageAuthInterceptor pageAuthInterceptor;
     /**日志拦截器*/
     @Autowired
     private LogInterceptor logInterceptor;
@@ -44,6 +48,19 @@ public class WebConfig implements WebMvcConfigurer {
                         // 排除静态资源
                         "/css/**", "/js/**", "/images/**",
                         "/static/**", "/uploads/**"
+                );
+                
+        // 页面认证拦截器（保护需要登录的页面）
+        registry.addInterceptor(pageAuthInterceptor)
+                .addPathPatterns("/dashboard", "/profile", "/behavior", "/achievements", "/user/**")
+                .excludePathPatterns(
+                        "/login",
+                        "/register",
+                        "/",
+                        "/index",
+                        "/newyear",
+                        "/admin/login",
+                        "/admin/**"
                 );
                 
         // 日志拦截器

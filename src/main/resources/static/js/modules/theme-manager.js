@@ -1,3 +1,6 @@
+/**
+ * 主题管理模块
+ */
 class ThemeManager {
     constructor() {
         this.themes = {
@@ -52,6 +55,18 @@ class ThemeManager {
     // 切换到默认主题
     enableNormalTheme() {
         this.applyTheme('normal');
+    }
+
+    // 更新主题UI显示
+    updateThemeUI() {
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            if (this.currentTheme === 'newyear') {
+                themeToggle.innerHTML = '<i class="fas fa-fire"></i><span class="theme-badge">新年</span>';
+            } else {
+                themeToggle.innerHTML = '<i class="fas fa-leaf"></i><span class="theme-badge">绿色</span>';
+            }
+        }
     }
 }
 

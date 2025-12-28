@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
-    const captchaImg = document.getElementById('captchaImg');
+    const captchaImage = document.getElementById('captchaImage');
 
     // 初始化验证码
     refreshCaptcha();
 
     // 验证码点击刷新
-    if (captchaImg) {
-        captchaImg.addEventListener('click', refreshCaptcha);
+    if (captchaImage) {
+        captchaImage.addEventListener('click', refreshCaptcha);
     }
 
     // 表单提交处理
@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const captcha = document.getElementById('captcha').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
+            const rememberMe = document.getElementById('loginRememberMe') ? document.getElementById('loginRememberMe').checked : false;
 
             // 简单前端验证
             if (!username || !password || !captcha) {
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     document.dispatchEvent(loginEvent);
 
-                    // 根据项目规范，登录成功后应返回首页而不是仪表板
+                    // 登录成功后留在首页并更新登录状态
                     window.location.href = '/';
                 } else {
                     showAlert(result.message || '登录失败', 'danger');
@@ -71,35 +71,40 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function refreshCaptcha() {
-        const captchaImage = document.getElementById('captchaImg');
+        const captchaImage = document.getElementById('captchaImage');
         if (captchaImage) {
             captchaImage.src = '/api/common/captcha?t=' + new Date().getTime();
         }
     }
 
     function showAlert(message, type) {
-        // 移除现有的提示
-        const existingAlert = document.querySelector('.alert');
-        if (existingAlert) {
-            existingAlert.remove();
-        }
-
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert alert-${type} mt-3`;
-        alertDiv.textContent = message;
-
-        const container = document.querySelector('.login-right') || document.querySelector('.container');
-        const form = document.getElementById('loginForm');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const messageArea = document.getElementById('messageArea');
         
-        if (container && form) {
-            container.insertBefore(alertDiv, form);
+        // 隐藏所有消息
+        if (successMessage) successMessage.style.display = 'none';
+        if (errorMessage) errorMessage.style.display = 'none';
+        
+        if (type === 'success') {
+            if (successMessage) {
+                document.getElementById('successText').textContent = message;
+                successMessage.style.display = 'block';
+            }
         } else {
-            // 如果找不到容器或表单，添加到body末尾
-            document.body.appendChild(alertDiv);
+            if (errorMessage) {
+                document.getElementById('errorText').textContent = message;
+                errorMessage.style.display = 'block';
+            }
         }
-
+        
+        if (messageArea) {
+            messageArea.style.display = 'block';
+        }
+        
+        // 3秒后自动隐藏消息
         setTimeout(() => {
-            alertDiv.remove();
+            if (messageArea) messageArea.style.display = 'none';
         }, 3000);
     }
 });
