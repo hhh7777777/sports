@@ -826,7 +826,27 @@ public class UserServiceImpl implements UserService {
             return new ArrayList<>();
         }
     }
-    
+
+    @Override
+    public boolean hasUserClaimedDailyGiftToday(Integer userId) {
+        return false;
+    }
+
+    @Override
+    public boolean hasUserCompletedActivityToday(Integer userId) {
+        return false;
+    }
+
+    @Override
+    public boolean addUserPoints(Integer userId, int points) {
+        return false;
+    }
+
+    @Override
+    public boolean recordDailyGiftClaim(Integer userId) {
+        return false;
+    }
+
     private String getClientIPFromToken(String token) {
         // 由于Token中没有IP信息，我们返回一个默认值
         // 实际应用中应该从请求上下文获取IP

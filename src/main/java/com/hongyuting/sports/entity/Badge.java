@@ -22,6 +22,33 @@ public class Badge {
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
     
+    // 前端显示相关字段
+    private Boolean achieved;
+    private Integer currentProgress;
+    private Integer requiredProgress;
+    
+    public String getRarity() {
+        // 根据徽章等级返回对应稀有度
+        if (level == null) {
+            return "common"; // 普通
+        }
+        
+        switch (level) {
+            case 1:
+                return "common"; // 普通
+            case 2:
+                return "uncommon"; // 不常见
+            case 3:
+                return "rare"; // 稀有
+            case 4:
+                return "epic"; // 史诗
+            case 5:
+                return "legendary"; // 传说
+            default:
+                return "common"; // 默认普通
+        }
+    }
+    
     public String getColor() {
         // 根据徽章等级返回对应颜色
         if (level == null) {

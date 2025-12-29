@@ -11,24 +11,22 @@ public class MvcConfig implements WebMvcConfigurer {
     public void addViewControllers(ViewControllerRegistry registry) {
         // 统一视图控制器配置
         registry.addRedirectViewController("/", "/index");
-        // 移除重复的用户页面映射，这些现在由PageController处理
-        // registry.addViewController("/user/login").setViewName("user/pages/login");
-        // registry.addViewController("/user/register").setViewName("user/pages/register");
-        // registry.addViewController("/user/dashboard").setViewName("user/pages/dashboard");
-        // registry.addViewController("/user/profile").setViewName("user/pages/profile");
-        // registry.addViewController("/user/behavior").setViewName("user/pages/behavior");
-        // registry.addViewController("/user/achievements").setViewName("user/pages/achievements");
+        registry.addViewController("/user/login").setViewName("user/pages/login");
+        registry.addViewController("/user/register").setViewName("user/pages/register");
+        registry.addViewController("/user/dashboard").setViewName("user/pages/dashboard");
+        registry.addViewController("/user/profile").setViewName("user/pages/profile");
+        registry.addViewController("/user/behavior").setViewName("user/pages/behavior");
+        registry.addViewController("/user/achievements").setViewName("user/pages/achievements");
 
-        // 管理员页面路由 - 保留这些映射，但最好也移到对应的控制器中
-        registry.addViewController("/admin").setViewName("forward:/admin/pages/dashboard");
-        // registry.addViewController("/admin/dashboard").setViewName("admin/pages/dashboard");
-        // registry.addViewController("/admin/login").setViewName("admin/pages/login");
-        // registry.addViewController("/admin/users").setViewName("admin/pages/users");
-        // registry.addViewController("/admin/behaviors").setViewName("admin/pages/behaviors");
-        // registry.addViewController("/admin/badges").setViewName("admin/pages/badges");
-        // registry.addViewController("/admin/logs").setViewName("admin/pages/logs");
+        // 管理员页面路由
+        registry.addViewController("/admin/dashboard").setViewName("admin/pages/dashboard");
+        registry.addViewController("/admin/login").setViewName("admin/pages/login");
+        registry.addViewController("/admin/users").setViewName("admin/pages/users");
+        registry.addViewController("/admin/behaviors").setViewName("admin/pages/behaviors");
+        registry.addViewController("/admin/badges").setViewName("admin/pages/badges");
+        registry.addViewController("/admin/logs").setViewName("admin/pages/logs");
         
-        // 活动页面路由 - 这个也移到PageController中了，可以移除
-        // registry.addViewController("/newyear").setViewName("newyear");
+        // 活动页面路由
+        registry.addViewController("/newyear").setViewName("newyear");
     }
 }

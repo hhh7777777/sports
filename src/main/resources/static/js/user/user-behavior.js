@@ -3,24 +3,50 @@ document.addEventListener('DOMContentLoaded', function() {
     checkAuth();
     
     // 绑定退出登录事件
-    document.getElementById('logoutBtn').addEventListener('click', function(e) {
-        e.preventDefault();
-        logout();
-    });
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            logout();
+        });
+    }
     
     // 初始化日期选择器
     initDatePickers();
     
-    // 绑定筛选表单提交事件
-    document.getElementById('filterForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        loadActivities();
-    });
+    // 绑定筛选按钮事件
+    const filterBtn = document.getElementById('filterBtn');
+    if (filterBtn) {
+        filterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            loadActivities();
+        });
+    }
+    
+    // 绑定重置按钮事件
+    const resetFilterBtn = document.getElementById('resetFilterBtn');
+    if (resetFilterBtn) {
+        resetFilterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const startDateInput = document.getElementById('startDate');
+            const endDateInput = document.getElementById('endDate');
+            const activityTypeInput = document.getElementById('activityType');
+            
+            if (startDateInput) startDateInput.value = '';
+            if (endDateInput) endDateInput.value = '';
+            if (activityTypeInput) activityTypeInput.value = '';
+            
+            loadActivities();
+        });
+    }
     
     // 绑定添加活动按钮事件
-    document.getElementById('saveActivityBtn').addEventListener('click', function() {
-        addActivity();
-    });
+    const saveActivityBtn = document.getElementById('saveActivityBtn');
+    if (saveActivityBtn) {
+        saveActivityBtn.addEventListener('click', function() {
+            addActivity();
+        });
+    }
     
     // 加载活动数据
     loadActivities();
@@ -103,11 +129,18 @@ async function logout() {
 }
 
 function initDatePickers() {
-    // 初始化日期选择器
-    flatpickr("#startDate, #endDate, #activityDate", {
-        locale: "zh",
-        dateFormat: "Y-m-d",
-    });
+    // 检查所需元素是否存在，然后再初始化日期选择器
+    const startDateElement = document.querySelector('#startDate');
+    const endDateElement = document.querySelector('#endDate');
+    const recordDateElement = document.querySelector('#recordDate');
+    
+    if (startDateElement || endDateElement || recordDateElement) {
+        // 至少有一个元素存在，才初始化日期选择器
+        flatpickr("#startDate, #endDate, #recordDate", {
+            locale: "zh",
+            dateFormat: "Y-m-d",
+        });
+    }
 }
 
 async function loadActivities() {
@@ -142,9 +175,13 @@ async function loadActivities() {
         
         // 构建查询参数
         let url = `/api/behavior/record/user/${userId}`;
-        const startDate = document.getElementById('startDate').value;
-        const endDate = document.getElementById('endDate').value;
-        const typeId = document.getElementById('activityType').value;
+        const startDateElement = document.getElementById('startDate');
+        const endDateElement = document.getElementById('endDate');
+        const activityTypeElement = document.getElementById('activityType');
+        
+        const startDate = startDateElement ? startDateElement.value : '';
+        const endDate = endDateElement ? endDateElement.value : '';
+        const typeId = activityTypeElement ? activityTypeElement.value : '';
         
         // 添加查询参数
         const params = new URLSearchParams();
@@ -189,6 +226,11 @@ async function loadActivities() {
 
 function renderActivities(activities) {
     const container = document.getElementById('activityList');
+    if (!container) {
+        console.error('找不到活动列表容器');
+        return;
+    }
+    
     container.innerHTML = '';
     
     if (!Array.isArray(activities) || activities.length === 0) {
@@ -278,20 +320,33 @@ function updateStatistics(activities) {
     });
     
     // 更新页面上的统计信息
-    document.getElementById('monthlyDuration').textContent = totalDuration;
-    document.getElementById('monthlyCount').textContent = totalCount;
-    document.getElementById('monthlyDistance').textContent = totalDistance.toFixed(1);
-    document.getElementById('monthlyCalories').textContent = Math.round(totalCalories);
+    const monthlyDurationElement = document.getElementById('monthlyDuration');
+    const monthlyCountElement = document.getElementById('monthlyCount');
+    const monthlyDistanceElement = document.getElementById('monthlyDistance');
+    const monthlyCaloriesElement = document.getElementById('monthlyCalories');
+    
+    if (monthlyDurationElement) monthlyDurationElement.textContent = totalDuration;
+    if (monthlyCountElement) monthlyCountElement.textContent = totalCount;
+    if (monthlyDistanceElement) monthlyDistanceElement.textContent = totalDistance.toFixed(1);
+    if (monthlyCaloriesElement) monthlyCaloriesElement.textContent = Math.round(totalCalories);
 }
 
 async function addActivity() {
-    const activityType = document.getElementById('newActivityType').value;
-    const activityDate = document.getElementById('activityDate').value;
-    const activityDuration = document.getElementById('activityDuration').value;
-    const activityDescription = document.getElementById('activityDescription').value;
-    const activityDistance = document.getElementById('activityDistance').value;
-    const activityCalories = document.getElementById('activityCalories').value;
-    const activityImage = document.getElementById('activityImage').files[0]; // 获取图片文件
+    const activityTypeElement = document.getElementById('behaviorType');
+    const activityDateElement = document.getElementById('recordDate');
+    const activityDurationElement = document.getElementById('duration');
+    const activityDescriptionElement = document.getElementById('content');
+    const activityDistanceElement = document.getElementById('distance');
+    const activityCaloriesElement = document.getElementById('calories');
+    const activityImageElement = document.getElementById('imageUpload');
+    
+    const activityType = activityTypeElement ? activityTypeElement.value : '';
+    const activityDate = activityDateElement ? activityDateElement.value : '';
+    const activityDuration = activityDurationElement ? activityDurationElement.value : '';
+    const activityDescription = activityDescriptionElement ? activityDescriptionElement.value : '';
+    const activityDistance = activityDistanceElement ? activityDistanceElement.value : '';
+    const activityCalories = activityCaloriesElement ? activityCaloriesElement.value : '';
+    const activityImage = activityImageElement ? activityImageElement.files[0] : null; // 获取图片文件
     
     if (!activityType || !activityDate || !activityDuration) {
         showAlert('请填写必填字段', 'warning');
@@ -384,8 +439,13 @@ async function addActivity() {
             showAlert('活动添加成功', 'success');
             
             // 关闭模态框
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addActivityModal'));
-            modal.hide();
+            const modalElement = document.getElementById('addActivityModal');
+            if (modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
+            }
             
             // 重新加载活动列表
             loadActivities();

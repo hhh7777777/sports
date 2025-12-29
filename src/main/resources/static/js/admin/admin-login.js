@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const username = document.getElementById('adminUsername').value;
             const password = document.getElementById('password').value;
             const captcha = document.getElementById('captcha').value;
-            const rememberMe = document.getElementById('adminRememberMe') ? document.getElementById('adminRememberMe').checked : false;
+            const rememberMeCheckbox = document.getElementById('adminRememberMe');
+            const rememberMe = rememberMeCheckbox ? rememberMeCheckbox.checked : false;
 
             // 简单前端验证
             if (!username || !password || !captcha) {
@@ -50,6 +51,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             sessionStorage.setItem('adminToken', result.data.token);
                         }
                     }
+
+                    // 触发登录成功事件，以便其他页面更新UI
+                    const loginEvent = new CustomEvent('userLoginSuccess', {
+                        detail: { token: result.data.token }
+                    });
+                    document.dispatchEvent(loginEvent);
 
                     // 跳转到管理员仪表板
                     window.location.href = '/admin/dashboard';

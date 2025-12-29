@@ -57,14 +57,15 @@ class ThemeManager {
         this.applyTheme('normal');
     }
 
-    // 更新主题UI显示
+    // 更新UI以匹配当前主题
     updateThemeUI() {
+        // 更新主题切换按钮显示
         const themeToggle = document.getElementById('themeToggle');
         if (themeToggle) {
             if (this.currentTheme === 'newyear') {
                 themeToggle.innerHTML = '<i class="fas fa-fire"></i><span class="theme-badge">新年</span>';
             } else {
-                themeToggle.innerHTML = '<i class="fas fa-leaf"></i><span class="theme-badge">绿色</span>';
+                themeToggle.innerHTML = '<i class="fas fa-leaf"></i><span class="theme-badge">普通</span>';
             }
         }
     }

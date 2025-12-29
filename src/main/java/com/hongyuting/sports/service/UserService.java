@@ -110,4 +110,24 @@ public interface UserService {
      * 获取用户增长趋势统计
      */
     List<Map<String, Object>> getUserGrowthStats(int months);
+    
+    /**
+     * 检查用户今天是否已经领取了每日礼物
+     */
+    boolean hasUserClaimedDailyGiftToday(Integer userId);
+    
+    /**
+     * 检查用户今天是否完成了活动（用于每日礼物条件）
+     */
+    boolean hasUserCompletedActivityToday(Integer userId);
+    
+    /**
+     * 为用户增加积分
+     */
+    boolean addUserPoints(Integer userId, int points);
+    
+    /**
+     * 记录用户领取每日礼物
+     */
+    boolean recordDailyGiftClaim(Integer userId);
 }

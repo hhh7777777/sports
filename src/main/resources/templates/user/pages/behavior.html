@@ -223,7 +223,7 @@
                                     </div>
                                     <div class="col-md-3 mb-3">
                                         <label for="recordDate" class="form-label">运动日期</label>
-                                        <input type="date" class="form-control" id="recordDate" name="recordDate" required>
+                                        <input type="text" class="form-control" id="recordDate" name="recordDate" required placeholder="选择日期">
                                     </div>
                                     <div class="col-md-3 mb-3">
                                         <label for="duration" class="form-label">运动时长(分钟)</label>
@@ -364,6 +364,8 @@
 </div>
 
 <script src="/libs/bootstrap/5.3.0/bootstrap.bundle.min.js"></script>
+<script src="/libs/flatpickr/flatpickr.min.js"></script>
+<script src="/libs/flatpickr/zh.js"></script>
 <script th:inline="javascript">
     /*<![CDATA[*/
     // 将服务端数据传递给JavaScript

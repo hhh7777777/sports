@@ -121,12 +121,12 @@ public class AdminController {
         String token = authHeader.substring(7); // 去掉"Bearer "前缀
         
         // 验证JWT Token格式是否有效
-        if (jwtUtil.validateToken(token)) {
+        if (!jwtUtil.validateToken(token)) {
             return ResponseDTO.error("认证令牌格式无效");
         }
 
         // 验证Token是否存在于Redis中
-        if (adminService.existsToken(token)) {
+        if (!adminService.existsToken(token)) {
             return ResponseDTO.error("认证令牌无效或已过期");
         }
 

@@ -212,11 +212,6 @@ public class AdminServiceImpl implements AdminService {
             if (!StringUtils.hasText(token)) {
                 return ResponseDTO.error("Token不能为空");
             }
-            
-            // 验证JWT Token格式是否有效
-            if (!jwtUtil.validateToken(token)) {
-                return ResponseDTO.error("Token格式无效");
-            }
 
             // 从Redis中删除Token
             tokenService.deleteAdminToken(token);
@@ -254,7 +249,7 @@ public class AdminServiceImpl implements AdminService {
                 return ResponseDTO.error("刷新令牌不能为空");
             }
             
-            if (!jwtUtil.validateToken(refreshToken)) {
+            if (jwtUtil.validateToken(refreshToken)) {
                 return ResponseDTO.error("刷新令牌无效");
             }
 
@@ -307,7 +302,7 @@ public class AdminServiceImpl implements AdminService {
             }
 
             // 验证管理员Token是否存在
-            return tokenService.existsAdminToken(token);
+            return !tokenService.existsAdminToken(token);
         } catch (Exception e) {
             log.error("验证管理员Token异常：", e);
             return true;

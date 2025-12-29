@@ -137,8 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 验证条款同意
-        const agreeTermsElement = document.getElementById('agreeTerms');
-        if (!agreeTermsElement || !agreeTermsElement.checked) {
+        if (!document.getElementById('agreeTerms').checked) {
             showAlert('请同意服务条款和隐私政策', 'danger');
             isValid = false;
         }

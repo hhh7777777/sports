@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const captcha = document.getElementById('captcha').value;
-            const rememberMe = document.getElementById('loginRememberMe') ? document.getElementById('loginRememberMe').checked : false;
+            const rememberMe = document.getElementById('rememberMe').checked;
 
             // 简单前端验证
             if (!username || !password || !captcha) {
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     document.dispatchEvent(loginEvent);
 
-                    // 登录成功后留在首页并更新登录状态
+                    // 根据项目规范，登录成功后应返回首页而不是仪表板
                     window.location.href = '/';
                 } else {
                     showAlert(result.message || '登录失败', 'danger');
